@@ -1,0 +1,31 @@
+server:
+  port: 24110
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/distcomp
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+#  datasource:
+#    driver-class-name: org.h2.Driver
+#    url: jdbc:h2:mem:db;MODE=Oracle;DB_CLOSE_ON_EXIT=TRUE;LOCK_TIMEOUT=5000
+#    username: sa
+#    password: sa
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    topics: InTopic,OutTopic
+
+#logging:
+#  level:
+#    org.hibernate: DEBUG
+
+rest-client:
+  post:
+    url: http://localhost:24130/api/v1.0/
