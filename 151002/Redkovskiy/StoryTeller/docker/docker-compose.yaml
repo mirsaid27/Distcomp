@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: storyteller-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRESQL_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRES_HOST: ${SERVICES_HOST}
+    volumes:
+      - ./data:/var/lib/postgresql/db/data
+    ports:
+      - ${POSTGRESQL_PORT}:${POSTGRESQL_PORT}
+  cassandra:
+    image: cassandra:latest
+    container_name: storyteller-cassandra
+    restart: always
+    environment:
+      CASSANDRA_USER: ${CASSANDRA_USERNAME}
+      CASSANDRA_PASSWORD: ${CASSANDRA_PASSWORD}
+      CASSANDRA_BROADCAST_ADDRESS: ${SERVICES_HOST}
+      CASSANDRA_BROADCAST_RPC_ADDRESS: ${SERVICES_HOST}
+    ports:
+      - ${CASSANDRA_PORT}:${CASSANDRA_PORT}
+    volumes:
+      - ./data:/var/lib/cassandra
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: storyteller-zookeeper
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - ${ZOOKEEPER_PORT}:${ZOOKEEPER_PORT}
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: storyteller-kafka
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - ${KAFKA_PORT}:${KAFKA_PORT}
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_PORT}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:${KAFKA_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  redis:
+    container_name: storyteller-redis
+    image: redis:latest
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}

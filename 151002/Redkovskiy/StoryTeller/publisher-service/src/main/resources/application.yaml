@@ -1,0 +1,23 @@
+server:
+  port: ${PUBLISHER_SERVICE_PORT}
+  error:
+    include-stacktrace: never
+    include-message: always
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${SERVICES_HOST}:${POSTGRESQL_PORT}/storyteller_db
+    username: ${POSTGRESQL_USERNAME}
+    password: ${POSTGRESQL_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${SERVICES_HOST}
+      port: ${REDIS_PORT}
+  kafka:
+    consumer:
+      group-id: groupId1
