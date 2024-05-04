@@ -14,12 +14,12 @@ import lombok.NoArgsConstructor;
 public class CommentRequestTo {
     int id;
 
-    @NotBlank
+    @NotNull
     @Schema(description = "айди твита", example = "1")
     @Min(value = 0)
     Integer tweetId;
 
-    @NotBlank
+    @NotNull
     @Schema(description = "Содержание коммента", example = "Сообщение")
     @Size(min = 2, max = 2048, message = "Incorrect content size")
     String content;
