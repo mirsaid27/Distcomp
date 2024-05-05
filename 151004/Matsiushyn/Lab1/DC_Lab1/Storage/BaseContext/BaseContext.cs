@@ -30,7 +30,7 @@ namespace DC_Lab1.DB.BaseDBContext
         {
             modelBuilder.Entity<Author>(entity =>
             {
-                entity.ToTable("tbl_Author");
+                entity.ToTable("tbl_author");
                 entity.HasIndex(e => e.Login, "IX_Authors_login").IsUnique();
 
                 entity.Property(e => e.Id)
@@ -44,7 +44,7 @@ namespace DC_Lab1.DB.BaseDBContext
 
             modelBuilder.Entity<Post>(entity =>
             {
-                entity.ToTable("tbl_Post");
+                entity.ToTable("tbl_post");
                 entity.Property(e => e.Id)
                     .ValueGeneratedOnAdd()
                     .HasColumnName("id");
@@ -56,7 +56,7 @@ namespace DC_Lab1.DB.BaseDBContext
 
             modelBuilder.Entity<Label>(entity =>
             {
-                entity.ToTable("tbl_Label");
+                entity.ToTable("tbl_label");
                 entity.HasIndex(e => e.Id, "IX_Labels_id").IsUnique();
 
                 entity.HasIndex(e => e.name, "IX_Labels_name").IsUnique();
@@ -69,7 +69,7 @@ namespace DC_Lab1.DB.BaseDBContext
 
             modelBuilder.Entity<Tweet>(entity =>
             {
-                entity.ToTable("tbl_Tweet");
+                entity.ToTable("tbl_tweet");
                 entity.HasIndex(e => e.Title, "IX_Tweets_title").IsUnique();
 
                 entity.Property(e => e.Id)
@@ -79,6 +79,7 @@ namespace DC_Lab1.DB.BaseDBContext
                 entity.Property(e => e.Created).HasColumnName("created");
                 entity.Property(e => e.Modified).HasColumnName("modified");
                 entity.Property(e => e.Title).HasColumnName("title");
+                entity.Property(e => e.authorId).HasColumnName("author_id");
 
                 entity.HasOne(d => d.Author).WithMany(p => p.Tweets).HasForeignKey(d => d.authorId);
             });

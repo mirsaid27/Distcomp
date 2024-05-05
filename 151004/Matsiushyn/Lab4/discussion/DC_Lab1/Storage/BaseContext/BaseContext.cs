@@ -25,7 +25,7 @@ namespace DC_Lab1.DB.BaseDBContext
 
             modelBuilder.Entity<Post>(entity =>
             {
-                entity.ToTable("tbl_Post");
+                entity.ToTable("tbl_post");
                 entity.Property(e => e.Id)
                     .ValueGeneratedOnAdd()
                     .HasColumnName("id");

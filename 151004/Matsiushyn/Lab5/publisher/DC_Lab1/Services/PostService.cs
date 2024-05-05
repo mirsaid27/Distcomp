@@ -120,9 +120,6 @@ namespace DC_Lab1.Services
 
         public IEnumerable<IResponseTo> GetAllEnt()
         {
-            var message = new Message<Null, string> { Value = "GetAllEnt" };
-            producer.ProduceAsync("InTopic", message).GetAwaiter().GetResult();
-
             client.BaseAddress = new Uri("http://localhost:24130/");
             var response = client.GetAsync("api/v1.0/posts").Result;
 
@@ -131,9 +128,6 @@ namespace DC_Lab1.Services
 
             var mappedResponses = postResponses.Select(_mapper.Map<PostResponseTo>);
 
-            var consumeResult = consumer.Consume();
-            consumer.Commit(consumeResult);
-            Console.WriteLine(consumeResult.Value);
 
             try
             {
