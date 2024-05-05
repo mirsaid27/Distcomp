@@ -1,14 +1,26 @@
 package com.example.rv.impl.note;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import com.example.rv.impl.news.News;
+import jakarta.persistence.*;
+import lombok.*;
 
-@Getter
-@Setter
-@Builder
+import java.math.BigInteger;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "tbl_note")
 public class Note {
-    Long id;
-    Long newsId;
-    String content;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private BigInteger id;
+
+    @JoinColumn(name = "news")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private News news;
+
+    @Column(name = "content")
+    private String content;
 }

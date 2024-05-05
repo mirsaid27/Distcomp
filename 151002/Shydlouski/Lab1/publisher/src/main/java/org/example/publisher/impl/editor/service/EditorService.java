@@ -26,8 +26,6 @@ public class EditorService {
 
     private final EditorMapperImpl editorMapper;
     private final String ENTITY_NAME = "editor";
-
-
     @Cacheable(cacheNames = "editors")
     public List<EditorResponseTo> getEditors(){
         List<Editor> editors = editorRepository.findAll();

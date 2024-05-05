@@ -1,71 +1,52 @@
 package com.example.rv.api.Controllers;
 
-import com.example.rv.impl.tweet.*;
-import jakarta.servlet.http.HttpServletResponse;
+import com.example.rv.api.exception.DuplicateEntityException;
+import com.example.rv.api.exception.EntityNotFoundException;
+import com.example.rv.impl.news.dto.NewsRequestTo;
+import com.example.rv.impl.news.dto.NewsResponseTo;
+import com.example.rv.impl.news.service.NewsService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
-@RequestMapping(value = "/api/v1.0")
+@RequestMapping(value = "/api/v1.0/news")
+@RequiredArgsConstructor
 public class NewsController {
 
     private final NewsService newsService;
 
-    public NewsController(NewsService newsService) {
-        this.newsService = newsService;
-    }
-
-    @RequestMapping(value = "/news", method = RequestMethod.GET)
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    List<NewsResponseTo> getTweets() {
-        return newsService.tweetMapper.tweetToResponseTo(newsService.tweetCrudRepository.getAll());
+    public List<NewsResponseTo> getNews() {
+        return newsService.getNews();
     }
 
-    @RequestMapping(value = "/news", method = RequestMethod.POST)
+    @GetMapping("/{id}")
+    public NewsResponseTo getNewsById(@PathVariable BigInteger id) throws EntityNotFoundException {
+        return newsService.getNewsById(id);
+    }
+
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    NewsResponseTo makeTweet(@RequestBody NewsRequestTo newsRequestTo) {
-
-        var toBack = newsService.tweetCrudRepository.save(
-                newsService.tweetMapper.dtoToEntity(newsRequestTo)
-        );
-
-        News news = toBack.orElse(null);
-
-        assert news != null;
-        return newsService.tweetMapper.tweetToResponseTo(news);
+    public NewsResponseTo createNews(@Valid @RequestBody NewsRequestTo newsRequestTo) throws EntityNotFoundException, DuplicateEntityException {
+        return newsService.saveNews(newsRequestTo);
     }
 
-    @RequestMapping(value = "/news/{id}", method = RequestMethod.GET)
-    NewsResponseTo getTweet(@PathVariable Long id) {
-        return newsService.tweetMapper.tweetToResponseTo(
-                Objects.requireNonNull(newsService.tweetCrudRepository.getById(id).orElse(null)));
+
+    @PutMapping()
+    @ResponseStatus(HttpStatus.OK)
+    public NewsResponseTo updateNews(@Valid @RequestBody NewsRequestTo news) throws EntityNotFoundException, DuplicateEntityException {
+        return newsService.updateNews(news);
     }
 
-    @RequestMapping(value = "/news", method = RequestMethod.PUT)
-    NewsResponseTo updateTweet(@RequestBody NewsRequestTo newsRequestTo, HttpServletResponse response) {
-        News news = newsService.tweetMapper.dtoToEntity(newsRequestTo);
-        var newTweet = newsService.tweetCrudRepository.update(news).orElse(null);
-        if (newTweet != null) {
-            response.setStatus(200);
-            return newsService.tweetMapper.tweetToResponseTo(newTweet);
-        } else{
-            response.setStatus(403);
-            return newsService.tweetMapper.tweetToResponseTo(news);
-        }
-    }
-
-    @RequestMapping(value = "/news/{id}", method = RequestMethod.DELETE)
-    int deleteTweet(@PathVariable Long id, HttpServletResponse response) {
-        News newsToDelete = newsService.tweetCrudRepository.getById(id).orElse(null);
-        if (Objects.isNull(newsToDelete)) {
-            response.setStatus(403);
-        } else {
-            newsService.tweetCrudRepository.delete(newsToDelete);
-            response.setStatus(204);
-        }
-        return 0;
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteNews(@PathVariable BigInteger id) throws EntityNotFoundException {
+        newsService.deleteNews(id);
     }
 }

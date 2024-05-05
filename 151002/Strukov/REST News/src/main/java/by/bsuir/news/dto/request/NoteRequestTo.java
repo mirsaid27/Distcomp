@@ -1,9 +1,11 @@
 package by.bsuir.news.dto.request;
 
 import by.bsuir.news.entity.Note;
+import org.hibernate.validator.constraints.Length;
 
 public class NoteRequestTo {
     private Long id;
+    @Length(min = 2, max = 2048)
     private String content;
     private Long newsId;
     public NoteRequestTo() {

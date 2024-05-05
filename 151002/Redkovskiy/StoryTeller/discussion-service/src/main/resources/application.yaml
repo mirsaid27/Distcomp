@@ -1,0 +1,15 @@
+server:
+  port: ${DISCUSSION_SERVICE_PORT}
+  error:
+    include-stacktrace: never
+    include-message: always
+
+spring:
+  cassandra:
+    contact-points: ${SERVICES_HOST}
+    port: 9042
+    keyspace-name: storyteller_discussion
+    schema-action: CREATE_IF_NOT_EXISTS
+    username: ${CASSANDRA_USERNAME}
+    password: ${CASSANDRA_PASSWORD}
+    local-datacenter: datacenter1

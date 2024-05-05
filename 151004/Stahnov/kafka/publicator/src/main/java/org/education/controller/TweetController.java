@@ -1,5 +1,8 @@
 package org.education.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.education.bean.DTO.TweetRequestTo;
 import org.education.bean.DTO.TweetResponseTo;
@@ -21,6 +24,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/tweets")
+@Tag(name = "Твиты")
 public class TweetController {
     private final TweetService tweetService;
 
@@ -31,6 +35,7 @@ public class TweetController {
         this.modelMapper = modelMapper;
     }
 
+    @Operation(summary = "Получение всех твитов")
     @GetMapping
     public ResponseEntity<List<TweetResponseTo>> getAllTweets(){
         return new ResponseEntity<>(tweetService.getAll(), HttpStatus.OK);
@@ -38,7 +43,8 @@ public class TweetController {
 
 
     @PostMapping
-    public ResponseEntity<TweetResponseTo> createTweet(@RequestBody @Valid TweetRequestTo tweetRequestTo, BindingResult bindingResult){
+    @Operation(summary = "Создание твита")
+    public ResponseEntity<TweetResponseTo> createTweet(@RequestBody @Valid TweetRequestTo tweetRequestTo, @Parameter(hidden = true) BindingResult bindingResult){
         if(bindingResult.hasErrors()){
             throw new IncorrectValuesException("Incorrect input values");
         }
@@ -47,7 +53,8 @@ public class TweetController {
 
 
     @PutMapping
-    public ResponseEntity<TweetResponseTo> updateTweet(@RequestBody @Valid TweetRequestTo tweetRequestTo, BindingResult bindingResult){
+    @Operation(summary = "Обновление твита")
+    public ResponseEntity<TweetResponseTo> updateTweet(@RequestBody @Valid TweetRequestTo tweetRequestTo, @Parameter(hidden = true) BindingResult bindingResult){
         if(bindingResult.hasErrors()){
             throw new IncorrectValuesException("Incorrect input values");
         }
@@ -56,6 +63,7 @@ public class TweetController {
 
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Удаления твита")
     public ResponseEntity<HttpStatus> deleteTweet(@PathVariable int id){
         tweetService.delete(id);
         return new ResponseEntity<>(HttpStatus.valueOf(204));
@@ -63,6 +71,7 @@ public class TweetController {
 
 
     @GetMapping("/{id}")
+    @Operation(summary = "Получение твита по id")
     public ResponseEntity<TweetResponseTo> getTweet(@PathVariable int id){
         return new ResponseEntity<>(tweetService.getById(id), HttpStatus.valueOf(200));
     }

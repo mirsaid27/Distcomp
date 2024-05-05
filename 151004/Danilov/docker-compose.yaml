@@ -1,8 +1,17 @@
+networks:
+  default_network:
+
 services:
-  web:
-    build: .
+  publisher:
+    container_name: publisher
+    hostname: publisher
+    build:
+      context: ./publisher
+      dockerfile: ./Dockerfile
     ports:
       - "24110:24110"
+    networks:
+      - default_network
     environment:
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: 24110
@@ -13,10 +22,30 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  discussion:
+    container_name: discussion
+    hostname: discussion
+    build:
+      context: ./discussion
+      dockerfile: ./Dockerfile
+    depends_on: 
+      cassandra3:  
+        condition: service_started 
+    networks:
+      - default_network
+    ports:
+      - "24130:24130"
+    environment:
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 24130
   db:
+    container_name: db
+    hostname: db
     image: postgres
     volumes:
       - ./tmp/db:/var/lib/postgresql/data
+    networks:
+      - default_network
     environment:
       POSTGRES_DB: distcomp
       POSTGRES_USER: postgres
@@ -26,3 +55,63 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 1s
+
+  cassandra1: 
+    image: cassandra:latest 
+    container_name: cassandra1 
+    hostname: cassandra1 
+    networks: 
+      - default_network 
+    ports: 
+      - "9042:9042" 
+    environment: &environment  
+        CASSANDRA_SEEDS: "cassandra1,cassandra2"   
+        CASSANDRA_CLUSTER_NAME: MyTestCluster 
+        CASSANDRA_DC: DC1 
+        CASSANDRA_RACK: RACK1 
+        CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch 
+        CASSANDRA_NUM_TOKENS: 128 
+ 
+  cassandra2: 
+    image: cassandra:latest 
+    container_name: cassandra2 
+    hostname: cassandra2 
+    networks: 
+      - default_network 
+    ports: 
+      - "9043:9042" 
+    environment: *environment   
+    depends_on: 
+      cassandra1:  
+        condition: service_started 
+ 
+  cassandra3: 
+    image: cassandra:latest 
+    container_name: cassandra3 
+    hostname: cassandra3 
+    networks: 
+      - default_network 
+    ports: 
+      - "9044:9042" 
+    environment: *environment   
+    depends_on: 
+      cassandra2:   
+        condition: service_started
+
+  cassandrainit:
+    image: cassandra:latest
+    container_name: cassandrainit
+    networks:
+      - default_network
+    depends_on:
+      cassandra3:
+        condition: service_started
+    volumes:
+      - "./discussion/distcomp.cql:/distcomp.cql"
+    command: /bin/bash -c "sleep 60 && echo loading cassandra keyspace && cqlsh cassandra1 -f /distcomp.cql && cqlsh cassandra2 -f /distcomp.cql && cqlsh cassandra3 -f /distcomp.cql"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s

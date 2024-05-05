@@ -1,16 +1,29 @@
 package com.example.rv.impl.editor;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
-@Getter
-@Setter
-@Builder
+import java.math.BigInteger;
+
+@Entity
+@Table(name = "tbl_editor")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Editor {
-    Long id;
-    String login;
-    String password;
-    String firstname;
-    String lastname;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private BigInteger id;
+
+    @Column(name = "login", unique = true)
+    private String login;
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "firstname")
+    private String firstname;
+
+    @Column(name = "lastname")
+    private String lastname;
 }

@@ -1,0 +1,6 @@
+@dc_rest_HostAddress = http://localhost:5110
+
+GET {{dc_rest_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -30,7 +30,7 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="editor" type="BIGINT">
+            <column name="editor_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="title" type="VARCHAR(255)">
@@ -50,7 +50,7 @@
 
     <!-- Add Foreign Key Constraint -->
     <changeSet id="addForeignKeyConstraint" author="admin">
-        <addForeignKeyConstraint baseTableName="tbl_tweet" baseColumnNames="editor"
+        <addForeignKeyConstraint baseTableName="tbl_tweet" baseColumnNames="editor_id"
                                  constraintName="FK_tbl_tweet_editor" referencedTableName="tbl_editor"
                                  referencedColumnNames="id"/>
     </changeSet>
@@ -77,7 +77,7 @@
 
     <changeSet id="createTable-tbl_tag" author="admin">
         <createTable tableName="tbl_tag">
-            <column name="tg_id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="name" type="VARCHAR(255)">
@@ -107,7 +107,7 @@
 
         <addForeignKeyConstraint baseTableName="tbl_m2m_tweet_tag" baseColumnNames="tg_id"
                                  constraintName="FK_tbl_m2m_tweet_tag_tag" referencedTableName="tbl_tag"
-                                 referencedColumnNames="tg_id"/>
+                                 referencedColumnNames="id"/>
     </changeSet>
 
 </databaseChangeLog>

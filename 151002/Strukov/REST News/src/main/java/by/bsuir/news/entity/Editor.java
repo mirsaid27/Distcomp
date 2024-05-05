@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 @Entity
-@Table(name = "tbl_editors")
+@Table(name = "tbl_editor")
 public class Editor implements IEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +20,7 @@ public class Editor implements IEntity {
     private String firstname;
     @Size(min = 2, max = 64)
     private String lastname;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "edit")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "editorId")
     private List<News> news;
 
     public Editor() {

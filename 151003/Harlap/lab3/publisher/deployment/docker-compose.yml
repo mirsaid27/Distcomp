@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  postgres3:
+    image: postgres:15-alpine
+    container_name: 'postgres-db-3'
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_DB: postgres-db-3
+      POSTGRES_AUTHOR: postgres
+      POSTGRES_PASSWORD: 4021
+    volumes:
+      - './database-initialization:/docker-entrypoint-initdb.d'

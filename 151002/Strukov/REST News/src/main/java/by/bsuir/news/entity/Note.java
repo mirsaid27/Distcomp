@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "tbl_notes")
+@Table(name = "tbl_note")
 public class Note implements IEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

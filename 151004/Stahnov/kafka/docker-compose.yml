@@ -75,6 +75,8 @@ services:
     build:
       context: ./discussion
       dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
     ports:
       - "24130:24130"
     depends_on:
@@ -87,28 +89,11 @@ services:
     build:
       context: ./publicator
       dockerfile: Dockerfile
-
+    environment:
+      - SPRING_PROFILES_ACTIVE=unsecureProd
     ports:
       - "24110:24110"
     depends_on:
       - postgres
       - kafka
-
-#  discussion:
-#    image: discussion
-#    ports:
-#      - "24130:24130"
-#    depends_on:
-#      cassandra:
-#        condition: service_healthy
-#      kafka:
-#        condition: service_started
-#
-#  publicator:
-#    image: publicator
-#    ports:
-#      - "24110:24110"
-#    depends_on:
-#      - postgres
-#      - kafka
 

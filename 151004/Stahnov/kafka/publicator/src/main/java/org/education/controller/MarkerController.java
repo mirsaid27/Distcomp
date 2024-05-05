@@ -1,5 +1,8 @@
 package org.education.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.education.bean.DTO.MarkerRequestTo;
 import org.education.bean.DTO.MarkerResponseTo;
@@ -22,6 +25,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/markers")
+@Tag(name = "Маркеры")
 public class MarkerController {
 
     private final MarkerService markerService;
@@ -34,13 +38,15 @@ public class MarkerController {
         this.modelMapper = modelMapper;
     }
 
+    @Operation(summary = "Получение всех маркеров")
     @GetMapping
     public ResponseEntity<List<MarkerResponseTo>> getAllMarkers(){
         return new ResponseEntity<>(markerService.getAll(), HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<MarkerResponseTo> createMarker(@RequestBody @Valid MarkerRequestTo markerRequestTo, BindingResult bindingResult){
+    @Operation(summary = "Создание маркера")
+    public ResponseEntity<MarkerResponseTo> createMarker(@RequestBody @Valid MarkerRequestTo markerRequestTo, @Parameter(hidden = true) BindingResult bindingResult){
         if(bindingResult.hasErrors()){
             throw new IncorrectValuesException("Incorrect input values");
         }
@@ -48,7 +54,8 @@ public class MarkerController {
     }
 
     @PutMapping
-    public ResponseEntity<MarkerResponseTo> updateMarker(@RequestBody @Valid MarkerRequestTo markerRequestTo, BindingResult bindingResult){
+    @Operation(summary = "Обновление маркера")
+    public ResponseEntity<MarkerResponseTo> updateMarker(@RequestBody @Valid MarkerRequestTo markerRequestTo, @Parameter(hidden = true) BindingResult bindingResult){
         if(bindingResult.hasErrors()){
             throw new IncorrectValuesException("Incorrect input values");
         }
@@ -56,12 +63,14 @@ public class MarkerController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Удаления маркера")
     public ResponseEntity<HttpStatus> deleteMarker(@PathVariable int id){
         markerService.delete(id);
         return new ResponseEntity<>(HttpStatus.valueOf(204));
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Получение маркера по id")
     public ResponseEntity<MarkerResponseTo> getMarker(@PathVariable int id){
         return new ResponseEntity<>(markerService.getById(id), HttpStatus.valueOf(200));
     }

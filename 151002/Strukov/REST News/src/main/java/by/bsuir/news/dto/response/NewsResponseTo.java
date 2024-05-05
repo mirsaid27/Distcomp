@@ -26,7 +26,7 @@ public class NewsResponseTo implements IResponseTO<News, NewsResponseTo> {
         model.content = source.getContent();
         model.created = source.getCreated();
         model.modified = source.getModified();
-        model.editorId = source.getEdit().getId();
+        model.editorId = source.getEditorId().getId();
         return model;
     }
 

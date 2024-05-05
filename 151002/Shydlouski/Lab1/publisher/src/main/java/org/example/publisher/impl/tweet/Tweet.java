@@ -20,7 +20,7 @@ public class Tweet {
     @Column(name = "id")
     BigInteger id;
 
-    @JoinColumn(name = "editor")
+    @JoinColumn(name = "editor_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Editor editor;
 

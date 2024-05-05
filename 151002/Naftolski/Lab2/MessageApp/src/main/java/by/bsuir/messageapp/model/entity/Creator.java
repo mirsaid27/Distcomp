@@ -24,10 +24,10 @@ public class Creator {
     @Column(name = "password", length = 128)
     private String password;
 
-    @Column(name = "first_name", length = 64)
+    @Column(name = "firstname", length = 64)
     private String firstName;
 
-    @Column(name = "last_name", length = 64)
+    @Column(name = "lastname", length = 64)
     private String lastName;
 
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)

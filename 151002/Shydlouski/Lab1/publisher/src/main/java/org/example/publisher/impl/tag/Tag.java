@@ -15,7 +15,7 @@ import java.util.List;
 public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    BigInteger tg_id;
+    BigInteger id;
 
     @Column(name = "name")
     private String name;

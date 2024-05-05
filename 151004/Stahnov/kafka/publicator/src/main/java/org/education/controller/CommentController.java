@@ -1,6 +1,11 @@
 package org.education.controller;
 
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.education.bean.Comment;
 import org.education.bean.DTO.CommentRequestTo;
@@ -24,6 +29,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/comments")
+@Tag(name = "Комменты")
 public class CommentController {
 
     private final CommentService commentService;
@@ -35,6 +41,7 @@ public class CommentController {
         this.modelMapper = modelMapper;
     }
 
+    @Operation(summary = "Получение всех комментов")
     @GetMapping
     public ResponseEntity<List<CommentResponseTo>> getAllComments(){
         List<CommentResponseTo> response = new ArrayList<>();
@@ -44,8 +51,9 @@ public class CommentController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @Operation(summary = "Создание коммента")
     @PostMapping
-    public ResponseEntity<CommentResponseTo> createComment(@RequestBody @Valid CommentRequestTo commentRequestTo, BindingResult bindingResult){
+    public ResponseEntity<CommentResponseTo> createComment(@RequestBody @Valid CommentRequestTo commentRequestTo, @Parameter(hidden = true) BindingResult bindingResult){
         if(bindingResult.hasErrors()){
             throw new IncorrectValuesException("Incorrect input values");
         }
@@ -53,8 +61,9 @@ public class CommentController {
         return new ResponseEntity<>(modelMapper.map(comment, CommentResponseTo.class), HttpStatus.valueOf(201));
     }
 
+    @Operation(summary = "Обновление коммента")
     @PutMapping
-    public ResponseEntity<CommentResponseTo> updateComment(@RequestBody @Valid CommentRequestTo commentRequestTo, BindingResult bindingResult){
+    public ResponseEntity<CommentResponseTo> updateComment(@RequestBody @Valid CommentRequestTo commentRequestTo, @Parameter(hidden = true) BindingResult bindingResult){
         if(bindingResult.hasErrors()){
             throw new IncorrectValuesException("Incorrect input values");
         }
@@ -62,12 +71,14 @@ public class CommentController {
         return new ResponseEntity<>(modelMapper.map(comment, CommentResponseTo.class), HttpStatus.valueOf(200));
     }
 
+    @Operation(summary = "Удаления коммента")
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteComment(@PathVariable int id){
         commentService.delete(id);
         return new ResponseEntity<>(HttpStatus.valueOf(204));
     }
 
+    @Operation(summary = "Получение коммента по id")
     @GetMapping("/{id}")
     public ResponseEntity<CommentResponseTo> getComment(@PathVariable int id){
         return new ResponseEntity<>(modelMapper.map(commentService.getById(id), CommentResponseTo.class), HttpStatus.valueOf(200));

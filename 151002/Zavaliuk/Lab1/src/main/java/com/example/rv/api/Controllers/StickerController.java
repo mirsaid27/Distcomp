@@ -1,71 +1,52 @@
 package com.example.rv.api.Controllers;
 
-import com.example.rv.impl.tag.*;
-import jakarta.servlet.http.HttpServletResponse;
+import com.example.rv.api.exception.DuplicateEntityException;
+import com.example.rv.api.exception.EntityNotFoundException;
+import com.example.rv.impl.sticker.Service.StickerService;
+import com.example.rv.impl.sticker.dto.StickerRequestTo;
+import com.example.rv.impl.sticker.dto.StickerResponseTo;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
-@RequestMapping(value = "/api/v1.0")
+@RequestMapping(value = "/api/v1.0/stickers")
+@RequiredArgsConstructor
 public class StickerController {
     private final StickerService stickerService;
 
-    public StickerController(StickerService stickerService) {
-        this.stickerService = stickerService;
-    }
-
-
-    @RequestMapping(value = "/stickers", method = RequestMethod.GET)
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    List<StickerResponseTo> getTags() {
-        return stickerService.tagMapper.tagToResponseTo(stickerService.tagCrudRepository.getAll());
+    public List<StickerResponseTo> getStickers() {
+        return stickerService.getStickers();
     }
 
-    @RequestMapping(value = "/stickers", method = RequestMethod.POST)
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public StickerResponseTo getStickerById(@PathVariable BigInteger id) throws EntityNotFoundException {
+        return stickerService.getStickerById(id);
+    }
+
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    StickerResponseTo makeTag(@RequestBody StickerRequestTo stickerRequestTo) {
-
-        var toBack = stickerService.tagCrudRepository.save(
-                stickerService.tagMapper.dtoToEntity(stickerRequestTo)
-        );
-
-        Sticker sticker = toBack.orElse(null);
-
-        assert sticker != null;
-        return stickerService.tagMapper.tagToResponseTo(sticker);
+    public StickerResponseTo saveSticker(@Valid @RequestBody StickerRequestTo stickerTo) throws DuplicateEntityException, EntityNotFoundException {
+        return stickerService.saveSticker(stickerTo);
     }
 
-    @RequestMapping(value = "/stickers/{id}", method = RequestMethod.GET)
-    StickerResponseTo getTag(@PathVariable Long id) {
-        return stickerService.tagMapper.tagToResponseTo(
-                Objects.requireNonNull(stickerService.tagCrudRepository.getById(id).orElse(null)));
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public StickerResponseTo updateSticker(@Valid @RequestBody StickerRequestTo stickerTo) throws DuplicateEntityException, EntityNotFoundException {
+        return stickerService.updateSticker(stickerTo);
     }
 
-    @RequestMapping(value = "/stickers", method = RequestMethod.PUT)
-    StickerResponseTo updateTag(@RequestBody StickerRequestTo stickerRequestTo, HttpServletResponse response) {
-        Sticker sticker = stickerService.tagMapper.dtoToEntity(stickerRequestTo);
-        var newTag = stickerService.tagCrudRepository.update(sticker).orElse(null);
-        if (newTag != null) {
-            response.setStatus(200);
-            return stickerService.tagMapper.tagToResponseTo(newTag);
-        } else {
-            response.setStatus(403);
-            return stickerService.tagMapper.tagToResponseTo(sticker);
-        }
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSticker(@PathVariable BigInteger id) throws EntityNotFoundException {
+        stickerService.deleteStickerById(id);
     }
 
-    @RequestMapping(value = "/stickers/{id}", method = RequestMethod.DELETE)
-    int deleteTag(@PathVariable Long id, HttpServletResponse response) {
-        Sticker stickerToDelete = stickerService.tagCrudRepository.getById(id).orElse(null);
-        if (Objects.isNull(stickerToDelete)) {
-            response.setStatus(403);
-        } else {
-            stickerService.tagCrudRepository.delete(stickerToDelete);
-            response.setStatus(204);
-        }
-        return 0;
-    }
 }

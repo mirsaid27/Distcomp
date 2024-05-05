@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="create-table-creator" author="NeroHaaki">
+        <createTable tableName="tbl_creator">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="login" type="varchar(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="firstname" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastname" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-issue" author="NeroHaaki">
+        <createTable tableName="tbl_issue">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="creator_id" type="int">
+                <constraints foreignKeyName="issue_creator_id" references="tbl_creator(id)"/>
+            </column>
+            <column name="title" type="varchar(128)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="content" type="varchar(2048)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="modified" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-post" author="NeroHaaki">
+        <createTable tableName="tbl_post">
+            <column name="country" type="text">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="issue_id" type="int">
+                <!-- Define issue_id as a clustering column -->
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="id" type="int">
+                <!-- id is a regular column -->
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="varchar(2048)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-tag" author="NeroHaaki">
+        <createTable tableName="tbl_tag">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(32)">
+                <constraints nullable="false" />
+            </column>
+
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-issue_tag" author="NeroHaaki">
+        <createTable tableName="tbl_issue_tag">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="issue_id" type="int">
+                <constraints foreignKeyName="issue_tag_id" references="tbl_issue(id)"/>
+            </column>
+            <column name="tag_id" type="int">
+                <constraints foreignKeyName="tag_issue_id" references="tbl_tag(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
+</databaseChangeLog>
+

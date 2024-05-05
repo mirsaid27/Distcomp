@@ -12,6 +12,10 @@ import org.example.publisher.impl.note.mapper.Impl.NoteMapperImpl;
 import org.example.publisher.impl.tweet.Tweet;
 import org.example.publisher.impl.tweet.TweetRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -26,6 +30,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = "notesCache")
 public class NoteService {
     private final TweetRepository tweetRepository;
 
@@ -36,6 +41,7 @@ public class NoteService {
 
     private final String NOTE_COMMENT = "http://localhost:24130/api/v1.0/notes";
 
+    @Cacheable(cacheNames = "notes")
     public List<NoteResponseTo> getNotes(){
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -45,10 +51,12 @@ public class NoteService {
         return new ArrayList<>(List.of(Objects.requireNonNull(response.getBody())));
     }
 
+    @Cacheable(cacheNames = "notes", key = "#id", unless = "#result == null")
     public NoteResponseTo getNoteById(BigInteger id) throws EntityNotFoundException, InterruptedException {
         return noteProducer.sendNote("get", id.toString(), true);
     }
 
+    @CacheEvict(cacheNames = "notes", allEntries = true)
     public NoteAddedResponseTo saveNote(NoteRequestTo noteTO) throws EntityNotFoundException, DuplicateEntityException, InterruptedException {
         Optional<Tweet> tweet = tweetRepository.findById(noteTO.getTweetId());
         if (tweet.isEmpty()){
@@ -65,6 +73,7 @@ public class NoteService {
         }
     }
 
+    @CacheEvict(cacheNames = "notes", allEntries = true)
     public NoteResponseTo updateNote(NoteRequestTo noteTO) throws EntityNotFoundException, DuplicateEntityException, JsonProcessingException, InterruptedException {
         Optional<Tweet> tweet = tweetRepository.findById(noteTO.getTweetId());
         if (tweet.isEmpty()){
@@ -80,6 +89,8 @@ public class NoteService {
         }
     }
 
+    @Caching(evict = { @CacheEvict(cacheNames = "notes", key = "#id"),
+            @CacheEvict(cacheNames = "notes", allEntries = true) })
     public void deleteNote(BigInteger id) throws EntityNotFoundException, InterruptedException {
         noteProducer.sendNote("delete", id.toString(), false);
     }

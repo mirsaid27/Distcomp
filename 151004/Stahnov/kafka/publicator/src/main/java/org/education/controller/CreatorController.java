@@ -1,5 +1,8 @@
 package org.education.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.education.bean.Creator;
 import org.education.bean.DTO.CreatorRequestTo;
@@ -21,6 +24,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/creators")
+@Tag(name = "Авторы")
 public class CreatorController {
     private final CreatorService creatorService;
     private final ModelMapper modelMapper;
@@ -30,13 +34,16 @@ public class CreatorController {
         this.modelMapper = modelMapper;
     }
 
+
+    @Operation(summary = "Получение всех авторов")
     @GetMapping
     public ResponseEntity<List<CreatorResponseTo>> getAllCreators(){
         return new ResponseEntity<>(creatorService.getAll(), HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<CreatorResponseTo> createCreator(@RequestBody @Valid CreatorRequestTo creatorRequestTo, BindingResult bindingResult){
+    @Operation(summary = "Создание автора")
+    public ResponseEntity<CreatorResponseTo> createCreator(@RequestBody @Valid CreatorRequestTo creatorRequestTo, @Parameter(hidden = true) BindingResult bindingResult){
         Creator newCreator = modelMapper.map(creatorRequestTo, Creator.class);
         if(bindingResult.hasErrors()){
             throw new IncorrectValuesException("Incorrect input values");
@@ -46,7 +53,8 @@ public class CreatorController {
 
 
     @PutMapping
-    public ResponseEntity<CreatorResponseTo> updateCreator(@RequestBody @Valid CreatorRequestTo creatorRequestTo, BindingResult bindingResult){
+    @Operation(summary = "Обновление автора")
+    public ResponseEntity<CreatorResponseTo> updateCreator(@RequestBody @Valid CreatorRequestTo creatorRequestTo, @Parameter(hidden = true) BindingResult bindingResult){
         if(bindingResult.hasErrors()){
             throw new IncorrectValuesException("Incorrect input values");
         }
@@ -55,6 +63,7 @@ public class CreatorController {
 
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Удаления автора")
     public ResponseEntity<HttpStatus> deleteCreator(@PathVariable int id){
         creatorService.delete(id);
         return new ResponseEntity<>(HttpStatus.valueOf(204));
@@ -62,6 +71,7 @@ public class CreatorController {
 
 
     @GetMapping("/{id}")
+    @Operation(summary = "Получение автора по id")
     public ResponseEntity<CreatorResponseTo> getCreator(@PathVariable int id){
         return new ResponseEntity<>(creatorService.getById(id), HttpStatus.valueOf(200));
     }

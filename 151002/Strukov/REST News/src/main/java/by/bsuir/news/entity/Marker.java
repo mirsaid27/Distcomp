@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 @Entity
-@Table(name = "tbl_markers")
+@Table(name = "tbl_marker")
 public class Marker implements IEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

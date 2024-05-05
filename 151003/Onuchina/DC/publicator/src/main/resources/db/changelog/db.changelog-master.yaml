@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changeset/create-author-table.yaml
+  - include:
+      file: db/changelog/changeset/create-story-table.yaml
+  - include:
+      file: db/changelog/changeset/create-note-table.yaml
+  - include:
+      file: db/changelog/changeset/create-tag-table.yaml
+  - include:
+      file: db/changelog/changeset/create-story-tag-table.yaml

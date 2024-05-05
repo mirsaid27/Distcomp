@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  postgres5:
+    image: postgres:15-alpine
+    container_name: 'postgres-db-5'
+    ports:
+      - '5435:5432'
+    environment:
+      POSTGRES_DB: postgres-db-5
+      POSTGRES_AUTHOR: postgres
+      POSTGRES_PASSWORD: 4021
+    volumes:
+      - './database-initialization:/docker-entrypoint-initdb.d'
+  redis5:
+    image: redis:latest
+    container_name: 'redis-5'
+    ports:
+      - '6380:6379'

@@ -23,7 +23,7 @@ public class TagMapperImpl implements TagMapper {
         }
 
         return new TagRequestTo(
-                tag.getTg_id(),
+                tag.getId(),
                 tag.getName(),
                 ids
         );
@@ -53,7 +53,7 @@ public class TagMapperImpl implements TagMapper {
         }
 
         return new TagResponseTo(
-                tag.getTg_id(),
+                tag.getId(),
                 tag.getName(),
                 ids
         );

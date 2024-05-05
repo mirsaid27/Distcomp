@@ -1,0 +1,41 @@
+[versions]
+logback = "1.4.14"
+ktor = "2.3.9"
+kotlin = "1.9.23"
+kotlinx-datetime = "0.6.0-RC.2"
+koin = "3.5.3"
+cassandra-driver = "3.11.5"
+cassandra-core = "4.17.0"
+cassandra-wrapper = "4.11.1"
+apacheKafka = "3.4.0"
+
+[libraries]
+ktor-serializationKotlinx = { group = "io.ktor", name = "ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
+ktor-server-coreJvm = { group = "io.ktor", name = "ktor-server-core-jvm", version.ref = "ktor" }
+ktor-server-contentNegotiation = { group = "io.ktor", name = "ktor-server-content-negotiation-jvm", version.ref = "ktor" }
+ktor-server-cors = { group = "io.ktor", name = "ktor-server-cors-jvm", version.ref = "ktor" }
+ktor-server-swagger = { group = "io.ktor", name = "ktor-server-swagger-jvm", version.ref = "ktor" }
+ktor-server-openapi = { group = "io.ktor", name = "ktor-server-openapi", version.ref = "ktor" }
+ktor-server-hostCommonJvm = { group = "io.ktor", name = "ktor-server-host-common-jvm", version.ref = "ktor" }
+ktor-server-statusPages = { group = "io.ktor", name = "ktor-server-status-pages-jvm", version.ref = "ktor" }
+ktor-server-nettyJvm = { group = "io.ktor", name = "ktor-server-netty-jvm", version.ref = "ktor" }
+ktor-server-testsJvm = { group = "io.ktor", name = "ktor-server-tests-jvm", version.ref = "ktor" }
+logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+kotlin-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
+kotinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
+koin-ktor = { group = "io.insert-koin", name = "koin-ktor", version.ref = "koin" }
+koin-loggerSlf4j = { group = "io.insert-koin", name = "koin-logger-slf4j", version.ref = "koin" }
+cassandra-driver = { group = "com.datastax.cassandra", name = "cassandra-driver-core", version.ref = "cassandra-driver" }
+cassandra-core = { group = "com.datastax.oss", name = "java-driver-core", version.ref = "cassandra-core" }
+cassandra-wrapper = { group = "com.ing.data", name = "cassandra-jdbc-wrapper", version.ref = "cassandra-wrapper" }
+apacheKafka = { group = "org.apache.kafka", name = "kafka-clients", version.ref = "apacheKafka" }
+
+[bundles]
+ktor-server = ["ktor-server-coreJvm", "ktor-server-contentNegotiation", "ktor-server-cors", "ktor-server-swagger", "ktor-server-openapi", "ktor-server-hostCommonJvm", "ktor-server-statusPages", "ktor-server-nettyJvm"]
+koin = ["koin-ktor", "koin-loggerSlf4j"]
+cassandra = ["cassandra-core", "cassandra-driver", "cassandra-wrapper"]
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

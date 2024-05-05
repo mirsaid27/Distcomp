@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: Melekit
+      changes:
+        - createIndex:
+            schemaName: distcomp
+            tableName: tbl_note
+            indexName: tbl_note_tweetid_idx
+            columns:
+              - column:
+                  name: tweetId

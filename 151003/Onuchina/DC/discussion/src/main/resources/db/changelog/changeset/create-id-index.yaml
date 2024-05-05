@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: Yana Onuchina
+      changes:
+        - createIndex:
+            schemaName: distcomp
+            tableName: tbl_note
+            indexName: tbl_note_id_idx
+            columns:
+              - column:
+                  name: id

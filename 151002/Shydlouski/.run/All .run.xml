@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="All " type="CompoundRunConfigurationType">
+    <toRun name="DiscussionApplication" type="SpringBootApplicationConfigurationType" />
+    <toRun name="PublisherApplication" type="SpringBootApplicationConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>
