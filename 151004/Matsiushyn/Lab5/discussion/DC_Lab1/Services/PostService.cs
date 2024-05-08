@@ -22,7 +22,12 @@ namespace DC_Lab1.Services
 
                 var PostDto = (PostRequestTo)Dto;
 
+                var consumeResult = consumer.Consume();
+                consumer.Commit(consumeResult);
+                Console.WriteLine(consumeResult.Value);
 
+                var message = new Message<Null, string> { Value = "Created Success" };
+                producer.ProduceAsync("OutTopic", message).GetAwaiter().GetResult();
 
                 if (!Validate(PostDto))
                 {
@@ -35,12 +40,7 @@ namespace DC_Lab1.Services
                 await dbContext.SaveChangesAsync();
                 var response = _mapper.Map<PostResponseTo>(Post);
 
-                var consumeResult = consumer.Consume();
-                consumer.Commit(consumeResult);
-                Console.WriteLine(consumeResult.Value);
 
-                var message = new Message<Null, string> { Value = "Created Success" };
-                producer.ProduceAsync("OutTopic", message).GetAwaiter().GetResult();
 
                 string json;
                 json = $"{{\"Id\":{response.Id},\"tweetId\":{postRequest.tweetId},\"content\":\"{postRequest.Content}\"}}";
@@ -89,12 +89,6 @@ namespace DC_Lab1.Services
         {
             try
             {
-                var consumeResult = consumer.Consume();
-                consumer.Commit(consumeResult);
-                Console.WriteLine(consumeResult.Value);
-
-                var message = new Message<Null, string> { Value = "GetAllEnt Success" };
-                producer.ProduceAsync("OutTopic", message).GetAwaiter().GetResult();
 
 
                 return dbContext.Posts.Select(_mapper.Map<PostResponseTo>);
