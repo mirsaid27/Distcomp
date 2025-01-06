@@ -1,18 +1,19 @@
 package org.example.tweetapi.model.entity;
 
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.persistence.*;   //поменял с javax на jakarta
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class Tag extends BaseEntity {
+@Entity
+@Table(name = "tbl_tag")
+public class Tag {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @NotNull(message = "Tag name cannot be null")
-    @NotBlank(message = "Tag name cannot be blank")
-    @Size(min = 2, max = 32, message = "Tag name must be between 2 and 32 characters")
+    @Size(min = 2, max = 32)
+    @Column(nullable = false, unique = true)
     private String name;
 }

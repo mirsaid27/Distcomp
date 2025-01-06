@@ -1,21 +1,22 @@
 package org.example.tweetapi.model.entity;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
+@Entity
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class Comment extends BaseEntity {
+@Table(name = "tbl_comment")
+public class Comment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @NotNull(message = "Tweet ID cannot be null")
-    private Long tweetid;
-
-    @NotNull(message = "Content cannot be null")
-    @NotBlank(message = "Content cannot be blank")
-    @Size(max = 2048, message = "Content cannot exceed 500 characters")
+    @Size(min = 2, max = 2048)
+    @Column(nullable = false)
     private String content;
+
+    @ManyToOne
+    @JoinColumn(name = "tweet_id", nullable = false)
+    private Tweet tweet;
 }
