@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: Antonina Maksimova
+      changes:
+        - createIndex:
+            schemaName: distcomp
+            tableName: tbl_post
+            indexName: tbl_post_issueid_idx
+            columns:
+              - column:
+                  name: issueId
