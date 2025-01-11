@@ -21,6 +21,9 @@ public class AuthorService {
 
     // Создать нового пользователя
     public AuthorResponseTo createAuthor(AuthorRequestTo authorRequestDto) {
+        if (authorRepository.existsByLogin(authorRequestDto.getLogin())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Login already exists");
+        }
         Author author = authorMapper.toEntity(authorRequestDto);
         author = authorRepository.save(author);
         return authorMapper.toResponse(author);
