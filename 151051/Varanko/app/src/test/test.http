@@ -1,0 +1,80 @@
+### Get all authors
+GET http://localhost:24110/api/v1.0/authors
+
+### Get autor by id
+GET http://localhost:24110/api/v1.0/authors/28
+
+### Create autor
+POST http://localhost:24110/api/v1.0/authors
+Content-Type: application/json
+
+{
+  "firstname": "first",
+  "lastname": "last",
+  "login": "login",
+  "password": "password"
+}
+
+### Update autor
+PUT http://localhost:24110/api/v1.0/authors
+Content-Type: application/json
+
+{
+  "id": 28,
+  "login": "x",
+  "password": "password2",
+  "firstname": "first2",
+  "lastname": "last2"
+}
+### Delete author
+DELETE http://localhost:24110/api/v1.0/authors/28
+
+### Get stories
+GET http://localhost:24110/api/v1.0/stories
+
+### Get stories
+GET http://localhost:24110/api/v1.0/stories/1
+
+### Create story
+POST http://localhost:24110/api/v1.0/stories
+Content-Type: application/json
+
+{
+  "authorId": 1,
+  "title": "title",
+  "content": "contentcontentcontent"
+}
+
+### Delete story
+DELETE http://localhost:24110/api/v1.0/stories/1
+
+### Get labels
+GET http://localhost:24110/api/v1.0/labels
+
+### Create label
+POST http://localhost:24110/api/v1.0/labels
+Content-Type: application/json
+
+{
+  "name": "mabel"
+}
+
+### Delete label
+DELETE http://localhost:24110/api/v1.0/labels/1
+
+
+
+### Get notes
+GET http://localhost:24110/api/v1.0/notes
+
+### Create label
+POST http://localhost:24110/api/v1.0/notes
+Content-Type: application/json
+
+{
+  "storyId": 1,
+  "content": "notecontentnotecontentnotecontent"
+}
+
+### Delete label
+DELETE http://localhost:24110/api/v1.0/notes/2
