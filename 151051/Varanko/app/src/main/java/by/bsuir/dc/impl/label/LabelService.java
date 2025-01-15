@@ -30,7 +30,7 @@ public class LabelService implements RestService<LabelRequest, LabelResponse> {
     @Override
     public LabelResponse create(LabelRequest request) {
         return labelCrudRepository
-                .save(labelMapper.toLabelDto(request))
+                .create(labelMapper.toLabelDto(request))
                 .map(labelMapper::toLabelResponseDto)
                 .orElseThrow();
     }
@@ -43,9 +43,7 @@ public class LabelService implements RestService<LabelRequest, LabelResponse> {
     }
     @Override
     public boolean removeById(long id) {
-        if (!labelCrudRepository.deleteById(id)) {
-            throw new NoSuchElementException("Element not found");
-        }
+        labelCrudRepository.deleteById(id);
         return true;
     }
 }

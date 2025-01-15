@@ -30,7 +30,7 @@ public class NoteService implements RestService<NoteRequest, NoteResponse> {
     @Override
     public NoteResponse create(NoteRequest request) {
         return noteCrudRepository
-                .save(noteMapper.toNoteDto(request))
+                .create(noteMapper.toNoteDto(request))
                 .map(noteMapper::toNoteResponseDto)
                 .orElseThrow();
     }
@@ -43,9 +43,7 @@ public class NoteService implements RestService<NoteRequest, NoteResponse> {
     }
     @Override
     public boolean removeById(long id) {
-        if (!noteCrudRepository.deleteById(id)) {
-            throw new NoSuchElementException("Element not found");
-        }
+        noteCrudRepository.deleteById(id);
         return true;
     }
 }

@@ -30,13 +30,13 @@ Content-Type: application/json
 DELETE http://localhost:24110/api/v1.0/authors/28
 
 ### Get stories
-GET http://localhost:24110/api/v1.0/stories
+GET http://localhost:24110/api/v1.0/storys
 
 ### Get stories
-GET http://localhost:24110/api/v1.0/stories/1
+GET http://localhost:24110/api/v1.0/storys/1
 
 ### Create story
-POST http://localhost:24110/api/v1.0/stories
+POST http://localhost:24110/api/v1.0/storys
 Content-Type: application/json
 
 {

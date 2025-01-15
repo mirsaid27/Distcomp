@@ -30,7 +30,7 @@ public class StoryService implements RestService<StoryRequest, StoryResponse> {
     @Override
     public StoryResponse create(StoryRequest request) {
         return storyCrudRepository
-                .save(StoryMapper.toStoryDto(request))
+                .create(StoryMapper.toStoryDto(request))
                 .map(StoryMapper::toStoryResponseDto)
                 .orElseThrow();
     }
@@ -43,9 +43,7 @@ public class StoryService implements RestService<StoryRequest, StoryResponse> {
     }
     @Override
     public boolean removeById(long id) {
-        if (!storyCrudRepository.deleteById(id)) {
-            throw new NoSuchElementException("Element not found");
-        }
+        storyCrudRepository.deleteById(id);
         return true;
     }
 }

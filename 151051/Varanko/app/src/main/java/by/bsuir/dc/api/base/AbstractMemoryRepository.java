@@ -2,32 +2,28 @@ package by.bsuir.dc.api.base;
 
 import by.bsuir.dc.api.CrudRepository;
 import by.bsuir.dc.api.Entity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.stereotype.Repository;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
-@Repository
-public abstract class AbstractMemoryRepository<T extends Entity> implements CrudRepository<T, Long>{
-    private final static AtomicLong ids = new AtomicLong();
-    protected final Map<Long, T> map = new HashMap<>();
+@NoRepositoryBean
+public interface AbstractMemoryRepository<T extends Entity> extends JpaRepository<T, Long> {
+//    private final static AtomicLong ids = new AtomicLong();
+//    protected final Map<Long, T> map = new HashMap<>();
 
-    @Override
-    public Iterable<T> getAll() { return map.values(); }
+    public default Iterable<T> getAll() { return findAll(); }
 
-    @Override
-    public Optional<T> getBy(Long id) { return Optional.ofNullable(map.get(id)); }
+    public default Optional<T> getBy(Long id) { return findById(id); }
 
-    @Override
-    public Optional<T> save(T entity) {
-        long id = ids.incrementAndGet();
-        entity.setId(id);
-        map.put(id, entity);
-        return Optional.of(entity);
+    public default Optional<T> create(T entity) {
+        return Optional.of(save(entity));
     }
-
-    @Override
-    public boolean delete(T entity) { return map.remove(entity.getId()) != null; }
+    public default Optional<T> update(T entity) {
+        return Optional.of(saveAndFlush(entity));
+    }
+    public default boolean remove(T entity) {
+        delete(entity);
+        return true;
+    }
 }

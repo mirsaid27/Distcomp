@@ -3,8 +3,10 @@ import by.bsuir.dc.api.RestService;
 import by.bsuir.dc.impl.author.model.Author;
 import by.bsuir.dc.impl.author.model.AuthorRequest;
 import by.bsuir.dc.impl.author.model.AuthorResponse;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,7 +32,7 @@ public class AuthorService implements RestService<AuthorRequest, AuthorResponse>
     @Override
     public AuthorResponse create(AuthorRequest request) {
         return authorCrudRepository
-                .save(authorMapper.toAuthorDto(request))
+                .create(authorMapper.toAuthorDto(request))
                 .map(authorMapper::toAuthorResponseDto)
                 .orElseThrow();
     }
@@ -43,9 +45,7 @@ public class AuthorService implements RestService<AuthorRequest, AuthorResponse>
     }
     @Override
     public boolean removeById(long id) {
-        if (!authorCrudRepository.deleteById(id)) {
-            throw new NoSuchElementException("Element not found");
-        }
+        authorCrudRepository.deleteById(id);
         return true;
     }
 }

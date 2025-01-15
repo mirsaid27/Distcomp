@@ -2,6 +2,7 @@ package by.bsuir.dc.api.error;
 
 import by.bsuir.dc.api.base.ApiError;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -51,6 +52,13 @@ public class DefaultControllerAdvice {
                         String.valueOf(HttpStatus.NOT_FOUND.value()),
                         HttpStatus.NOT_FOUND.getReasonPhrase() + ": " + exception.getMessage()));
     }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleForbiddenException(Exception exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiError(
+                        String.valueOf(HttpStatus.FORBIDDEN.value()),
+                        HttpStatus.FORBIDDEN.getReasonPhrase() + ": " + exception.getMessage()));
+    }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneralException(Exception exception) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -58,4 +66,5 @@ public class DefaultControllerAdvice {
                         String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),
                         HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase() + ": " + exception.getMessage()));
     }
+
 }
