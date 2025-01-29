@@ -1,4 +1,4 @@
 export interface Sticker {
-  id: bigint;
+  id: number;
   name: string;
 }

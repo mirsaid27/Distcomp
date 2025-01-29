@@ -1,5 +1,5 @@
 export interface Editor {
-  id: bigint;
+  id: number;
   login: string;
   password: string;
   firstname: string;

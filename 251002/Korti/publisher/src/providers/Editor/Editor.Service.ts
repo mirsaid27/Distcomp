@@ -3,7 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Editor } from 'src/schemas/Editor';
+import { Editor } from 'src/entities/Editor';
 import { CollectionType, StorageService } from 'src/storage/database';
 import { EditorRequestTo } from './Dto/EditorRequestTo';
 
@@ -15,7 +15,7 @@ export class EditorService {
 
   async createEditor(editor: EditorRequestTo): Promise<Editor> {
     try {
-      const id: bigint = await StorageService.generateId(
+      const id: number = await StorageService.generateId(
         CollectionType.EDITORS,
       );
       const editorBody: Editor = { id, ...editor };
@@ -31,7 +31,7 @@ export class EditorService {
     }
   }
 
-  async deleteEditor(id: bigint): Promise<Editor> {
+  async deleteEditor(id: number): Promise<Editor> {
     try {
       const editor = await StorageService.remove<Editor>(
         CollectionType.EDITORS,
@@ -46,7 +46,7 @@ export class EditorService {
     }
   }
 
-  async findById(id: bigint): Promise<Editor> {
+  async findById(id: number): Promise<Editor> {
     try {
       const editor = await StorageService.getById<Editor>(
         CollectionType.EDITORS,
@@ -64,6 +64,18 @@ export class EditorService {
   async updateEditor(item: Editor): Promise<Editor> {
     try {
       const editor = await StorageService.update(CollectionType.EDITORS, item);
+      return editor;
+    } catch (err) {
+      if (err instanceof ConflictException) {
+        throw new ConflictException();
+      }
+      throw new InternalServerErrorException('Unexpected error');
+    }
+  }
+
+  async getEditorByArticleId(articleId: number): Promise<Editor> {
+    try {
+      const editor = await StorageService.getEditorByArticleId(articleId);
       return editor;
     } catch (err) {
       if (err instanceof ConflictException) {

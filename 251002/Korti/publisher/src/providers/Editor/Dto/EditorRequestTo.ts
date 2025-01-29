@@ -1,4 +1,4 @@
-import { IsString, Length } from 'class-validator';
+import { IsInt, IsString, Length } from 'class-validator';
 
 export class EditorRequestTo {
   @IsString()
@@ -19,8 +19,8 @@ export class EditorRequestTo {
 }
 
 export class UpdateEditorDto {
-  @IsString()
-  id: string;
+  @IsInt()
+  id: number;
 
   @IsString()
   @Length(2, 64)

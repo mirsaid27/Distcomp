@@ -10,27 +10,26 @@ import {
   Put,
   Post,
   Res,
-  UsePipes,
-  ValidationPipe,
+  HttpException,
 } from '@nestjs/common';
 import { EditorService } from './Editor.Service';
 import { EditorResponseTo } from './Dto/EditorResponseTo';
 import { Response } from 'express';
 import { plainToInstance } from 'class-transformer';
 import { EditorRequestTo, UpdateEditorDto } from './Dto/EditorRequestTo';
-import { Editor } from 'src/schemas/Editor';
+import { Editor } from 'src/entities/Editor';
 
 @Controller('api/v1.0/editors')
 export class EditorController {
   private editorService: EditorService = new EditorService();
 
   @Get()
-  async findAllEditors(@Res() res: Response): Promise<void> {
+  async findAll(@Res() res: Response): Promise<void> {
     const editors = await this.editorService.getAllEditors();
-    const responseData = editors.map((el) => {
+    const responseData: EditorResponseTo[] = editors.map((el) => {
       return {
         ...el,
-        id: el.id.toString(),
+        id: Number(el.id),
       };
     });
     res.status(HttpStatus.OK).json(
@@ -41,15 +40,15 @@ export class EditorController {
   }
 
   @Get(':id')
-  async findEditorById(
+  async findById(
     @Param('id', ParseIntPipe) idEditor: number,
     @Res() res: Response,
   ): Promise<void> {
     try {
-      const editor = await this.editorService.findById(BigInt(idEditor));
+      const editor = await this.editorService.findById(idEditor);
       const responseData = {
         ...editor,
-        id: editor.id.toString(),
+        id: Number(editor.id),
       };
       res.status(HttpStatus.OK).json(
         plainToInstance(EditorResponseTo, responseData, {
@@ -58,79 +57,77 @@ export class EditorController {
       );
     } catch (err) {
       if (err instanceof ConflictException) {
-        res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ errorCode: 40000, errorMessage: 'Editor does not exist.' });
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
+      throw err;
     }
   }
 
   @Post()
-  @UsePipes(new ValidationPipe())
-  async createEditor(
+  async create(
     @Body() req: EditorRequestTo,
     @Res() res: Response,
   ): Promise<void> {
     try {
-      const editor = await this.editorService.createEditor(req);
-      const responseData = {
-        ...editor,
-        id: editor.id.toString(),
-      };
-      console.log(JSON.stringify(responseData));
+      const editor: Editor = await this.editorService.createEditor(req);
       res.status(HttpStatus.CREATED).json(
-        plainToInstance(EditorResponseTo, responseData, {
+        plainToInstance(EditorResponseTo, editor, {
           excludeExtraneousValues: true,
         }),
       );
     } catch (err) {
       if (err instanceof ConflictException) {
-        res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ errorCode: 40001, errorMessage: 'Editor already exist.' });
+        throw new HttpException(
+          {
+            errorCode: 40001,
+            errorMessage: 'Editor already exist.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
+      throw err;
     }
   }
 
   @Delete(':id')
-  @UsePipes(new ValidationPipe())
-  async deleteEditor(
+  async delete(
     @Param('id', ParseIntPipe) idEditor: number,
     @Res() res: Response,
   ): Promise<void> {
     try {
-      console.log('123', idEditor);
-      const editor = await this.editorService.deleteEditor(BigInt(idEditor));
-      const responseData = {
-        ...editor,
-        id: editor.id.toString(),
-      };
-      res.status(HttpStatus.NO_CONTENT).json(
-        plainToInstance(EditorResponseTo, responseData, {
-          excludeExtraneousValues: true,
-        }),
-      );
+      await this.editorService.deleteEditor(idEditor);
+      res.status(HttpStatus.NO_CONTENT).send();
     } catch (err) {
       if (err instanceof ConflictException) {
-        res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ errorCode: 40002, errorMessage: 'Editor does not exist.' });
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
+      throw err;
     }
   }
 
   @Put()
-  @UsePipes(new ValidationPipe())
-  async updateEditor(@Body() body: UpdateEditorDto, @Res() res: Response) {
+  async update(@Body() body: UpdateEditorDto, @Res() res: Response) {
     try {
       const responseBody: Editor = {
         ...body,
-        id: BigInt(body.id),
+        id: Number(body.id),
       };
       const editor = await this.editorService.updateEditor(responseBody);
-      const responseData = {
+      const responseData: EditorResponseTo = {
         ...editor,
-        id: editor.id.toString(),
+        id: Number(editor.id),
       };
       res.status(HttpStatus.OK).json(
         plainToInstance(EditorResponseTo, responseData, {
@@ -139,10 +136,37 @@ export class EditorController {
       );
     } catch (err) {
       if (err instanceof ConflictException) {
-        res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ errorCode: 40002, errorMessage: 'Editor does not exist.' });
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
+      throw err;
+    }
+  }
+
+  @Get('article/:articleId')
+  async getByarticleId(
+    @Param('articleId', ParseIntPipe) articleId: number,
+    @Res() res: Response,
+  ) {
+    try {
+      const editor = await this.editorService.getEditorByArticleId(articleId);
+      res.status(HttpStatus.OK).json(plainToInstance(EditorResponseTo, editor));
+    } catch (err) {
+      if (err instanceof ConflictException) {
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      throw err;
     }
   }
 }

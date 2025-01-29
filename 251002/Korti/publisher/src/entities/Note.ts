@@ -1,5 +1,5 @@
 export interface Note {
-  id: bigint;
-  articleId: bigint;
+  id: number;
+  articleId: number;
   content: string;
 }
