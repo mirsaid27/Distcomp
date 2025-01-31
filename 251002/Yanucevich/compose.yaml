@@ -1,0 +1,12 @@
+services:
+  social-net:
+    image: significantnose/social-net:latest  
+    build: .
+    ports:
+      - 24110:24110
+      - 24120:24120
+      - 24130:24130
+      - 24140:24140
+      - 24150:24150
+    environment:
+      ASPNETCORE_URLS: "http://0.0.0.0:24110;http://0.0.0.0:24120;http://0.0.0.0:24130;http://0.0.0.0:24140;http://0.0.0.0:24150"
