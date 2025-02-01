@@ -1,0 +1,66 @@
+services:
+  distcomp:
+    image: khmelov/distcomp
+    container_name: distcomp
+    restart: unless-stopped
+
+    networks:
+      - dist_net
+
+    ports:
+      - 24100:24100
+
+  migrator:
+    image: gomicro/goose:3.24.1
+    container_name: migrator
+
+    environment:
+      GOOSE_DRIVER: "postgres"
+      GOOSE_DBSTRING: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+      GOOSE_MIGRATION_DIR: "/migrations"
+
+    networks:
+      - db_net
+    volumes:
+      - "./migrations:/migrations:ro"
+
+    command: [ "goose", "up" ]
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16.0-alpine
+    container_name: db
+    restart: unless-stopped
+
+    environment:
+      PGDATA: ${POSTGRES_DATA}
+      PGPORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+    networks:
+      - db_net
+    ports:
+      - 5432:5432
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  db_net:
+  api_net:
+  dist_net:
