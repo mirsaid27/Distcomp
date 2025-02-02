@@ -8,15 +8,8 @@ CREATE TABLE IF NOT EXISTS Writer (
   PRIMARY KEY (id)
 );
 
-CREATE SEQUENCE IF NOT EXISTS news_id_seq
-    START WITH 0
-    INCREMENT BY 1
-    MINVALUE 0
-    CACHE 1;
-
-
 CREATE TABLE IF NOT EXISTS News (
-  id        bigint      NOT NULL DEFAULT nextval('news_id_seq'),
+  id        bigserial   NOT NULL,
   writerId  bigint      NOT NULL, 
   title     varchar(64) NOT NULL UNIQUE CHECK (LENGTH(title) >= 2),
   content   text        NOT NULL CHECK (LENGTH(content) >= 4),
@@ -26,29 +19,16 @@ CREATE TABLE IF NOT EXISTS News (
   FOREIGN KEY (writerId) REFERENCES Writer (id)
 );
 
-CREATE SEQUENCE IF NOT EXISTS notice_id_seq
-    START WITH 0
-    INCREMENT BY 1
-    MINVALUE 0
-    CACHE 1;
-
 CREATE TABLE IF NOT EXISTS Notice (
-  id        bigint      NOT NULL DEFAULT nextval('notice_id_seq'),
+  id        bigserial   NOT NULL,
   newsId    bigint      NOT NULL,
   content   text        NOT NULL CHECK(LENGTH(content) >= 2),
   PRIMARY KEY (id),
   FOREIGN KEY (newsId) REFERENCES News (id)
 );
 
-CREATE SEQUENCE IF NOT EXISTS label_id_seq
-    START WITH 0
-    INCREMENT BY 1
-    MINVALUE 0
-    NO MAXVALUE
-    CACHE 1;
-
 CREATE TABLE IF NOT EXISTS Label (
-  id        bigint      NOT NULL DEFAULT nextval('label_id_seq'),
+  id        bigserial   NOT NULL,
   name      varchar(32) NOT NULL UNIQUE CHECK(LENGTH(name) >= 2),
   PRIMARY KEY (id)
 );
@@ -67,6 +47,3 @@ DROP TABLE IF EXISTS Label;
 DROP TABLE IF EXISTS Notice;
 DROP TABLE IF EXISTS News;
 DROP TABLE IF EXISTS Writer;
-DROP SEQUENCE IF EXISTS news_id_seq;
-DROP SEQUENCE IF EXISTS notice_id_seq;
-DROP SEQUENCE IF EXISTS label_id_seq;
