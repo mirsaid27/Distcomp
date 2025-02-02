@@ -16,6 +16,32 @@ services:
     ports:
       - 24100:24100
 
+  api:
+    image: distcomp/api
+    container_name: api
+    restart: unless-stopped
+
+    environment:
+      API_STORAGE_HOST: db
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+    networks:
+      - api_net
+      - db_net
+    ports:
+      - 24110:24110
+
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+
   migrator:
     image: gomicro/goose:3.24.1
     container_name: migrator
