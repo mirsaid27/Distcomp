@@ -6,9 +6,11 @@ import (
 
 	httperrors "github.com/Khmelov/Distcomp/251004/Sazonov/internal/handler/http/errors"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/model"
+	"github.com/Khmelov/Distcomp/251004/Sazonov/pkg/logger"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/pkg/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/stackus/errors"
+	"go.uber.org/zap"
 )
 
 func (h *newsHandler) List() gin.HandlerFunc {
@@ -96,9 +98,9 @@ func (h *newsHandler) Create() gin.HandlerFunc {
 func (h *newsHandler) Update() gin.HandlerFunc {
 	type request struct {
 		ID       int64  `json:"id"       validate:"required,gte=1"`
-		WriterID int64  `json:"writerId"`
-		Title    string `json:"title"`
-		Content  string `json:"content"`
+		WriterID int64  `json:"writerId" validate:"omitempty,required,gte=1"`
+		Title    string `json:"title"    validate:"omitempty,required,min=2,max=64"`
+		Content  string `json:"content"  validate:"omitempty,required,min=4,max=2048"`
 	}
 
 	type response struct{}
@@ -116,9 +118,10 @@ func (h *newsHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		err := h.news.UpdateNews(
+		news, err := h.news.UpdateNews(
 			c,
 			model.News{
+				ID:       req.ID,
 				WriterID: req.WriterID,
 				Title:    req.Title,
 				Content:  req.Content,
@@ -129,7 +132,9 @@ func (h *newsHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, response{})
+		logger.Info(c, "new update response", zap.Any("news", news))
+
+		c.JSON(http.StatusOK, news)
 	}
 }
 
@@ -142,11 +147,6 @@ func (h *newsHandler) Delete() gin.HandlerFunc {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, err.Error()))
-			return
-		}
-
-		if id < 1 {
-			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, "id bad format"))
 			return
 		}
 

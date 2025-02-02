@@ -39,18 +39,13 @@ func (h *labelHandler) Get() gin.HandlerFunc {
 			return
 		}
 
-		if id < 1 {
-			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, "id bad format"))
-			return
-		}
-
-		writer, err := h.label.GetLabel(c, id)
+		label, err := h.label.GetLabel(c, id)
 		if err != nil {
 			httperrors.Error(c, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, writer)
+		c.JSON(http.StatusOK, label)
 	}
 }
 
@@ -92,7 +87,7 @@ func (h *labelHandler) Create() gin.HandlerFunc {
 func (h *labelHandler) Update() gin.HandlerFunc {
 	type request struct {
 		ID   int64  `json:"id"   validate:"required,gte=1"`
-		Name string `json:"name"`
+		Name string `json:"name" validate:"omitempty,required,min=2,max=32"`
 	}
 
 	type response struct{}
@@ -110,7 +105,7 @@ func (h *labelHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		err := h.label.UpdateLabel(
+		label, err := h.label.UpdateLabel(
 			c,
 			model.Label{
 				ID:   req.ID,
@@ -122,7 +117,7 @@ func (h *labelHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, response{})
+		c.JSON(http.StatusOK, label)
 	}
 }
 
@@ -135,11 +130,6 @@ func (h *labelHandler) Delete() gin.HandlerFunc {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, err.Error()))
-			return
-		}
-
-		if id < 1 {
-			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, "id bad format"))
 			return
 		}
 

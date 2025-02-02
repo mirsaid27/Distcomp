@@ -94,8 +94,8 @@ func (h *noticeHandler) Create() gin.HandlerFunc {
 func (h *noticeHandler) Update() gin.HandlerFunc {
 	type request struct {
 		ID      int64  `json:"id"      validate:"required,gte=1"`
-		NewsID  int64  `json:"newsId"`
-		Content string `json:"content"`
+		NewsID  int64  `json:"newsId"  validate:"omitempty,required,gte=1"`
+		Content string `json:"content" validate:"omitempty,required,min=4,max=2048"`
 	}
 
 	type response struct{}
@@ -113,7 +113,7 @@ func (h *noticeHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		err := h.notice.UpdateNotice(
+		notice, err := h.notice.UpdateNotice(
 			c,
 			model.Notice{
 				ID:      req.ID,
@@ -126,7 +126,7 @@ func (h *noticeHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, response{})
+		c.JSON(http.StatusOK, notice)
 	}
 }
 
@@ -139,11 +139,6 @@ func (h *noticeHandler) Delete() gin.HandlerFunc {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, err.Error()))
-			return
-		}
-
-		if id < 1 {
-			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, "id bad format"))
 			return
 		}
 

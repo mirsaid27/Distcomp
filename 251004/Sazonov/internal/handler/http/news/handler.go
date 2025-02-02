@@ -11,7 +11,7 @@ type newsService interface {
 	GetNews(ctx context.Context, id int64) (model.News, error)
 	ListNews(ctx context.Context) ([]model.News, error)
 	CreateNews(ctx context.Context, news model.News) (model.News, error)
-	UpdateNews(ctx context.Context, news model.News) error
+	UpdateNews(ctx context.Context, news model.News) (model.News, error)
 	DeleteNews(ctx context.Context, id int64) error
 }
 
@@ -32,6 +32,6 @@ func (h *newsHandler) InitRoutes(router gin.IRouter) {
 		v1.GET("/news/:id", h.Get())
 		v1.POST("/news", h.Create())
 		v1.DELETE("/news/:id", h.Delete())
-		v1.PUT("/news/:id", h.Update())
+		v1.PUT("/news", h.Update())
 	}
 }

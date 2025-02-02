@@ -11,7 +11,7 @@ type labelService interface {
 	GetLabel(ctx context.Context, id int64) (model.Label, error)
 	ListLabels(ctx context.Context) ([]model.Label, error)
 	CreateLabel(ctx context.Context, args model.Label) (model.Label, error)
-	UpdateLabel(ctx context.Context, args model.Label) error
+	UpdateLabel(ctx context.Context, args model.Label) (model.Label, error)
 	DeleteLabel(ctx context.Context, id int64) error
 }
 
@@ -32,6 +32,6 @@ func (h *labelHandler) InitRoutes(router gin.IRouter) {
 		v1.GET("/labels/:id", h.Get())
 		v1.POST("/labels", h.Create())
 		v1.DELETE("/labels/:id", h.Delete())
-		v1.PUT("/labels/:id", h.Update())
+		v1.PUT("/labels", h.Update())
 	}
 }

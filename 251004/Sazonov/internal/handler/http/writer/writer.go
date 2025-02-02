@@ -97,10 +97,10 @@ func (h *writerHandler) Create() gin.HandlerFunc {
 func (h *writerHandler) Update() gin.HandlerFunc {
 	type request struct {
 		ID        int64  `json:"id"        validate:"required,gte=1"`
-		Login     string `json:"login"`
-		Password  string `json:"password"`
-		FirstName string `json:"firstname"`
-		LastName  string `json:"lastname"`
+		Login     string `json:"login"     validate:"omitempty,required,min=2,max=64"`
+		Password  string `json:"password"  validate:"omitempty,required,min=8,max=128"`
+		FirstName string `json:"firstname" validate:"omitempty,required,min=2,max=64"`
+		LastName  string `json:"lastname"  validate:"omitempty,required,min=2,max=64"`
 	}
 
 	type response struct{}
@@ -118,7 +118,7 @@ func (h *writerHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		err := h.writer.UpdateWriter(
+		writer, err := h.writer.UpdateWriter(
 			c,
 			model.Writer{
 				ID:        req.ID,
@@ -132,7 +132,7 @@ func (h *writerHandler) Update() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, response{})
+		c.JSON(http.StatusOK, writer)
 	}
 }
 
@@ -145,11 +145,6 @@ func (h *writerHandler) Delete() gin.HandlerFunc {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, err.Error()))
-			return
-		}
-
-		if id < 1 {
-			httperrors.Error(c, errors.Wrap(errors.ErrBadRequest, "id bad format"))
 			return
 		}
 

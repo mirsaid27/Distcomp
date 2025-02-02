@@ -60,11 +60,14 @@ func (w *WriterRepo) CreateWriter(ctx context.Context, args model.Writer) (model
 
 		return model.Writer{}, err
 	}
+	defer rows.Close()
 
 	var writer model.Writer
 
 	for rows.Next() {
-		rows.StructScan(&writer)
+		if err := rows.StructScan(&writer); err != nil {
+			return model.Writer{}, err
+		}
 	}
 
 	if err := rows.Err(); err != nil {
@@ -74,35 +77,41 @@ func (w *WriterRepo) CreateWriter(ctx context.Context, args model.Writer) (model
 	return writer, nil
 }
 
-func (w *WriterRepo) UpdateWriter(ctx context.Context, writer model.Writer) error {
+func (w *WriterRepo) UpdateWriter(ctx context.Context, args model.Writer) (model.Writer, error) {
 	const query = `UPDATE Writer SET
 		login = COALESCE(NULLIF(:login, ''), login),
 		password = COALESCE(NULLIF(:password, ''), password),
 		firstname = COALESCE(NULLIF(:firstname, ''), firstname),
 		lastname = COALESCE(NULLIF(:lastname, ''), lastname)
-	WHERE id = :id`
+	WHERE id = :id
+	RETURNING *`
 
-	result, err := w.db.NamedExecContext(ctx, query, writer)
+	rows, err := w.db.NamedQueryContext(ctx, query, args)
 	if err != nil {
 		var pgErr *pgconn.PgError
 
 		if stderrors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return ErrWriterAlreadyExists
+			return model.Writer{}, ErrWriterAlreadyExists
 		}
 
-		return err
+		return model.Writer{}, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return model.Writer{}, ErrWriterNotFound
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
+	var writer model.Writer
+	if err := rows.StructScan(&writer); err != nil {
+		return model.Writer{}, err
 	}
 
-	if rowsAffected != 1 {
-		return ErrWriterNotFound
+	if err := rows.Err(); err != nil {
+		return model.Writer{}, err
 	}
 
-	return nil
+	return writer, nil
 }
 
 func (w *WriterRepo) DeleteWriter(ctx context.Context, id int64) error {

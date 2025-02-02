@@ -1,8 +1,14 @@
 services:
   distcomp:
-    image: khmelov/distcomp
+    image: khmelov/distcomp:25-02-02
     container_name: distcomp
     restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
 
     networks:
       - dist_net

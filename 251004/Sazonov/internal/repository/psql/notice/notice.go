@@ -3,7 +3,6 @@ package notice
 import (
 	"context"
 	"database/sql"
-	stderrors "errors"
 
 	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/model"
 	"github.com/jackc/pgerrcode"
@@ -22,7 +21,7 @@ func (n *NoticeRepo) GetNotice(ctx context.Context, id int64) (model.Notice, err
 
 	var notice model.Notice
 	if err := n.db.GetContext(ctx, &notice, query, id); err != nil {
-		if stderrors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return model.Notice{}, ErrNoticeNotFound
 		}
 
@@ -47,60 +46,69 @@ func (n *NoticeRepo) CreateNotice(ctx context.Context, args model.Notice) (model
 	const query = `INSERT INTO Notice (
 		newsId, content
 	) VALUES (
-		:newsId, :content
+		:newsid, :content
 	) RETURNING *`
 
 	rows, err := n.db.NamedQueryContext(ctx, query, args)
 	if err != nil {
 		var pgErr *pgconn.PgError
 
-		if stderrors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
 			return model.Notice{}, ErrNoticeAlreadyExists
 		}
 
 		return model.Notice{}, err
 	}
+	defer rows.Close()
 
 	var notice model.Notice
 
 	for rows.Next() {
-		rows.StructScan(notice)
+		if err := rows.StructScan(&notice); err != nil {
+			return model.Notice{}, err
+		}
 	}
 
 	if err := rows.Err(); err != nil {
 		return model.Notice{}, err
 	}
 
-	return model.Notice{}, nil
+	return notice, nil
 }
 
-func (n *NoticeRepo) UpdateNotice(ctx context.Context, args model.Notice) error {
+func (n *NoticeRepo) UpdateNotice(ctx context.Context, args model.Notice) (model.Notice, error) {
 	const query = `UPDATE Notice SET
-		newsId = COALESCE(NULLIF(:newsId, 0), newsId),
+		newsId = COALESCE(NULLIF(:newsid, 0), newsId),
 		content = COALESCE(NULLIF(:content, ''), content)	
-	WHERE id = :id`
+	WHERE id = :id
+	RETURNING *`
 
-	result, err := n.db.NamedExecContext(ctx, query, args)
+	rows, err := n.db.NamedQueryContext(ctx, query, args)
 	if err != nil {
 		var pgErr *pgconn.PgError
 
-		if stderrors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return ErrNoticeAlreadyExists
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return model.Notice{}, ErrNoticeAlreadyExists
 		}
 
-		return err
+		return model.Notice{}, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return model.Notice{}, ErrNoticeNotFound
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
+	var notice model.Notice
+	if err := rows.StructScan(&notice); err != nil {
+		return model.Notice{}, err
 	}
 
-	if rowsAffected != 1 {
-		return ErrNoticeNotFound
+	if err := rows.Err(); err != nil {
+		return model.Notice{}, err
 	}
 
-	return nil
+	return notice, nil
 }
 
 func (n *NoticeRepo) DeleteNotice(ctx context.Context, id int64) error {

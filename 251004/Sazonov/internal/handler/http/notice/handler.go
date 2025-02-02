@@ -11,7 +11,7 @@ type noticeService interface {
 	GetNotice(ctx context.Context, id int64) (model.Notice, error)
 	ListNotices(ctx context.Context) ([]model.Notice, error)
 	CreateNotice(ctx context.Context, args model.Notice) (model.Notice, error)
-	UpdateNotice(ctx context.Context, args model.Notice) error
+	UpdateNotice(ctx context.Context, args model.Notice) (model.Notice, error)
 	DeleteNotice(ctx context.Context, id int64) error
 }
 
@@ -32,6 +32,6 @@ func (h *noticeHandler) InitRoutes(router gin.IRouter) {
 		v1.GET("/notices/:id", h.Get())
 		v1.POST("/notices", h.Create())
 		v1.DELETE("/notices/:id", h.Delete())
-		v1.PUT("/notices/:id", h.Update())
+		v1.PUT("/notices", h.Update())
 	}
 }

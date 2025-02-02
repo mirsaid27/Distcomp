@@ -11,7 +11,7 @@ type writerService interface {
 	GetWriter(ctx context.Context, id int64) (model.Writer, error)
 	ListWriters(ctx context.Context) ([]model.Writer, error)
 	CreateWriter(ctx context.Context, writer model.Writer) (model.Writer, error)
-	UpdateWriter(ctx context.Context, writer model.Writer) error
+	UpdateWriter(ctx context.Context, writer model.Writer) (model.Writer, error)
 	DeleteWriter(ctx context.Context, id int64) error
 }
 

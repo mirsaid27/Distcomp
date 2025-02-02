@@ -60,46 +60,55 @@ func (n *LabelRepo) CreateLabel(ctx context.Context, args model.Label) (model.La
 
 		return model.Label{}, err
 	}
+	defer rows.Close()
 
 	var label model.Label
 
 	for rows.Next() {
-		rows.StructScan(label)
+		if err := rows.StructScan(&label); err != nil {
+			return model.Label{}, err
+		}
 	}
 
 	if err := rows.Err(); err != nil {
 		return model.Label{}, err
 	}
 
-	return model.Label{}, nil
+	return label, nil
 }
 
-func (n *LabelRepo) UpdateLabel(ctx context.Context, args model.Label) error {
+func (n *LabelRepo) UpdateLabel(ctx context.Context, args model.Label) (model.Label, error) {
 	const query = `UPDATE Label SET
 		name = COALESCE(NULLIF(:name, ''), name)
-	WHERE id = :id`
+	WHERE id = :id
+	RETURNING *`
 
-	result, err := n.db.NamedExecContext(ctx, query, args)
+	rows, err := n.db.NamedQueryContext(ctx, query, args)
 	if err != nil {
 		var pgErr *pgconn.PgError
 
 		if stderrors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return ErrLabelAlreadyExists
+			return model.Label{}, ErrLabelAlreadyExists
 		}
 
-		return err
+		return model.Label{}, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return model.Label{}, ErrLabelNotFound
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
+	var label model.Label
+	if err := rows.StructScan(&label); err != nil {
+		return model.Label{}, err
 	}
 
-	if rowsAffected != 1 {
-		return ErrLabelNotFound
+	if err := rows.Err(); err != nil {
+		return model.Label{}, err
 	}
 
-	return nil
+	return label, nil
 }
 
 func (n *LabelRepo) DeleteLabel(ctx context.Context, id int64) error {

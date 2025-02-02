@@ -47,7 +47,7 @@ func (n *NewsRepo) CreateNews(ctx context.Context, args model.News) (model.News,
 	const query = `INSERT INTO News (
 		writerId, title, content
 	) VALUES (
-		:writerId, :title, :content
+		:writerid, :title, :content
 	) RETURNING *`
 
 	rows, err := n.db.NamedQueryContext(ctx, query, args)
@@ -58,8 +58,9 @@ func (n *NewsRepo) CreateNews(ctx context.Context, args model.News) (model.News,
 			return model.News{}, ErrNewsAlreadyExist
 		}
 
-		return model.News{}, nil
+		return model.News{}, err
 	}
+	defer rows.Close()
 
 	var news model.News
 
@@ -71,38 +72,44 @@ func (n *NewsRepo) CreateNews(ctx context.Context, args model.News) (model.News,
 		return model.News{}, err
 	}
 
-	return model.News{}, nil
+	return news, nil
 }
 
-func (n *NewsRepo) UpdateNews(ctx context.Context, args model.News) error {
+func (n *NewsRepo) UpdateNews(ctx context.Context, args model.News) (model.News, error) {
 	const query = `UPDATE News SET
 		title	= COALESCE(NULLIF(:title, ''), title),
 		content = COALESCE(NULLIF(:content, ''), content),
-		writerId = COALESCE(NULLIF(:writerId, 0), writerId),
+		writerId = COALESCE(NULLIF(:writerid, 0), writerId),
 		modified = NOW()
-	WHERE id = :id`
+	WHERE id = :id
+	RETURNING *`
 
-	result, err := n.db.NamedExecContext(ctx, query, args)
+	rows, err := n.db.NamedQueryContext(ctx, query, args)
 	if err != nil {
 		var pgErr *pgconn.PgError
 
 		if stderrors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return ErrNewsAlreadyExist
+			return model.News{}, ErrNewsAlreadyExist
 		}
 
-		return err
+		return model.News{}, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return model.News{}, ErrNewsNotFound
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
+	var news model.News
+	if err := rows.StructScan(&news); err != nil {
+		return model.News{}, err
 	}
 
-	if rowsAffected != 1 {
-		return ErrNewsNotFound
+	if err := rows.Err(); err != nil {
+		return model.News{}, err
 	}
 
-	return nil
+	return news, nil
 }
 
 func (n *NewsRepo) DeleteNews(ctx context.Context, id int64) error {
