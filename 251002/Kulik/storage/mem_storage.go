@@ -59,3 +59,17 @@ func (repo *MemStorage[T]) Delete(id int64) error {
 	delete(repo.data, id)
 	return nil
 }
+
+func (repo *MemStorage[T]) GetAll() ([]T, []int64, error) {
+	repo.mutex.RLock()
+	defer repo.mutex.RUnlock()
+
+	result := make([]T, 0, len(repo.data))
+	ids := make([]int64, 0, len(repo.data))
+	for id, entity := range repo.data {
+		ids = append(ids, id)
+		result = append(result, entity)
+	}
+
+	return result, ids, nil
+}
