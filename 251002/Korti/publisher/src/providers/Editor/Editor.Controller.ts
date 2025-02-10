@@ -1,6 +1,5 @@
 import {
   Body,
-  ConflictException,
   Controller,
   Delete,
   Get,
@@ -10,7 +9,6 @@ import {
   Put,
   Post,
   Res,
-  HttpException,
 } from '@nestjs/common';
 import { EditorService } from './Editor.Service';
 import { EditorResponseTo } from './Dto/EditorResponseTo';
@@ -26,14 +24,8 @@ export class EditorController {
   @Get()
   async findAll(@Res() res: Response): Promise<void> {
     const editors = await this.editorService.getAllEditors();
-    const responseData: EditorResponseTo[] = editors.map((el) => {
-      return {
-        ...el,
-        id: Number(el.id),
-      };
-    });
     res.status(HttpStatus.OK).json(
-      plainToInstance(EditorResponseTo, responseData, {
+      plainToInstance(EditorResponseTo, editors, {
         excludeExtraneousValues: true,
       }),
     );
@@ -44,29 +36,12 @@ export class EditorController {
     @Param('id', ParseIntPipe) idEditor: number,
     @Res() res: Response,
   ): Promise<void> {
-    try {
-      const editor = await this.editorService.findById(idEditor);
-      const responseData = {
-        ...editor,
-        id: Number(editor.id),
-      };
-      res.status(HttpStatus.OK).json(
-        plainToInstance(EditorResponseTo, responseData, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40400,
-            errorMessage: 'Editor does not exist.',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      throw err;
-    }
+    const editor = await this.editorService.findById(idEditor);
+    res.status(HttpStatus.OK).json(
+      plainToInstance(EditorResponseTo, editor, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   @Post()
@@ -74,25 +49,12 @@ export class EditorController {
     @Body() req: EditorRequestTo,
     @Res() res: Response,
   ): Promise<void> {
-    try {
-      const editor: Editor = await this.editorService.createEditor(req);
-      res.status(HttpStatus.CREATED).json(
-        plainToInstance(EditorResponseTo, editor, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40001,
-            errorMessage: 'Editor already exist.',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw err;
-    }
+    const editor: Editor = await this.editorService.createEditor(req);
+    res.status(HttpStatus.CREATED).json(
+      plainToInstance(EditorResponseTo, editor, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   @Delete(':id')
@@ -100,52 +62,22 @@ export class EditorController {
     @Param('id', ParseIntPipe) idEditor: number,
     @Res() res: Response,
   ): Promise<void> {
-    try {
-      await this.editorService.deleteEditor(idEditor);
-      res.status(HttpStatus.NO_CONTENT).send();
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40400,
-            errorMessage: 'Editor does not exist.',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      throw err;
-    }
+    await this.editorService.deleteEditor(idEditor);
+    res.status(HttpStatus.NO_CONTENT).send();
   }
 
   @Put()
   async update(@Body() body: UpdateEditorDto, @Res() res: Response) {
-    try {
-      const responseBody: Editor = {
-        ...body,
-        id: Number(body.id),
-      };
-      const editor = await this.editorService.updateEditor(responseBody);
-      const responseData: EditorResponseTo = {
-        ...editor,
-        id: Number(editor.id),
-      };
-      res.status(HttpStatus.OK).json(
-        plainToInstance(EditorResponseTo, responseData, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40400,
-            errorMessage: 'Editor does not exist.',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      throw err;
-    }
+    const responseBody: Editor = {
+      ...body,
+      id: Number(body.id),
+    };
+    const editor = await this.editorService.updateEditor(responseBody);
+    res.status(HttpStatus.OK).json(
+      plainToInstance(EditorResponseTo, editor, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   @Get('article/:articleId')
@@ -153,20 +85,7 @@ export class EditorController {
     @Param('articleId', ParseIntPipe) articleId: number,
     @Res() res: Response,
   ) {
-    try {
-      const editor = await this.editorService.getEditorByArticleId(articleId);
-      res.status(HttpStatus.OK).json(plainToInstance(EditorResponseTo, editor));
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40400,
-            errorMessage: 'Article does not exist.',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      throw err;
-    }
+    const editor = await this.editorService.getEditorByArticleId(articleId);
+    res.status(HttpStatus.OK).json(plainToInstance(EditorResponseTo, editor));
   }
 }

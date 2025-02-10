@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -25,7 +27,13 @@ export class EditorService {
       );
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40001,
+            errorMessage: 'Editor already exist.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
       throw new InternalServerErrorException('Unexpected error');
     }
@@ -40,7 +48,13 @@ export class EditorService {
       return editor;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException('Unexpected error');
     }
@@ -55,7 +69,13 @@ export class EditorService {
       return editor;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException('Unexpected error');
     }
@@ -67,7 +87,13 @@ export class EditorService {
       return editor;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException('Unexpected error');
     }
@@ -79,7 +105,13 @@ export class EditorService {
       return editor;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException('Unexpected error');
     }

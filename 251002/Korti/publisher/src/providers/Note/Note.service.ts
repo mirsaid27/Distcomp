@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -34,7 +36,13 @@ export class NoteService {
       return plainToInstance(NoteResponseTo, note);
     } catch (err) {
       if (err instanceof NotFoundException) {
-        throw new NotFoundException();
+        throw new HttpException(
+          {
+            errorCode: 40403,
+            errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException();
     }
@@ -46,7 +54,13 @@ export class NoteService {
       return plainToInstance(NoteResponseTo, note);
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40404,
+            errorMessage: 'Note does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException();
     }
@@ -57,7 +71,13 @@ export class NoteService {
       await StorageService.remove<Note>(CollectionType.NOTES, id);
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40404,
+            errorMessage: 'Note does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException();
     }
@@ -72,7 +92,13 @@ export class NoteService {
       return plainToInstance(NoteResponseTo, note);
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40404,
+            errorMessage: 'Note does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException();
     }

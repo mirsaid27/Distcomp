@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -27,7 +29,13 @@ export class StickerService {
       return createdSticker;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40005,
+            errorMessage: 'Sticker with this name already exist.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
       throw InternalServerErrorException;
     }
@@ -38,7 +46,13 @@ export class StickerService {
       await StorageService.remove<Sticker>(CollectionType.STICKERS, id);
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40006,
+            errorMessage: 'Sticker does not exist.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
       throw new InternalServerErrorException();
     }
@@ -53,7 +67,13 @@ export class StickerService {
       return sticker;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40006,
+            errorMessage: 'Sticker does not exist.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
       throw new InternalServerErrorException();
     }
@@ -68,7 +88,13 @@ export class StickerService {
       return sticker;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40006,
+            errorMessage: 'Sticker does not exist.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
       throw new InternalServerErrorException();
     }

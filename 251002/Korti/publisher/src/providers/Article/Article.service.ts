@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -7,10 +9,11 @@ import {
 import { CollectionType, StorageService } from '../../storage/database';
 import { Article } from 'src/entities/Article';
 import { ArticleRequestTo, UpdateArticleTo } from './Dto/ArticleRequestTo';
+import { ArticleResponseTo } from './Dto/ArticleResponseTo';
 
 @Injectable()
 export class ArticleService {
-  async getAllArticles(): Promise<ReadonlyArray<Article>> {
+  async getAllArticles(): Promise<ReadonlyArray<ArticleResponseTo>> {
     return await StorageService.getAll<Article>(CollectionType.ARTICLES);
   }
 
@@ -34,9 +37,21 @@ export class ArticleService {
       return newArticle;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40204,
+            errorMessage: 'Article already exist.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       } else if (err instanceof NotFoundException) {
-        throw new NotFoundException();
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException();
     }
@@ -47,7 +62,13 @@ export class ArticleService {
       await StorageService.remove<Article>(CollectionType.ARTICLES, id);
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40403,
+            errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException();
     }
@@ -62,7 +83,13 @@ export class ArticleService {
       return article;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40403,
+            errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException();
     }
@@ -83,7 +110,13 @@ export class ArticleService {
       return modArticle;
     } catch (err) {
       if (err instanceof ConflictException) {
-        throw new ConflictException();
+        throw new HttpException(
+          {
+            errorCode: 40403,
+            errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new InternalServerErrorException();
     }

@@ -1,10 +1,8 @@
 import {
   Body,
-  ConflictException,
   Controller,
   Delete,
   Get,
-  HttpException,
   HttpStatus,
   Param,
   ParseIntPipe,
@@ -27,14 +25,8 @@ export class StickerController {
   async getAll(@Res() res: Response) {
     const stickers: ReadonlyArray<Sticker> =
       await this.stickerService.getAllStickers();
-    const responseData: StickerResponseTo[] = stickers.map((el) => {
-      return {
-        ...el,
-        id: Number(el.id),
-      };
-    });
     res.status(HttpStatus.OK).json(
-      plainToInstance(StickerResponseTo, responseData, {
+      plainToInstance(StickerResponseTo, stickers, {
         excludeExtraneousValues: true,
       }),
     );
@@ -42,29 +34,12 @@ export class StickerController {
 
   @Post()
   async create(@Body() body: StickerRequestTo, @Res() res: Response) {
-    try {
-      const sticker = await this.stickerService.createSticker(body);
-      const responseData = {
-        ...sticker,
-        id: Number(sticker.id),
-      };
-      res.status(HttpStatus.CREATED).json(
-        plainToInstance(StickerResponseTo, responseData, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40005,
-            errorMessage: 'Sticker with this name already exist.',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw err;
-    }
+    const sticker = await this.stickerService.createSticker(body);
+    res.status(HttpStatus.CREATED).json(
+      plainToInstance(StickerResponseTo, sticker, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   @Delete(':id')
@@ -72,21 +47,8 @@ export class StickerController {
     @Param('id', ParseIntPipe) stickerId: number,
     @Res() res: Response,
   ) {
-    try {
-      await this.stickerService.deleteSticker(stickerId);
-      res.status(HttpStatus.NO_CONTENT).send();
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40006,
-            errorMessage: 'Sticker does not exist.',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw err;
-    }
+    await this.stickerService.deleteSticker(stickerId);
+    res.status(HttpStatus.NO_CONTENT).send();
   }
 
   @Get(':id')
@@ -94,55 +56,25 @@ export class StickerController {
     @Param('id', ParseIntPipe) stickerId: number,
     @Res() res: Response,
   ) {
-    try {
-      const sticker = await this.stickerService.getStickerById(stickerId);
-      const responseData: StickerResponseTo = {
-        ...sticker,
-        id: Number(sticker.id),
-      };
-      res.status(HttpStatus.OK).json(
-        plainToInstance(StickerResponseTo, responseData, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40006,
-            errorMessage: 'Sticker does not exist.',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw err;
-    }
+    const sticker = await this.stickerService.getStickerById(stickerId);
+    res.status(HttpStatus.OK).json(
+      plainToInstance(StickerResponseTo, sticker, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   @Put()
   async update(@Body() req: UpdateStickerTo, @Res() res: Response) {
-    try {
-      const sticker = await this.stickerService.updateSticker(req);
-      const responseData: StickerResponseTo = {
-        ...sticker,
-        id: Number(sticker.id),
-      };
-      res.status(HttpStatus.OK).json(
-        plainToInstance(StickerResponseTo, responseData, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40006,
-            errorMessage: 'Sticker does not exist.',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw err;
-    }
+    const sticker = await this.stickerService.updateSticker(req);
+    const responseData: StickerResponseTo = {
+      ...sticker,
+      id: Number(sticker.id),
+    };
+    res.status(HttpStatus.OK).json(
+      plainToInstance(StickerResponseTo, responseData, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 }
