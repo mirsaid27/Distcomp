@@ -2,7 +2,7 @@
 
 public class News : BaseEntity
 {
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
     public string Title { get; set; } = null!;
     public string Content { get; set; } = null!;
     public DateTime Created { get; set; }
