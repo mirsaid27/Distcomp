@@ -1,4 +1,5 @@
 using API.Middlewares;
+using Application.Extensions;
 using Persistence.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 builder.Services.ConfigureRepositories();
+builder.Services.ConfigureAutoMapper();
+builder.Services.ConfigureValidation();
 
 var app = builder.Build();
 
