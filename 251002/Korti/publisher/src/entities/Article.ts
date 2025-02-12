@@ -1,8 +1,48 @@
-export interface Article {
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Editor } from './Editor';
+import { Sticker } from './Sticker';
+import { Note } from './Note';
+@Entity({ name: 'tbl_article' })
+export class Article {
+  @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ nullable: false })
   editorId: number;
+
+  @Column({ nullable: false })
   title: string;
+
+  @Column({ nullable: false })
   content: string;
-  created: string;
-  modified: string | null;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  modified: Date | null;
+
+  @OneToMany(() => Note, (note) => note.article)
+  notes: Note[];
+
+  @ManyToOne(() => Editor)
+  @JoinColumn({ name: 'editorId' })
+  editor: Editor;
+
+  @ManyToMany(() => Sticker)
+  @JoinTable({
+    name: 'tbl_sticker_article',
+    joinColumn: { name: 'articleId' },
+    inverseJoinColumn: { name: 'stickerId' },
+  })
+  stickers: Sticker[];
 }
