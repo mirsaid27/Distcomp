@@ -1,3 +1,12 @@
-﻿namespace Application.DTO;
+﻿using System.Text.Json.Serialization;
 
-public record UserResponseTo(long Id, string Login, string Password, string FirstName, string LastName);
+namespace Application.DTO;
+
+public record UserResponseTo(
+    long Id,
+    string Login,
+    string Password,
+    [property: JsonPropertyName("firstname")]
+    string FirstName,
+    [property: JsonPropertyName("lastname")]
+    string LastName);
