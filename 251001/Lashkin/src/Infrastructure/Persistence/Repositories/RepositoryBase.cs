@@ -29,9 +29,9 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : BaseEntity
         return await _context.FindAsync<T>([id], cancellationToken);
     }
 
-    public async Task CreateAsync(T entity)
+    public void Create(T entity)
     {
-        await _context.AddAsync(entity);
+        _context.Add(entity);
     }
 
     public void Update(T entity)
