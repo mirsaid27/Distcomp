@@ -11,6 +11,7 @@ builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 builder.Services.ConfigureRepositories();
 builder.Services.ConfigureAutoMapper();
 builder.Services.ConfigureValidation();
+builder.Services.ConfigureMediatR();
 
 var app = builder.Build();
 

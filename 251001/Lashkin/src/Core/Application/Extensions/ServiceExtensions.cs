@@ -21,4 +21,11 @@ public static class ServiceExtensions
 
         return services;
     }
+
+    public static IServiceCollection ConfigureMediatR(this IServiceCollection services)
+    {
+        services.AddMediatR(configuration => configuration.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
+
+        return services;
+    }
 }
