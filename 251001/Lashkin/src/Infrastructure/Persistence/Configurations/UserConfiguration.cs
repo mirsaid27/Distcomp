@@ -27,7 +27,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasData(new User
         {
+            Id = (long)1,
             Login = "lashkin2004@gmail.com",
+            Password = "1234",
             FirstName = "Владислав",
             LastName = "Лашкин"
         });

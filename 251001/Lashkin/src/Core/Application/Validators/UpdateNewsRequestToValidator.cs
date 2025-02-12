@@ -12,9 +12,5 @@ public class UpdateNewsRequestToValidator : AbstractValidator<UpdateNewsRequestT
         RuleFor(news => news.Title).Length(2, 64).NotEmpty();
 
         RuleFor(news => news.Content).Length(4, 2048).NotEmpty();
-
-        RuleFor(news => news.Created).NotEmpty();
-
-        RuleFor(news => news.Modified).NotEmpty();
     }
 }
