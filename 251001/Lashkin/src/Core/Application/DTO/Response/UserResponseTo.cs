@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Application.DTO;
+namespace Application.DTO.Response;
 
 public record UserResponseTo(
     long Id,
