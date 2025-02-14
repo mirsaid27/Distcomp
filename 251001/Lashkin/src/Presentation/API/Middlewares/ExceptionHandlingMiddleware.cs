@@ -16,7 +16,7 @@ public class ExceptionHandlingMiddleware : IMiddleware
             var errorCode = exception switch
             {
                 NotFoundException => StatusCodes.Status404NotFound,
-                AlreadyExistsException => StatusCodes.Status409Conflict,
+                AlreadyExistsException => StatusCodes.Status403Forbidden,
                 _ => StatusCodes.Status500InternalServerError
             };
             
