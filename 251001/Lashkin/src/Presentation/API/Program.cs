@@ -10,7 +10,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options => options.AddPolicy("RestCors", policyBuilder => policyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
-builder.Services.ConfigureRepositories();
+builder.Services.ConfigureRepositories(builder.Configuration);
 builder.Services.ConfigureAutoMapper();
 builder.Services.ConfigureValidation();
 builder.Services.ConfigureMediatR();
