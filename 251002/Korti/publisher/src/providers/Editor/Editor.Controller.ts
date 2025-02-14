@@ -19,7 +19,7 @@ import { Editor } from 'src/entities/Editor';
 
 @Controller('api/v1.0/editors')
 export class EditorController {
-  private editorService: EditorService = new EditorService();
+  constructor(private readonly editorService: EditorService) {}
 
   @Get()
   async findAll(@Res() res: Response): Promise<void> {
@@ -68,9 +68,10 @@ export class EditorController {
 
   @Put()
   async update(@Body() body: UpdateEditorDto, @Res() res: Response) {
+    const editorForArticles = await this.editorService.findById(body.id);
     const responseBody: Editor = {
       ...body,
-      id: Number(body.id),
+      articles: editorForArticles.articles,
     };
     const editor = await this.editorService.updateEditor(responseBody);
     res.status(HttpStatus.OK).json(

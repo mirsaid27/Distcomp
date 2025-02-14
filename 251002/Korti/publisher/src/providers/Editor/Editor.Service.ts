@@ -6,25 +6,25 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Editor } from 'src/entities/Editor';
-import { CollectionType, StorageService } from 'src/storage/database';
+import { StorageService } from 'src/storage/database';
 import { EditorRequestTo } from './Dto/EditorRequestTo';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class EditorService {
+  constructor(
+    @InjectRepository(Editor)
+    private editorRepository: Repository<Editor>,
+  ) {}
+
   async getAllEditors(): Promise<ReadonlyArray<Editor>> {
-    return await StorageService.getAll<Editor>(CollectionType.EDITORS);
+    return this.editorRepository.find();
   }
 
   async createEditor(editor: EditorRequestTo): Promise<Editor> {
     try {
-      const id: number = await StorageService.generateId(
-        CollectionType.EDITORS,
-      );
-      const editorBody: Editor = { id, ...editor };
-      return await StorageService.add<Editor>(
-        CollectionType.EDITORS,
-        editorBody,
-      );
+      return this.editorRepository.create(editor);
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
@@ -39,13 +39,9 @@ export class EditorService {
     }
   }
 
-  async deleteEditor(id: number): Promise<Editor> {
+  async deleteEditor(id: number): Promise<void> {
     try {
-      const editor = await StorageService.remove<Editor>(
-        CollectionType.EDITORS,
-        id,
-      );
-      return editor;
+      await this.editorRepository.delete(id);
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
@@ -62,13 +58,9 @@ export class EditorService {
 
   async findById(id: number): Promise<Editor> {
     try {
-      const editor = await StorageService.getById<Editor>(
-        CollectionType.EDITORS,
-        id,
-      );
-      return editor;
-    } catch (err) {
-      if (err instanceof ConflictException) {
+      const editor = await this.editorRepository.findOneBy({ id });
+      if (editor) return editor;
+      else
         throw new HttpException(
           {
             errorCode: 40400,
@@ -76,17 +68,17 @@ export class EditorService {
           },
           HttpStatus.NOT_FOUND,
         );
-      }
+    } catch {
       throw new InternalServerErrorException('Unexpected error');
     }
   }
 
   async updateEditor(item: Editor): Promise<Editor> {
     try {
-      const editor = await StorageService.update(CollectionType.EDITORS, item);
-      return editor;
-    } catch (err) {
-      if (err instanceof ConflictException) {
+      const existEditor = await this.editorRepository.findOne({
+        where: { id: item.id },
+      });
+      if (!existEditor) {
         throw new HttpException(
           {
             errorCode: 40400,
@@ -95,6 +87,15 @@ export class EditorService {
           HttpStatus.NOT_FOUND,
         );
       }
+      await this.editorRepository.update(item.id, {
+        firstname: item.firstname,
+        lastname: item.lastname,
+        login: item.login,
+        password: item.password,
+      });
+      // лень
+      return item;
+    } catch {
       throw new InternalServerErrorException('Unexpected error');
     }
   }
