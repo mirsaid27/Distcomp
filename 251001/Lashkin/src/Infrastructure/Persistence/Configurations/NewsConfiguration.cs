@@ -8,7 +8,11 @@ public class NewsConfiguration : IEntityTypeConfiguration<News>
 {
     public void Configure(EntityTypeBuilder<News> builder)
     {
-        builder.HasKey(news => news.Id);
+        builder.ToTable("tbl_news");        
+        
+        builder.HasKey(news => news.Id).HasName("PK_tbl_news");
+
+        builder.Property(news => news.UserId).HasColumnName("user_id");
 
         builder.Property(news => news.Title).HasMaxLength(64).IsRequired();
 
@@ -22,7 +26,7 @@ public class NewsConfiguration : IEntityTypeConfiguration<News>
 
         builder.HasOne(news => news.User)
             .WithMany(user => user.News)
-            .OnDelete(DeleteBehavior.Restrict)
+            .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
 
         builder.HasMany(news => news.Notices)

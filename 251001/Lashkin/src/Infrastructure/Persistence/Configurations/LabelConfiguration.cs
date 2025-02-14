@@ -8,7 +8,9 @@ public class LabelConfiguration : IEntityTypeConfiguration<Label>
 {
     public void Configure(EntityTypeBuilder<Label> builder)
     {
-        builder.HasKey(label => label.Id);
+        builder.ToTable("tbl_label");
+
+        builder.HasKey(label => label.Id).HasName("PK_tbl_label");
 
         builder.Property(label => label.Name).HasMaxLength(32).IsRequired();
         

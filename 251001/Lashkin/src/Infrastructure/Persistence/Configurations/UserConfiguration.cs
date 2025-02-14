@@ -8,7 +8,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.HasKey(user => user.Id);
+        builder.ToTable("tbl_user");
+        
+        builder.HasKey(user => user.Id).HasName("PK_tbl_user");
 
         builder.Property(user => user.Login).HasMaxLength(64).IsRequired();
 
@@ -22,7 +24,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasMany(user => user.News)
             .WithOne(news => news.User)
-            .OnDelete(DeleteBehavior.Restrict)
+            .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
 
         builder.HasData(new User
