@@ -20,13 +20,20 @@ public class CreateNewsCommandHandler : IRequestHandler<CreateNewsCommand, NewsR
 
     public async Task<NewsResponseTo> Handle(CreateNewsCommand request, CancellationToken cancellationToken)
     {
-        var news = await _unitOfWork.News.FindByCondition(news => news.Title == request.NewsRequestTo.Title, false).SingleOrDefaultAsync(cancellationToken);
+        var news = await _unitOfWork.News.FindByCondition(entity => entity.Title == request.NewsRequestTo.Title, false).SingleOrDefaultAsync(cancellationToken);
 
         if (news != null)
         {
             throw new AlreadyExistsException(string.Format(ExceptionMessages.NewsAlreadyExists, news.Title));
         }
 
+        var user = await _unitOfWork.User.FindByCondition(user => user.Id == request.NewsRequestTo.UserId, false).SingleOrDefaultAsync(cancellationToken);
+
+        if (user == null)
+        {
+            throw new NotFoundException(string.Format(ExceptionMessages.UserNotFound, request.NewsRequestTo.UserId));
+        }
+        
         news = _mapper.Map<Domain.Entities.News>(request.NewsRequestTo);
 
         _unitOfWork.News.Create(news);

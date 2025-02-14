@@ -1,8 +1,10 @@
 ﻿using Application.DTO.Response;
+using Application.Exceptions;
 using AutoMapper;
 using MediatR;
 using Domain.Entities;
 using Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Notices.Commands;
 
@@ -19,6 +21,13 @@ public class CreateNoticeCommandHandler : IRequestHandler<CreateNoticeCommand, N
 
     public async Task<NoticeResponseTo> Handle(CreateNoticeCommand request, CancellationToken cancellationToken)
     {
+        var news = await _unitOfWork.Notice.FindByCondition(notice => notice.NewsId == request.NoticeRequestTo.NewsId, false).SingleOrDefaultAsync(cancellationToken);
+
+        if (news == null)
+        {
+            throw new NotFoundException(string.Format(ExceptionMessages.NewsNotFound, request.NoticeRequestTo.NewsId));
+        }
+        
         var notice = _mapper.Map<Notice>(request.NoticeRequestTo);
 
         _unitOfWork.Notice.Create(notice);

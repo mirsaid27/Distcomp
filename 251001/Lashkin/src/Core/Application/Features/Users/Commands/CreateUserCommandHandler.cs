@@ -1,8 +1,10 @@
 ﻿using Application.DTO.Response;
+using Application.Exceptions;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Users.Commands;
 
@@ -19,7 +21,14 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserR
 
     public async Task<UserResponseTo> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        var user = _mapper.Map<User>(request.UserRequestTo);
+        var user = await _unitOfWork.User.FindByCondition(user => user.Login == request.UserRequestTo.Login, false).SingleOrDefaultAsync(cancellationToken: cancellationToken);
+
+        if (user != null)
+        {
+            throw new AlreadyExistsException(string.Format(ExceptionMessages.UserAlreadyExists, request.UserRequestTo.Login));
+        }
+        
+        user = _mapper.Map<User>(request.UserRequestTo);
 
         _unitOfWork.User.Create(user);
 
