@@ -17,7 +17,7 @@ export class Note {
   @Column({ nullable: false })
   content: string;
 
-  @ManyToOne(() => Article)
+  @ManyToOne(() => Article, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'articleId' })
   article: Article;
 }

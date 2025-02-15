@@ -31,14 +31,14 @@ export class Article {
   @Column({ type: 'timestamp', nullable: true })
   modified: Date | null;
 
-  @OneToMany(() => Note, (note) => note.article)
+  @OneToMany(() => Note, (note) => note.article, { onDelete: 'CASCADE' })
   notes: Note[];
 
-  @ManyToOne(() => Editor)
+  @ManyToOne(() => Editor, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'editor_Id' })
   editor: Editor;
 
-  @ManyToMany(() => Sticker)
+  @ManyToMany(() => Sticker, { onDelete: 'CASCADE' })
   @JoinTable({
     name: 'tbl_sticker_article',
     joinColumn: { name: 'articleId' },

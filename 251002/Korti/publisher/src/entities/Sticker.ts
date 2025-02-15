@@ -9,6 +9,6 @@ export class Sticker {
   @Column()
   name: string;
 
-  @ManyToMany(() => Article)
+  @ManyToMany(() => Article, { onDelete: 'CASCADE' })
   articles: Article[];
 }

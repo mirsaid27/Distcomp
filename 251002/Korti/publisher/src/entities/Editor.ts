@@ -17,6 +17,8 @@ export class Editor {
   @Column({ nullable: false })
   lastname: string;
 
-  @OneToMany(() => Article, (article) => article.editor)
+  @OneToMany(() => Article, (article) => article.editor, {
+    onDelete: 'CASCADE',
+  })
   articles: Article[];
 }

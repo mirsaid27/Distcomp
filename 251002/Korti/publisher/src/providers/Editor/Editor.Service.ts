@@ -7,16 +7,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Editor } from 'src/entities/Editor';
-import { StorageService } from 'src/storage/database';
 import { EditorRequestTo } from './Dto/EditorRequestTo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Article } from 'src/entities/Article';
 
 @Injectable()
 export class EditorService {
   constructor(
     @InjectRepository(Editor)
     private editorRepository: Repository<Editor>,
+    @InjectRepository(Article)
+    private articleRepository: Repository<Article>,
   ) {}
 
   async getAllEditors(): Promise<ReadonlyArray<Editor>> {
@@ -110,14 +112,29 @@ export class EditorService {
 
   async getEditorByArticleId(articleId: number): Promise<Editor> {
     try {
-      const editor = await StorageService.getEditorByArticleId(articleId);
+      const article = await this.articleRepository.findOne({
+        where: { id: articleId },
+      });
+      if (!article) throw new ConflictException();
+      const editor = await this.editorRepository.findOne({
+        where: { id: article.editorId },
+      });
+      if (!editor) throw new NotFoundException();
       return editor;
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
           {
-            errorCode: 40400,
+            errorCode: 40402,
             errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      } else if (err instanceof NotFoundException) {
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
           },
           HttpStatus.NOT_FOUND,
         );
