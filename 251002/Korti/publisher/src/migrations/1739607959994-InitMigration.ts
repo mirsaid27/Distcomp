@@ -11,18 +11,18 @@ export class InitMigration1739539398800 implements MigrationInterface {
 );`);
     await queryRunner.query(`CREATE TABLE tbl_article(
 	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	editorId BIGINT,
+	"editorId" BIGINT,
 	title TEXT UNIQUE,
 	content TEXT,
 	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (editorId) REFERENCES tbl_editor(id)
+	FOREIGN KEY ("editorId") REFERENCES tbl_editor(id)
 );`);
     await queryRunner.query(`CREATE TABLE tbl_note(
 	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	articleId BIGINT,
+	"articleId" BIGINT,
 	content TEXT,
-	FOREIGN KEY (articleId) REFERENCES tbl_article(id)
+	FOREIGN KEY ("articleId") REFERENCES tbl_article(id)
 );`);
     await queryRunner.query(`CREATE TABLE tbl_sticker(
 	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -39,10 +39,10 @@ export class InitMigration1739539398800 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS "tbl_sticker"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "tbl_note"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "tbl_editor"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "tbl_article"`);
     await queryRunner.query(`DROP TABLE IF EXISTS tbl_article_stickers`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "tbl_article"`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "tbl_sticker"`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "tbl_editor"`);
   }
 }

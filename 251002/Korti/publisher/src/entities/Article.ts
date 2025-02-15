@@ -16,7 +16,7 @@ export class Article {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false })
+  @Column({ name: 'editorId', nullable: false })
   editorId: number;
 
   @Column({ nullable: false })

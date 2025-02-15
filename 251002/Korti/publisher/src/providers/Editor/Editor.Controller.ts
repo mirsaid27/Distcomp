@@ -49,6 +49,7 @@ export class EditorController {
     @Body() req: EditorRequestTo,
     @Res() res: Response,
   ): Promise<void> {
+    console.log(req);
     const editor: Editor = await this.editorService.createEditor(req);
     res.status(HttpStatus.CREATED).json(
       plainToInstance(EditorResponseTo, editor, {

@@ -20,8 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-esm",
     "migration:generate": "npm run typeorm migration:generate -d ./src/data-source.ts",
-    "migration:run": "npm run typeorm migration:run -d ./src/data-source.ts",
-    "migration:revert": "npm run typeorm migration:revert -d ./src/data-source.ts"
+    "migration:run": "npx typeorm-ts-node-commonjs migration:run -- -d ./src/data-source.ts",
+    "migration:revert": "npx typeorm-ts-node-commonjs migration:revert -- -d ./src/data-source.ts "
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

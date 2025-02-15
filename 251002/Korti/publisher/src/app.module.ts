@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -26,6 +25,9 @@ import { Sticker } from './entities/Sticker';
       synchronize: false,
     }),
     EditorModule,
+    ArticleModule,
+    NoteModule,
+    StickerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

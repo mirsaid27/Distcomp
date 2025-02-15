@@ -6,35 +6,34 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Sticker } from 'src/entities/Sticker';
-import { CollectionType, StorageService } from '../../storage/database';
 import { StickerRequestTo, UpdateStickerTo } from './Dto/StickerRequestTo';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class StickerService {
+  constructor(
+    @InjectRepository(Sticker)
+    private readonly stickerRepository: Repository<Sticker>,
+  ) {}
+
   async getAllStickers(): Promise<ReadonlyArray<Sticker>> {
-    return await StorageService.getAll<Sticker>(CollectionType.STICKERS);
+    return await this.stickerRepository.find();
   }
 
   async createSticker(sticker: StickerRequestTo): Promise<Sticker> {
     try {
-      const id = await StorageService.generateId(CollectionType.STICKERS);
-      const item: Sticker = {
-        id: id,
-        name: sticker.name,
-      };
-      const createdSticker = await StorageService.add<Sticker>(
-        CollectionType.STICKERS,
-        item,
-      );
-      return createdSticker;
+      const st = this.stickerRepository.create(sticker);
+      return await this.stickerRepository.save(st);
     } catch (err) {
-      if (err instanceof ConflictException) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if ((err.code as string) === '23505') {
         throw new HttpException(
           {
             errorCode: 40005,
             errorMessage: 'Sticker with this name already exist.',
           },
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.FORBIDDEN,
         );
       }
       throw InternalServerErrorException;
@@ -43,7 +42,9 @@ export class StickerService {
 
   async deleteSticker(id: number): Promise<void> {
     try {
-      await StorageService.remove<Sticker>(CollectionType.STICKERS, id);
+      const sticker = await this.stickerRepository.findOne({ where: { id } });
+      if (!sticker) throw new ConflictException();
+      await this.stickerRepository.delete(id);
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
@@ -51,7 +52,7 @@ export class StickerService {
             errorCode: 40006,
             errorMessage: 'Sticker does not exist.',
           },
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.NOT_FOUND,
         );
       }
       throw new InternalServerErrorException();
@@ -60,10 +61,8 @@ export class StickerService {
 
   async getStickerById(id: number): Promise<Sticker> {
     try {
-      const sticker = await StorageService.getById<Sticker>(
-        CollectionType.STICKERS,
-        id,
-      );
+      const sticker = await this.stickerRepository.findOne({ where: { id } });
+      if (!sticker) throw new ConflictException();
       return sticker;
     } catch (err) {
       if (err instanceof ConflictException) {
@@ -72,7 +71,7 @@ export class StickerService {
             errorCode: 40006,
             errorMessage: 'Sticker does not exist.',
           },
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.NOT_FOUND,
         );
       }
       throw new InternalServerErrorException();
@@ -81,11 +80,18 @@ export class StickerService {
 
   async updateSticker(item: UpdateStickerTo): Promise<Sticker> {
     try {
-      const sticker = {
-        ...item,
-      };
-      await StorageService.update<Sticker>(CollectionType.STICKERS, sticker);
-      return sticker;
+      const st = await this.stickerRepository.findOne({
+        where: { id: item.id },
+      });
+      if (!st) throw new ConflictException();
+      await this.stickerRepository.update(item.id, {
+        name: item.name,
+      });
+      const updSticker = await this.stickerRepository.findOne({
+        where: { id: item.id },
+      });
+      if (!updSticker) throw new Error();
+      return updSticker;
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(

@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { Editor } from 'src/entities/Editor';
 import { StorageService } from 'src/storage/database';
@@ -19,20 +20,22 @@ export class EditorService {
   ) {}
 
   async getAllEditors(): Promise<ReadonlyArray<Editor>> {
-    return this.editorRepository.find();
+    return await this.editorRepository.find();
   }
 
   async createEditor(editor: EditorRequestTo): Promise<Editor> {
     try {
-      return this.editorRepository.create(editor);
+      const newEditor = this.editorRepository.create(editor);
+      return await this.editorRepository.save(newEditor);
     } catch (err) {
-      if (err instanceof ConflictException) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if ((err.code as string) === '23505') {
         throw new HttpException(
           {
             errorCode: 40001,
             errorMessage: 'Editor already exist.',
           },
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.FORBIDDEN,
         );
       }
       throw new InternalServerErrorException('Unexpected error');
@@ -41,6 +44,8 @@ export class EditorService {
 
   async deleteEditor(id: number): Promise<void> {
     try {
+      const editor = await this.editorRepository.findOneBy({ id });
+      if (!editor) throw new ConflictException();
       await this.editorRepository.delete(id);
     } catch (err) {
       if (err instanceof ConflictException) {
@@ -93,8 +98,11 @@ export class EditorService {
         login: item.login,
         password: item.password,
       });
-      // лень
-      return item;
+      const result = await this.editorRepository.findOne({
+        where: { id: item.id },
+      });
+      if (!result) throw new NotFoundException();
+      return result;
     } catch {
       throw new InternalServerErrorException('Unexpected error');
     }

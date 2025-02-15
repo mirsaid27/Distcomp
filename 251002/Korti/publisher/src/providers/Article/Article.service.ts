@@ -6,43 +6,48 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CollectionType, StorageService } from '../../storage/database';
 import { Article } from 'src/entities/Article';
 import { ArticleRequestTo, UpdateArticleTo } from './Dto/ArticleRequestTo';
 import { ArticleResponseTo } from './Dto/ArticleResponseTo';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Editor } from 'src/entities/Editor';
 
 @Injectable()
 export class ArticleService {
+  constructor(
+    @InjectRepository(Article)
+    private readonly articleRepository: Repository<Article>,
+    @InjectRepository(Editor)
+    private readonly editorRepository: Repository<Editor>,
+  ) {}
+
   async getAllArticles(): Promise<ReadonlyArray<ArticleResponseTo>> {
-    return await StorageService.getAll<Article>(CollectionType.ARTICLES);
+    return await this.articleRepository.find();
   }
 
   async createArticle(article: ArticleRequestTo): Promise<Article> {
     try {
-      const date = new Date().toISOString();
-      const articleId: number = await StorageService.generateId(
-        CollectionType.ARTICLES,
-      );
-      const articleToAdd: Article = {
+      const editor = await this.editorRepository.findOne({
+        where: { id: article.editorId },
+      });
+      if (!editor) {
+        throw new NotFoundException();
+      }
+      const newArticle = this.articleRepository.create({
         ...article,
-        created: date,
-        modified: null,
-        id: articleId,
-      };
-
-      const newArticle = await StorageService.add<Article>(
-        CollectionType.ARTICLES,
-        articleToAdd,
-      );
-      return newArticle;
+        editor: editor,
+      });
+      return await this.articleRepository.save(newArticle);
     } catch (err) {
-      if (err instanceof ConflictException) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (err.code === '23505') {
         throw new HttpException(
           {
             errorCode: 40204,
             errorMessage: 'Article already exist.',
           },
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.FORBIDDEN,
         );
       } else if (err instanceof NotFoundException) {
         throw new HttpException(
@@ -59,15 +64,16 @@ export class ArticleService {
 
   async deleteArticle(id: number): Promise<void> {
     try {
-      await StorageService.remove<Article>(CollectionType.ARTICLES, id);
+      await this.articleRepository.delete(id);
     } catch (err) {
-      if (err instanceof ConflictException) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (err.code === '23505') {
         throw new HttpException(
           {
-            errorCode: 40403,
-            errorMessage: 'Article does not exist.',
+            errorCode: 40204,
+            errorMessage: 'Article already exist.',
           },
-          HttpStatus.NOT_FOUND,
+          HttpStatus.FORBIDDEN,
         );
       }
       throw new InternalServerErrorException();
@@ -76,10 +82,8 @@ export class ArticleService {
 
   async getArticleById(id: number): Promise<Article> {
     try {
-      const article = await StorageService.getById<Article>(
-        CollectionType.ARTICLES,
-        id,
-      );
+      const article = await this.articleRepository.findOne({ where: { id } });
+      if (!article) throw new ConflictException();
       return article;
     } catch (err) {
       if (err instanceof ConflictException) {
@@ -97,16 +101,33 @@ export class ArticleService {
 
   async updateArticle(body: UpdateArticleTo): Promise<Article> {
     try {
-      const modDate = new Date().toISOString();
-      const article = await StorageService.getById<Article>(
-        CollectionType.ARTICLES,
-        body.id,
-      );
+      const editor = await this.editorRepository.findOne({
+        where: { id: body.editorId },
+      });
+      if (!editor) throw new NotFoundException();
+      const article = await this.articleRepository.findOne({
+        where: { id: body.id },
+      });
+      if (!article) throw new ConflictException();
+      const modDate = new Date();
       const modArticle: Article = {
-        ...article,
+        ...body,
+        created: article.created,
+        notes: article.notes,
+        editor: article.editor,
+        stickers: article.stickers,
         modified: modDate,
       };
-      await StorageService.update<Article>(CollectionType.ARTICLES, modArticle);
+      await this.articleRepository.update(body.id, {
+        editorId: modArticle.editorId,
+        title: modArticle.title,
+        content: modArticle.content,
+        editor: modArticle.editor,
+        stickers: modArticle.stickers,
+        notes: modArticle.notes,
+        created: modArticle.created,
+        modified: modArticle.modified,
+      });
       return modArticle;
     } catch (err) {
       if (err instanceof ConflictException) {
@@ -114,6 +135,14 @@ export class ArticleService {
           {
             errorCode: 40403,
             errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      } else if (err instanceof NotFoundException) {
+        throw new HttpException(
+          {
+            errorCode: 40400,
+            errorMessage: 'Editor does not exist.',
           },
           HttpStatus.NOT_FOUND,
         );

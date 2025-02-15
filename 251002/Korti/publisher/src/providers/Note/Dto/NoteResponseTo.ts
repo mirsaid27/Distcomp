@@ -13,5 +13,6 @@ export class NoteResponseTo {
   @IsString()
   @MinLength(2)
   @MaxLength(2048)
+  @Expose()
   content: string;
 }
