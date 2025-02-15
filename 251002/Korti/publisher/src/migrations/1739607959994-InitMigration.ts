@@ -11,12 +11,12 @@ export class InitMigration1739539398800 implements MigrationInterface {
 );`);
     await queryRunner.query(`CREATE TABLE tbl_article(
 	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	"editorId" BIGINT,
+	"editor_Id" BIGINT,
 	title TEXT UNIQUE,
 	content TEXT,
 	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY ("editorId") REFERENCES tbl_editor(id)
+	FOREIGN KEY ("editor_Id") REFERENCES tbl_editor(id)
 );`);
     await queryRunner.query(`CREATE TABLE tbl_note(
 	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

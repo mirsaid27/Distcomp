@@ -16,7 +16,7 @@ export class Article {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'editorId', nullable: false })
+  @Column({ name: 'editor_Id', nullable: false })
   editorId: number;
 
   @Column({ nullable: false })
@@ -35,7 +35,7 @@ export class Article {
   notes: Note[];
 
   @ManyToOne(() => Editor)
-  @JoinColumn({ name: 'editorId' })
+  @JoinColumn({ name: 'editor_Id' })
   editor: Editor;
 
   @ManyToMany(() => Sticker)
