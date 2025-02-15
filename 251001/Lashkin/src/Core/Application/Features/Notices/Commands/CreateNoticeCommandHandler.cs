@@ -21,7 +21,7 @@ public class CreateNoticeCommandHandler : IRequestHandler<CreateNoticeCommand, N
 
     public async Task<NoticeResponseTo> Handle(CreateNoticeCommand request, CancellationToken cancellationToken)
     {
-        var news = await _unitOfWork.Notice.FindByCondition(notice => notice.NewsId == request.NoticeRequestTo.NewsId, false).SingleOrDefaultAsync(cancellationToken);
+        var news = await _unitOfWork.News.FindByCondition(news => news.Id == request.NoticeRequestTo.NewsId, false).SingleOrDefaultAsync(cancellationToken);
 
         if (news == null)
         {
