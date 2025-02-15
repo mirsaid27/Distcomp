@@ -1,25 +1,25 @@
 using System;
-using System.Reflection.Metadata;
-using Application.Features.Reaction.Commands;
-using Application.Features.Reaction.Queries;
-using Domain.Shared;
+using Application.Features.Tweet.Commands;
+using Application.Features.Tweet.Queries;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SocialNet.Abstractions;
 
 namespace SocialNet.Controllers;
 
-[Route("api/v1.0/reactions")]
-public class ReactionController : MediatrController
+[Route("tweets")]
+[ApiVersion("1.0")]
+public class TweetController : MediatrController
 {
-    public ReactionController(IMediator mediator) : base(mediator)
+    public TweetController(IMediator mediator) : base(mediator)
     {
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateReaction(CreateReactionCommand command){
+    public async Task<IActionResult> CreateTweet(CreateTweetCommand command){
         var result = await _mediator.Send(command);
-
+        
         if(!result.IsSuccess){
             return HandleFailure(result);
         }
@@ -28,8 +28,8 @@ public class ReactionController : MediatrController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetReactions(){
-        var result = await _mediator.Send(new GetReactionsQuery());
+    public async Task<IActionResult> GetTweets(){
+        var result = await _mediator.Send(new GetTweetsQuery());
 
         if(!result.IsSuccess){
             return HandleFailure(result);
@@ -38,10 +38,9 @@ public class ReactionController : MediatrController
         return StatusCode(StatusCodes.Status200OK, result.Value);
     }
 
-
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetReactionByIdQuery(long id){
-        var result = await _mediator.Send(new GetReactionByIdQuery(id));
+    public async Task<IActionResult> GetTweetById(long id){
+        var result = await _mediator.Send(new GetTweetByIdQuery(id));
 
         if(!result.IsSuccess){
             return HandleFailure(result);
@@ -51,7 +50,7 @@ public class ReactionController : MediatrController
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateReaction(UpdateReactionCommand command){
+    public async Task<IActionResult> UpdateTweet(UpdateTweetCommand command){
         var result = await _mediator.Send(command);
 
         if(!result.IsSuccess){
@@ -61,10 +60,9 @@ public class ReactionController : MediatrController
         return StatusCode(StatusCodes.Status200OK, result.Value);
     }
 
-
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteReaction(long id){
-        var result = await _mediator.Send(new DeleteReactionCommand(id));
+    public async Task<IActionResult> DeleteTweet(long id){
+        var result = await _mediator.Send(new DeleteTweetCommand(id));
 
         if(!result.IsSuccess){
             return HandleFailure(result);
@@ -72,4 +70,5 @@ public class ReactionController : MediatrController
 
         return StatusCode(StatusCodes.Status204NoContent);
     }
+
 }

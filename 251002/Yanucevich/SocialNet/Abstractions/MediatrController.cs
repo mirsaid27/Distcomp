@@ -13,34 +13,24 @@ public class MediatrController : ControllerBase
     protected MediatrController(IMediator mediator) => _mediator = mediator;
 
     protected IActionResult HandleFailure(Result result) =>
-        result switch{
-            { IsSuccess:true } => throw new InvalidOperationException(),
+        result switch {
+            { IsSuccess: true } => throw new InvalidOperationException(),
             IValidationResult validationResult =>
-                BadRequest(CreateProblemDetails(
-                    "ValidationError",
-                    StatusCodes.Status400BadRequest,
-                    result.Error,
-                    validationResult.Errors
-                )),
+                BadRequest(CreateValidationProblemDetails(result.Error, validationResult.Errors)),
             _ =>
-                BadRequest(CreateProblemDetails(
-                    "Bad request",
-                    StatusCodes.Status400BadRequest,
-                    result.Error
-                ))
+                BadRequest(CreateErrorProblemDetails(result.Error))
         };
 
-    private static ProblemDetails CreateProblemDetails(
-        string title, 
-        int status,
-        Error error,
-        Error[]? errors = null
-    ) => new ()
+    private static object CreateValidationProblemDetails(Error error, Error[]? errors) => new
     {
-        Title = title,
-        Type = error.Code,
-        Detail = error.Message,
-        Status = status,
-        Extensions = { {nameof(errors), errors} }
+        errorMessage = error.Message,
+        errorCode = error.Code,
+        errorDetails = errors
+    };
+
+    private static object CreateErrorProblemDetails(Error error) => new
+    {
+        errorMessage = error.Message,
+        errorCode = error.Code
     };
 }

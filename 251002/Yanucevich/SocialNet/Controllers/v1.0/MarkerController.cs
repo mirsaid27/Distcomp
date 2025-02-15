@@ -1,5 +1,6 @@
 using Application.Features.Marker.Commands;
 using Application.Features.Marker.Queries;
+using Asp.Versioning;
 using Domain.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -9,7 +10,8 @@ using SocialNet.Abstractions;
 
 namespace SocialNet.Controllers;
 
-[Route("api/v1.0/markers")]
+[Route("markers")]
+[ApiVersion("1.0")]
 public class MarkerController : MediatrController
 {
     private readonly ILogger<MarkerController> _logger;

@@ -1,21 +1,25 @@
-using Application.Features.User.Commands;
-using Application.Features.User.Queries;
+using System;
+using System.Reflection.Metadata;
+using Application.Features.Reaction.Commands;
+using Application.Features.Reaction.Queries;
+using Asp.Versioning;
+using Domain.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using SocialNet.Abstractions;
 
 namespace SocialNet.Controllers;
 
-[Route("api/v1.0/users")]
-public class UserController : MediatrController
+[Route("reactions")]
+[ApiVersion("1.0")]
+public class ReactionController : MediatrController
 {
-    public UserController(IMediator mediator) : base(mediator)
+    public ReactionController(IMediator mediator) : base(mediator)
     {
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateUser(CreateUserCommand command){
+    public async Task<IActionResult> CreateReaction(CreateReactionCommand command){
         var result = await _mediator.Send(command);
 
         if(!result.IsSuccess){
@@ -26,8 +30,8 @@ public class UserController : MediatrController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetUsers(){
-        var result = await _mediator.Send(new GetUsersQuery());
+    public async Task<IActionResult> GetReactions(){
+        var result = await _mediator.Send(new GetReactionsQuery());
 
         if(!result.IsSuccess){
             return HandleFailure(result);
@@ -36,9 +40,10 @@ public class UserController : MediatrController
         return StatusCode(StatusCodes.Status200OK, result.Value);
     }
 
+
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetUserById(long id){
-        var result = await _mediator.Send(new GetUserByIdQuery((id)));
+    public async Task<IActionResult> GetReactionByIdQuery(long id){
+        var result = await _mediator.Send(new GetReactionByIdQuery(id));
 
         if(!result.IsSuccess){
             return HandleFailure(result);
@@ -48,9 +53,9 @@ public class UserController : MediatrController
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateUser(UpdateUserCommand command){
+    public async Task<IActionResult> UpdateReaction(UpdateReactionCommand command){
         var result = await _mediator.Send(command);
-        
+
         if(!result.IsSuccess){
             return HandleFailure(result);
         }
@@ -58,9 +63,10 @@ public class UserController : MediatrController
         return StatusCode(StatusCodes.Status200OK, result.Value);
     }
 
+
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(long id){
-        var result = await _mediator.Send(new DeleteUserCommand(id));
+    public async Task<IActionResult> DeleteReaction(long id){
+        var result = await _mediator.Send(new DeleteReactionCommand(id));
 
         if(!result.IsSuccess){
             return HandleFailure(result);
@@ -68,5 +74,4 @@ public class UserController : MediatrController
 
         return StatusCode(StatusCodes.Status204NoContent);
     }
-
 }

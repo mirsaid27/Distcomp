@@ -1,23 +1,25 @@
-using System;
-using Application.Features.Tweet.Commands;
-using Application.Features.Tweet.Queries;
+using Application.Features.User.Commands;
+using Application.Features.User.Queries;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using SocialNet.Abstractions;
 
 namespace SocialNet.Controllers;
 
-[Route("api/v1.0/tweets")]
-public class TweetController : MediatrController
+[Route("users")]
+[ApiVersion("1.0")]
+public class UserController : MediatrController
 {
-    public TweetController(IMediator mediator) : base(mediator)
+    public UserController(IMediator mediator) : base(mediator)
     {
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTweet(CreateTweetCommand command){
+    public async Task<IActionResult> CreateUser(CreateUserCommand command){
         var result = await _mediator.Send(command);
-        
+
         if(!result.IsSuccess){
             return HandleFailure(result);
         }
@@ -26,8 +28,8 @@ public class TweetController : MediatrController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetTweets(){
-        var result = await _mediator.Send(new GetTweetsQuery());
+    public async Task<IActionResult> GetUsers(){
+        var result = await _mediator.Send(new GetUsersQuery());
 
         if(!result.IsSuccess){
             return HandleFailure(result);
@@ -37,8 +39,8 @@ public class TweetController : MediatrController
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetTweetById(long id){
-        var result = await _mediator.Send(new GetTweetByIdQuery(id));
+    public async Task<IActionResult> GetUserById(long id){
+        var result = await _mediator.Send(new GetUserByIdQuery((id)));
 
         if(!result.IsSuccess){
             return HandleFailure(result);
@@ -48,9 +50,9 @@ public class TweetController : MediatrController
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateTweet(UpdateTweetCommand command){
+    public async Task<IActionResult> UpdateUser(UpdateUserCommand command){
         var result = await _mediator.Send(command);
-
+        
         if(!result.IsSuccess){
             return HandleFailure(result);
         }
@@ -59,8 +61,8 @@ public class TweetController : MediatrController
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTweet(long id){
-        var result = await _mediator.Send(new DeleteTweetCommand(id));
+    public async Task<IActionResult> DeleteUser(long id){
+        var result = await _mediator.Send(new DeleteUserCommand(id));
 
         if(!result.IsSuccess){
             return HandleFailure(result);
