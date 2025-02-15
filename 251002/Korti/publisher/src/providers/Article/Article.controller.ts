@@ -3,11 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
   ParseIntPipe,
   Post,
   Put,
+  Query,
   Res,
 } from '@nestjs/common';
 import { ArticleService } from './Article.service';
@@ -69,5 +71,23 @@ export class ArticleController {
         excludeExtraneousValues: true,
       }),
     );
+  }
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async findArticlesByParams(
+    @Query('stickerNames') stickerNames?: string[],
+    @Query('stickerIds') stickerIds?: number[],
+    @Query('editorLogin') editorLogin?: string,
+    @Query('title') title?: string,
+    @Query('content') content?: string,
+  ): Promise<ArticleResponseTo[]> {
+    return this.articleService.findByParams({
+      stickerNames,
+      stickerIds,
+      editorLogin,
+      title,
+      content,
+    });
   }
 }

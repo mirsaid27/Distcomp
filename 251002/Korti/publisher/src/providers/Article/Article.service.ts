@@ -7,11 +7,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Article } from 'src/entities/Article';
-import { ArticleRequestTo, UpdateArticleTo } from './Dto/ArticleRequestTo';
+import {
+  ArticleRequestTo,
+  ArticleSearchParamsDto,
+  UpdateArticleTo,
+} from './Dto/ArticleRequestTo';
 import { ArticleResponseTo } from './Dto/ArticleResponseTo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Editor } from 'src/entities/Editor';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ArticleService {
@@ -149,5 +154,45 @@ export class ArticleService {
       }
       throw new InternalServerErrorException();
     }
+  }
+
+  async findByParams(
+    params: ArticleSearchParamsDto,
+  ): Promise<ArticleResponseTo[]> {
+    const queryBuilder = this.articleRepository
+      .createQueryBuilder('article')
+      .leftJoinAndSelect('article.editor', 'editor')
+      .leftJoinAndSelect('article.stickers', 'stickers');
+    if (params.stickerNames) {
+      queryBuilder.andWhere('stickers.name IN (:...stickerNames)', {
+        stickerNames: params.stickerNames,
+      });
+    }
+    if (params.stickerIds) {
+      queryBuilder.andWhere('stickers.id IN (:...stickerIds)', {
+        stickerIds: params.stickerIds,
+      });
+    }
+    if (params.editorLogin) {
+      queryBuilder.andWhere('editor.login = :editorLogin', {
+        editorLogin: params.editorLogin,
+      });
+    }
+    if (params.title) {
+      queryBuilder.andWhere('article.title ILIKE :title', {
+        title: `%${params.title}%`,
+      });
+    }
+    if (params.content) {
+      queryBuilder.andWhere('article.content ILIKE :content', {
+        content: `%${params.content}%`,
+      });
+    }
+
+    const articles = await queryBuilder.getMany();
+
+    return plainToInstance(ArticleResponseTo, articles, {
+      excludeExtraneousValues: true,
+    });
   }
 }

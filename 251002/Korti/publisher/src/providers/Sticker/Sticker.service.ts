@@ -9,22 +9,37 @@ import { Sticker } from 'src/entities/Sticker';
 import { StickerRequestTo, UpdateStickerTo } from './Dto/StickerRequestTo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { StickerResponseTo } from './Dto/StickerResponseTo';
+import { plainToInstance } from 'class-transformer';
+import { Article } from 'src/entities/Article';
 
 @Injectable()
 export class StickerService {
   constructor(
     @InjectRepository(Sticker)
     private readonly stickerRepository: Repository<Sticker>,
+    @InjectRepository(Article)
+    private readonly articleRepository: Repository<Article>,
   ) {}
 
-  async getAllStickers(): Promise<ReadonlyArray<Sticker>> {
-    return await this.stickerRepository.find();
+  async getAllStickers(): Promise<ReadonlyArray<StickerResponseTo>> {
+    return plainToInstance(
+      StickerResponseTo,
+      await this.stickerRepository.find(),
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
-  async createSticker(sticker: StickerRequestTo): Promise<Sticker> {
+  async createSticker(sticker: StickerRequestTo): Promise<StickerResponseTo> {
     try {
       const st = this.stickerRepository.create(sticker);
-      return await this.stickerRepository.save(st);
+      return plainToInstance(
+        StickerResponseTo,
+        await this.stickerRepository.save(st),
+        { excludeExtraneousValues: true },
+      );
     } catch (err) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if ((err.code as string) === '23505') {
@@ -59,11 +74,13 @@ export class StickerService {
     }
   }
 
-  async getStickerById(id: number): Promise<Sticker> {
+  async getStickerById(id: number): Promise<StickerResponseTo> {
     try {
       const sticker = await this.stickerRepository.findOne({ where: { id } });
       if (!sticker) throw new ConflictException();
-      return sticker;
+      return plainToInstance(StickerResponseTo, sticker, {
+        excludeExtraneousValues: true,
+      });
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
@@ -78,7 +95,7 @@ export class StickerService {
     }
   }
 
-  async updateSticker(item: UpdateStickerTo): Promise<Sticker> {
+  async updateSticker(item: UpdateStickerTo): Promise<StickerResponseTo> {
     try {
       const st = await this.stickerRepository.findOne({
         where: { id: item.id },
@@ -91,13 +108,36 @@ export class StickerService {
         where: { id: item.id },
       });
       if (!updSticker) throw new Error();
-      return updSticker;
+      return plainToInstance(StickerResponseTo, updSticker, {
+        excludeExtraneousValues: true,
+      });
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
           {
             errorCode: 40006,
             errorMessage: 'Sticker does not exist.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getStickersByArticleId(id: number): Promise<StickerResponseTo[]> {
+    try {
+      const article = await this.articleRepository.findOne({ where: { id } });
+      if (!article) throw new ConflictException();
+      return plainToInstance(StickerResponseTo, article.stickers, {
+        excludeExtraneousValues: true,
+      });
+    } catch (err) {
+      if (err instanceof ConflictException) {
+        throw new HttpException(
+          {
+            errorCode: 40002,
+            errorMessage: 'Article does not exist.',
           },
           HttpStatus.BAD_REQUEST,
         );

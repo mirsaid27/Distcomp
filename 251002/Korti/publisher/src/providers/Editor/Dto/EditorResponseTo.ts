@@ -1,6 +1,7 @@
 import { Exclude, Expose } from 'class-transformer';
 import { IsInt, IsString, Length } from 'class-validator';
 
+@Exclude()
 export class EditorResponseTo {
   @Expose()
   @IsInt()

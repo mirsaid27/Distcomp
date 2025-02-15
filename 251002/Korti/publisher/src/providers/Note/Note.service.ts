@@ -31,14 +31,18 @@ export class NoteService {
     });
   }
 
-  async createNote(item: NoteRequestTo): Promise<Note> {
+  async createNote(item: NoteRequestTo): Promise<NoteResponseTo> {
     try {
       const article = await this.articleRepository.findOne({
         where: { id: item.articleId },
       });
       if (!article) throw new NotFoundException();
       const note = this.noteRepository.create(item);
-      return await this.noteRepository.save(note);
+      return plainToInstance(
+        NoteResponseTo,
+        await this.noteRepository.save(note),
+        { excludeExtraneousValues: true },
+      );
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new HttpException(
@@ -66,7 +70,9 @@ export class NoteService {
     try {
       const note = await this.noteRepository.findOne({ where: { id } });
       if (!note) throw new ConflictException();
-      return plainToInstance(NoteResponseTo, note);
+      return plainToInstance(NoteResponseTo, note, {
+        excludeExtraneousValues: true,
+      });
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
@@ -100,7 +106,7 @@ export class NoteService {
     }
   }
 
-  async updateNote(body: UpdateNoteTo): Promise<Note> {
+  async updateNote(body: UpdateNoteTo): Promise<NoteResponseTo> {
     try {
       const article = await this.articleRepository.findOne({
         where: { id: body.articleId },
@@ -119,7 +125,9 @@ export class NoteService {
         where: { id: body.id },
       });
       if (!updNote) throw new Error();
-      return updNote;
+      return plainToInstance(NoteResponseTo, updNote, {
+        excludeExtraneousValues: true,
+      });
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
@@ -139,6 +147,28 @@ export class NoteService {
         );
       }
 
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getNotes(id: number): Promise<NoteResponseTo[]> {
+    try {
+      const article = await this.articleRepository.findOne({ where: { id } });
+      if (!article) throw new ConflictException();
+      const notes: Note[] = await this.noteRepository.find({
+        where: { articleId: id },
+      });
+      return notes;
+    } catch (err) {
+      if (err instanceof ConflictException) {
+        throw new HttpException(
+          {
+            errorCode: 40403,
+            errorMessage: 'Article does not exist.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
       throw new InternalServerErrorException();
     }
   }
