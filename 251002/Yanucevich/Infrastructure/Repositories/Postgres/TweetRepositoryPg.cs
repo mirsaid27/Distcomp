@@ -3,11 +3,17 @@ using Domain.Models;
 using Domain.Repositories;
 using Domain.Shared;
 using Infrastructure.Repositories.Interfaces;
+using Infrastructure.Settings;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Repositories.Postgres;
 
-public class TweetRepositoryPg : IPgRepository, ITweetRepository
+public class TweetRepositoryPg : PgRepository, ITweetRepository
 {
+    public TweetRepositoryPg(IOptions<InfrastructureOptions> settings) : base(settings.Value)
+    {
+    }
+
     public Task<Result<TweetModel>> CreateTweet(TweetModel tweet)
     {
         throw new NotImplementedException();

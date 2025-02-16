@@ -4,12 +4,12 @@ services:
     build: .
     ports:
       - 24110:24110
-      - 24120:24120
-      - 24130:24130
-      - 24140:24140
-      - 24150:24150
     environment:
+      ConnectionStrings__npg: "User ID=postgres;Host=db;Password=postgres;Port=5432;Database=distcomp;Pooling=true;"
       ASPNETCORE_URLS: "http://0.0.0.0:24110"
+
+    restart: unless-stopped
+
     depends_on:
       db:
         condition: service_healthy

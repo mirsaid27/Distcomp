@@ -3,11 +3,17 @@ using Domain.Models;
 using Domain.Repositories;
 using Domain.Shared;
 using Infrastructure.Repositories.Interfaces;
+using Infrastructure.Settings;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Repositories.Postgres;
 
-public class ReactionRepositoryPg : IPgRepository, IReactionRepository
+public class ReactionRepositoryPg : PgRepository, IReactionRepository
 {
+    public ReactionRepositoryPg(IOptions<InfrastructureOptions> settings) : base(settings.Value)
+    {
+    }
+
     public Task<Result<ReactionModel>> CreateReaction(ReactionModel reaction)
     {
         throw new NotImplementedException();

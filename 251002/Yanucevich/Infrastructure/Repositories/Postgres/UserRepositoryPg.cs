@@ -3,11 +3,17 @@ using Domain.Models;
 using Domain.Repositories;
 using Domain.Shared;
 using Infrastructure.Repositories.Interfaces;
+using Infrastructure.Settings;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Repositories.Postgres;
 
-public class UserRepositoryPg : IPgRepository, IUserRepository
+public class UserRepositoryPg : PgRepository, IUserRepository
 {
+    public UserRepositoryPg(IOptions<InfrastructureOptions> settings) : base(settings.Value)
+    {
+    }
+
     public Task<Result<UserModel>> CreateUser(UserModel user)
     {
         throw new NotImplementedException();
