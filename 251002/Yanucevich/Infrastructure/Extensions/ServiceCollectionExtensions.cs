@@ -30,8 +30,7 @@ public static class ServiceCollectionExtensions
     ){
         
         services.Configure<InfrastructureOptions>(options => {
-            options.PostgresConnectionString = 
-            config.GetSection(nameof(InfrastructureOptions)).Value;   
+            options.PostgresConnectionString = config.GetConnectionString("npg");
         });
             
         Postgres.MapCompositeTypes();   

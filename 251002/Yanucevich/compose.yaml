@@ -9,4 +9,28 @@ services:
       - 24140:24140
       - 24150:24150
     environment:
-      ASPNETCORE_URLS: "http://0.0.0.0:24110;http://0.0.0.0:24120;http://0.0.0.0:24130;http://0.0.0.0:24140;http://0.0.0.0:24150"
+      ASPNETCORE_URLS: "http://0.0.0.0:24110"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16.0-alpine
+    container_name: db
+    restart: unless-stopped
+
+    environment:
+      PGPORT: 5432
+      POSTGRES_DB: distcomp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - 5432:5432
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
