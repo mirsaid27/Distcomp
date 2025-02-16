@@ -1,10 +1,7 @@
-using Application.Behaviors;
 using Application.Extensions;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
-using FluentValidation;
 using Infrastructure.Extensions;
-using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +11,7 @@ builder.Logging.AddConsole();
 builder.Services
     .AddApplicationServices()
     .AddValidationServices()
+    .AddInfrastructure(builder.Configuration)
     .AddRepositories();
 
 builder.Services.AddControllers();
@@ -28,6 +26,8 @@ builder.Services.AddApiVersioning(
     
 
 var app = builder.Build();
+
+app.MigrateUp();
 
 ApiVersionSet apiVersionSet = app
     .NewApiVersionSet()
