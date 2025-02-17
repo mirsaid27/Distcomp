@@ -1,2 +1,11 @@
 server:
   port: 24110
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/distcomp
+    username: nikitaryabchikov
+    password: hello
+  data:
+    jdbc:
+      dialect: postgresql

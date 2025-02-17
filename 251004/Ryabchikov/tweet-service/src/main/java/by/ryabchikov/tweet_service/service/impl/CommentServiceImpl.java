@@ -12,6 +12,7 @@ import by.ryabchikov.tweet_service.repository.TweetRepository;
 import by.ryabchikov.tweet_service.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
 
     @Override
+    @Transactional
     public CommentResponseTo create(CommentRequestTo commentRequestTo) {
         return commentMapper.toCommentResponseTo(
                 commentRepository.save(commentMapper.toComment(commentRequestTo))
@@ -30,6 +32,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public List<CommentResponseTo> readAll() {
         return commentRepository.findAll().stream()
                 .map(commentMapper::toCommentResponseTo)
@@ -37,6 +40,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentResponseTo readById(Long id) {
         return commentMapper.toCommentResponseTo(
                 commentRepository.findById(id).orElseThrow(() -> CommentNotFoundException.byId(id))
@@ -44,6 +48,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentResponseTo update(CommentUpdateRequestTo commentUpdateRequestTo) {
         long commentId = commentUpdateRequestTo.id();
         Comment comment =
@@ -61,6 +66,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         commentRepository.findById(id).orElseThrow(() -> CommentNotFoundException.byId(id));
 
