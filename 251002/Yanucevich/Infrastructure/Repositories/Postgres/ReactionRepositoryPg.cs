@@ -51,6 +51,9 @@ public class ReactionRepositoryPg : PgRepository, IReactionRepository
                 };
             }
         }
+        catch (NpgsqlException ex) when (ex.SqlState == "23503"){
+            return Result.Failure<ReactionModel>(ReactionErrors.TweetForReactionNotFoundError);
+        }
         catch (NpgsqlException ex){
             return Result.Failure<ReactionModel>(Error.DatabaseError);
         }
@@ -197,6 +200,9 @@ public class ReactionRepositoryPg : PgRepository, IReactionRepository
             }
 
             return Result.Failure<ReactionModel>(ReactionErrors.ReactionNotFoundError);
+        }
+        catch (NpgsqlException ex) when (ex.SqlState == "23503"){
+            return Result.Failure<ReactionModel>(ReactionErrors.TweetForReactionNotFoundError);
         }
         catch(NpgsqlException ex){
             return Result.Failure<ReactionModel>(Error.DatabaseError);

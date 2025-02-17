@@ -68,6 +68,9 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
         catch(NpgsqlException ex) when (ex.SqlState == "23505"){
             return Result.Failure<TweetModel>(TweetErrors.TweetNotUniqueError);
         }
+        catch (NpgsqlException ex) when (ex.SqlState == "23503"){
+            return Result.Failure<TweetModel>(TweetErrors.UserForTweetNotFoundError);
+        }
         catch (NpgsqlException ex){
             return Result.Failure<TweetModel>(Error.DatabaseError);
         }
@@ -233,6 +236,9 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
         }
         catch(NpgsqlException ex) when (ex.SqlState == "23505"){
             return Result.Failure<TweetModel>(TweetErrors.TweetNotUniqueError);
+        }
+        catch (NpgsqlException ex) when (ex.SqlState == "23503"){
+            return Result.Failure<TweetModel>(TweetErrors.UserForTweetNotFoundError);
         }
         catch (NpgsqlException ex){
             return Result.Failure<TweetModel>(Error.DatabaseError);

@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using Domain.Shared;
 using Domain.Shared.Validation;
 using MediatR;
@@ -16,9 +17,14 @@ public class MediatrController : ControllerBase
         result switch {
             { IsSuccess: true } => throw new InvalidOperationException(),
             IValidationResult validationResult =>
-                BadRequest(CreateValidationProblemDetails(result.Error, validationResult.Errors)),
+                StatusCode(
+                    result.Error.HttpStatusCode,
+                    CreateValidationProblemDetails(result.Error, validationResult.Errors)), 
             _ =>
-                BadRequest(CreateErrorProblemDetails(result.Error))
+                StatusCode(
+                    result.Error.HttpStatusCode,
+                    CreateErrorProblemDetails(result.Error)
+                )
         };
 
     private static object CreateValidationProblemDetails(Error error, Error[]? errors) => new

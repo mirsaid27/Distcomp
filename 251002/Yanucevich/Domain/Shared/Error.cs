@@ -1,20 +1,29 @@
 using System;
+using Microsoft.AspNetCore.Http;
 
 namespace Domain.Shared;
 
 public class Error : IEquatable<Error>
 {
-    public static readonly Error None = new Error(string.Empty, string.Empty); 
-    public static readonly Error NullValue = new Error("Error.NullValue", "The specified result value is null");
-    public static readonly Error DatabaseError = new Error("30156", "Error occurred when querying the database");
-    public static readonly Error Unknown = new Error("40404", "Unknown error occurred");
+    public static readonly Error None = new Error(0, 0, 0, "");
+    public static readonly Error NullValue = new Error(204, 0, 0, "The specified result value is null");
+    public static readonly Error DatabaseError = new Error(503, 0, 1, "Error occurred when querying the database");
+    public static readonly Error Unknown = new Error(503, 0, 2, "Unknown error occurred");
     
-    public string Code { get; }
-    public string Message { get; }
+    private int _httpStatusCode { get; }
+    private int _errorTarget { get; }
+    private int _errorClass { get; }
+    private string _errorMessage { get; }
 
-    public Error(string code, string message) {
-        Code = code; 
-        Message = message;
+    public int HttpStatusCode { get => _httpStatusCode; }
+    public string Code { get => _httpStatusCode.ToString() + _errorTarget.ToString() + _errorClass.ToString(); }
+    public string Message { get => _errorMessage; }
+
+    public Error(int statusCode, int errorTarget, int errorClass, string message) {
+        _httpStatusCode = statusCode;
+        _errorTarget = errorTarget;
+        _errorClass = errorClass;
+        _errorMessage = message;
     }
 
     public virtual bool Equals(Error? other)

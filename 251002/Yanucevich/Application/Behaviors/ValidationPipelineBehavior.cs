@@ -31,8 +31,8 @@ public class ValidationPipelineBehavior<TRequest, TResponse>
             .SelectMany(validationResult => validationResult.Errors)
             .Where(validationFailure => validationFailure is not null)
             .Select(failure => new Error(
-                failure.PropertyName,
-                failure.ErrorMessage))
+                0, 0, 0,
+                failure.PropertyName + ": " + failure.ErrorMessage))
             .Distinct()
             .ToArray();
 
