@@ -1,16 +1,12 @@
 package by.ryabchikov.tweet_service.repository;
 
 import by.ryabchikov.tweet_service.entity.Creator;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface CreatorRepository {
-    Creator save(Creator creator);
-
-    List<Creator> findAll();
-
-    Optional<Creator> findById(Long id);
-
-    void deleteById(Long id);
+@Repository
+public interface CreatorRepository extends JpaRepository<Creator, Long> {
+    Optional<Creator> findByLogin(String login);
 }
