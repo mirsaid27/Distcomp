@@ -28,6 +28,9 @@ public class ErrorController : ControllerBase
             case NotFoundException notFoundException:
                 problem.Status = (int)HttpStatusCode.NotFound;
                 break;
+            case AlreadyExistsException:
+                problem.Status = (int)HttpStatusCode.Forbidden;
+                break;
             default:
                 problem.Status = (int)HttpStatusCode.InternalServerError;
                 break;

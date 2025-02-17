@@ -3,7 +3,8 @@ using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddInfrastructure();
+builder.Services.AddRepositories();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 builder.Services.AddControllers();
 
@@ -16,6 +17,7 @@ app.UseExceptionHandler("/errors");
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
+app.MigrateUp();
 app.MapControllers();
 
 app.Run();
