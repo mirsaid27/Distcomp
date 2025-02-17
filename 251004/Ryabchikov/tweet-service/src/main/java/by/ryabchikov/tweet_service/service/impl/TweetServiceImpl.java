@@ -7,14 +7,17 @@ import by.ryabchikov.tweet_service.entity.Creator;
 import by.ryabchikov.tweet_service.entity.Tweet;
 import by.ryabchikov.tweet_service.exception.CreatorNotFoundException;
 import by.ryabchikov.tweet_service.exception.TweetNotFoundException;
+import by.ryabchikov.tweet_service.exception.TweetTitleDuplicationException;
 import by.ryabchikov.tweet_service.mapper.TweetMapper;
 import by.ryabchikov.tweet_service.repository.CreatorRepository;
 import by.ryabchikov.tweet_service.repository.TweetRepository;
 import by.ryabchikov.tweet_service.service.TweetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,21 +26,33 @@ public class TweetServiceImpl implements TweetService {
     private final CreatorRepository creatorRepository;
     private final TweetMapper tweetMapper;
 
+    private void checkOnTitleDuplication(String title) {
+        Optional<Tweet> optionalTweet = tweetRepository.findByTitle(title);
+        if (optionalTweet.isPresent()) {
+            throw TweetTitleDuplicationException.byTitle(title);
+        }
+    }
+
     @Override
+    @Transactional
     public TweetResponseTo create(TweetRequestTo tweetRequestTo) {
+        checkOnTitleDuplication(tweetRequestTo.title());
         return tweetMapper.toTweetResponseTo(
                 tweetRepository.save(tweetMapper.toTweet(tweetRequestTo))
         );
     }
 
     @Override
+    @Transactional
     public List<TweetResponseTo> readAll() {
-        return tweetRepository.findAll().stream()
+        return tweetRepository.findAll()
+                .stream()
                 .map(tweetMapper::toTweetResponseTo)
                 .toList();
     }
 
     @Override
+    @Transactional
     public TweetResponseTo readById(Long id) {
         return tweetMapper.toTweetResponseTo(
                 tweetRepository.findById(id).orElseThrow(() -> TweetNotFoundException.byId(id))
@@ -45,6 +60,7 @@ public class TweetServiceImpl implements TweetService {
     }
 
     @Override
+    @Transactional
     public TweetResponseTo update(TweetUpdateRequestTo tweetUpdateRequestTo) {
         long tweetId = tweetUpdateRequestTo.id();
         Tweet tweet = tweetRepository.findById(tweetId)
@@ -62,6 +78,7 @@ public class TweetServiceImpl implements TweetService {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         tweetRepository.findById(id)
                 .orElseThrow(() -> TweetNotFoundException.byId(id));
