@@ -1,6 +1,7 @@
-package by.kapinskiy.Distcomp;
+package by.kapinskiy.Task310;
 
 import org.junit.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.HashMap;
 import java.util.Map;

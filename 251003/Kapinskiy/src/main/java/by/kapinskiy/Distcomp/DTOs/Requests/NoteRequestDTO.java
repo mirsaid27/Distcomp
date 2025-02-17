@@ -1,4 +1,4 @@
-package by.kapinskiy.Distcomp.DTOs.Requests;
+package by.kapinskiy.Task310.DTOs.Requests;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

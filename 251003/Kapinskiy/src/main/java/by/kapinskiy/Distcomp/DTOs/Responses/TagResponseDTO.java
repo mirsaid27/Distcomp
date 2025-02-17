@@ -1,4 +1,7 @@
-package by.kapinskiy.Distcomp.DTOs.Responses;
+package by.kapinskiy.Task310.DTOs.Responses;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 
 public class TagResponseDTO {

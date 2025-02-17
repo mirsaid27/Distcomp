@@ -1,4 +1,6 @@
-package by.kapinskiy.Distcomp.DTOs.Responses;
+package by.kapinskiy.Task310.DTOs.Responses;
+
+import java.util.Date;
 
 public class NoteResponseDTO {
     private long id;

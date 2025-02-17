@@ -1,14 +1,13 @@
-package by.kapinskiy.Distcomp.DTOs.Requests;
+package by.kapinskiy.Task310.DTOs.Requests;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class IssueRequestDTO {
+
+
     private Long id;
 
     @NotNull(message = "User id can't be null")
@@ -21,8 +20,8 @@ public class IssueRequestDTO {
     @NotBlank(message = "Content may not be blank")
     @Size(min = 4, max = 2048, message = "Content should be between 4 and 2048 symbols")
     private String content;
-
-    private List<String> tags = new ArrayList<>();
+/*    private Date created;
+    private Date modified;*/
 
     public String getContent() {
         return content;
@@ -54,17 +53,5 @@ public class IssueRequestDTO {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
     }
 }

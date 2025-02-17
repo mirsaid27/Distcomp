@@ -1,26 +1,14 @@
-package by.kapinskiy.Distcomp.models;
+package by.kapinskiy.Task310.models;
 
-
-import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-
-@Entity
-@Table(name = "tbl_tag")
 public class Tag {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
-
-    @Column(name = "name", unique = true)
     private String name;
 
-    @ManyToMany()
-    @JoinTable(name = "tbl_issue_tag", joinColumns = {@JoinColumn (name = "tagId")}, inverseJoinColumns = {@JoinColumn (name = "issueId")})
     private List<Issue> issues = new ArrayList<>();
 
     public long getId() {
@@ -58,12 +46,5 @@ public class Tag {
     @Override
     public int hashCode() {
         return Objects.hash(id, name);
-    }
-
-    public Tag(String name) {
-        this.name = name;
-    }
-
-    public Tag() {
     }
 }

@@ -1,5 +1,6 @@
-package by.kapinskiy.Distcomp.utils.exceptions;
+package by.kapinskiy.Task310.utils.exceptions;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 
 public class ValidationException extends RuntimeException{

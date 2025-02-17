@@ -1,7 +1,8 @@
-package by.kapinskiy.Distcomp;
+package by.kapinskiy.Task310;
 
 import io.restassured.RestAssured;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 public class FunctionalTest {

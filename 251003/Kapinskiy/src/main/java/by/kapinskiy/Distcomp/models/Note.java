@@ -1,21 +1,9 @@
-package by.kapinskiy.Distcomp.models;
+package by.kapinskiy.Task310.models;
 
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "tbl_note")
 public class Note {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
-
-    @ManyToOne
-    @JoinColumn(name = "issueId", referencedColumnName = "id")
     private Issue issue;
-
-    @Column(name = "content")
     private String content;
 
     public long getId() {

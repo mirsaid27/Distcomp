@@ -1,4 +1,4 @@
-package by.kapinskiy.Distcomp;
+package by.kapinskiy.Task310;
 
 import org.junit.Test;
 

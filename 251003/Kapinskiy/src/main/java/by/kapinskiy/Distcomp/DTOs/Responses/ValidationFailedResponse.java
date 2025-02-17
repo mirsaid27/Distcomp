@@ -1,6 +1,7 @@
-package by.kapinskiy.Distcomp.DTOs.Responses;
+package by.kapinskiy.Task310.DTOs.Responses;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ValidationFailedResponse {

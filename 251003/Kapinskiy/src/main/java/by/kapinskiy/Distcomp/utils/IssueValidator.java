@@ -1,8 +1,7 @@
-package by.kapinskiy.Distcomp.utils;
+package by.kapinskiy.Task310.utils;
 
-
-import by.kapinskiy.Distcomp.DTOs.Requests.IssueRequestDTO;
-import by.kapinskiy.Distcomp.services.IssuesService;
+import by.kapinskiy.Task310.DTOs.Requests.IssueRequestDTO;
+import by.kapinskiy.Task310.services.IssuesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
