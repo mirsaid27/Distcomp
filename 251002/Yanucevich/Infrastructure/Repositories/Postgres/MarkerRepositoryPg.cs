@@ -34,17 +34,23 @@ public class MarkerRepositoryPg : PgRepository, IMarkerRepository
         await using var cmd = new NpgsqlCommand(sqlInsertMarker, connection);
         cmd.Parameters.AddWithValue("Name", marker.Name);
 
-        using var reader = await cmd.ExecuteReaderAsync(System.Data.CommandBehavior.SingleResult);
-        
-        if (await reader.ReadAsync())
-        {
-            var markerId = reader.GetInt32(0);
-            return new MarkerModel { Id = markerId, Name = marker.Name };
+        try{
+            using var reader = await cmd.ExecuteReaderAsync(System.Data.CommandBehavior.SingleResult);
+            
+            if (await reader.ReadAsync())
+            {
+                var markerId = reader.GetInt64(0);
+                return new MarkerModel { Id = markerId, Name = marker.Name };
+            }
         }
-        else
-        {
+        catch (NpgsqlException ex) when (ex.SqlState == "23505"){
             return Result.Failure<MarkerModel>(MarkerErrors.MarkerNotUniqueError);
         }
+        catch (NpgsqlException ex){
+            return Result.Failure<MarkerModel>(Error.DatabaseError);
+        }
+
+        return Result.Failure<MarkerModel>(Error.Unknown);
     }
 
     public async Task<Result> DeleteMarker(long id)
@@ -61,7 +67,14 @@ public class MarkerRepositoryPg : PgRepository, IMarkerRepository
         using var command = new NpgsqlCommand(sqlDeleteMarker, connection);
         command.Parameters.AddWithValue("Id", id);
 
-        var result = await command.ExecuteNonQueryAsync();
+        int result;
+
+        try{
+            result = await command.ExecuteNonQueryAsync();
+        }
+        catch(NpgsqlException ex){
+            return Result.Failure(Error.DatabaseError);
+        }
 
         return result == 0 ? Result.Failure(MarkerErrors.MarkerNotFoundError) : Result.Success();
     }
@@ -81,18 +94,23 @@ public class MarkerRepositoryPg : PgRepository, IMarkerRepository
         using var cmd = new NpgsqlCommand(sqlGetMarkerById, connection);
         cmd.Parameters.AddWithValue("Id", id);
 
-        var reader = await cmd.ExecuteReaderAsync();
+        try{
+            var reader = await cmd.ExecuteReaderAsync();
 
-        if (await reader.ReadAsync())
-        {
-            var markerId = reader.GetInt32(reader.GetOrdinal("id"));
-            var markerName = reader.GetString(reader.GetOrdinal("name"));
+            if (await reader.ReadAsync())
+            {
+                var markerId = reader.GetInt64(reader.GetOrdinal("id"));
+                var markerName = reader.GetString(reader.GetOrdinal("name"));
 
-            return new MarkerModel { Id = markerId, Name = markerName };
+                return new MarkerModel { Id = markerId, Name = markerName };
+            }
+            else
+            {
+                return Result.Failure<MarkerModel>(MarkerErrors.MarkerNotFoundError);
+            }
         }
-        else
-        {
-            return Result.Failure<MarkerModel>(MarkerErrors.MarkerNotFoundError);
+        catch(NpgsqlException ex){
+            return Result.Failure<MarkerModel>(Error.DatabaseError);
         }
     }
 
@@ -108,21 +126,28 @@ public class MarkerRepositoryPg : PgRepository, IMarkerRepository
         await using var connection = await GetConnection();
         using var cmd = new NpgsqlCommand(sqlGetMarkers, connection);
     
-        using var reader = await cmd.ExecuteReaderAsync();
-        var markers = new List<MarkerModel>();
+    
+        try{
+            using var reader = await cmd.ExecuteReaderAsync();
 
-        while (await reader.ReadAsync())
-        {
-            var marker = new MarkerModel
+            var markers = new List<MarkerModel>();
+
+            while (await reader.ReadAsync())
             {
-                Id = reader.GetInt32(reader.GetOrdinal("id")),
-                Name = reader.GetString(reader.GetOrdinal("name"))
-            };
+                var marker = new MarkerModel
+                {
+                    Id = reader.GetInt64(reader.GetOrdinal("id")),
+                    Name = reader.GetString(reader.GetOrdinal("name"))
+                };
 
-            markers.Add(marker);
+                markers.Add(marker);
+            }
+
+            return markers;
         }
-
-        return markers;
+        catch(NpgsqlException ex){
+            return Result.Failure<IEnumerable<MarkerModel>>(Error.DatabaseError);
+        }
     }
     public async Task<Result<MarkerModel>> UpdateMarker(MarkerModel marker)
     {
@@ -140,16 +165,24 @@ public class MarkerRepositoryPg : PgRepository, IMarkerRepository
         cmd.Parameters.AddWithValue("Name", marker.Name);
         cmd.Parameters.AddWithValue("Id", marker.Id);
 
-        var returnedId = await cmd.ExecuteScalarAsync();
+        try {
+            var returnedId = await cmd.ExecuteScalarAsync();
 
-        if (returnedId != null && (long)returnedId == marker.Id)
-        {
-            return new MarkerModel{
-                Id = marker.Id,
-                Name = marker.Name
-            };
+            if (returnedId != null && (long)returnedId == marker.Id)
+            {
+                return new MarkerModel{
+                    Id = (long)returnedId,
+                    Name = marker.Name
+                };
+            }
+
+            return Result.Failure<MarkerModel>(MarkerErrors.MarkerNotFoundError);
         }
-
-        return Result.Failure<MarkerModel>(Error.NullValue);
+        catch(NpgsqlException ex) when (ex.SqlState == "23505"){
+            return Result.Failure<MarkerModel>(MarkerErrors.MarkerNotUniqueError);
+        }
+        catch(NpgsqlException ex){
+            return Result.Failure<MarkerModel>(Error.DatabaseError);
+        }
     }
 }

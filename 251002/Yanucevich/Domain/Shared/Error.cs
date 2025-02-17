@@ -6,6 +6,8 @@ public class Error : IEquatable<Error>
 {
     public static readonly Error None = new Error(string.Empty, string.Empty); 
     public static readonly Error NullValue = new Error("Error.NullValue", "The specified result value is null");
+    public static readonly Error DatabaseError = new Error("30156", "Error occurred when querying the database");
+    public static readonly Error Unknown = new Error("40404", "Unknown error occurred");
     
     public string Code { get; }
     public string Message { get; }

@@ -5,6 +5,7 @@ using Domain.Shared;
 using Infrastructure.Repositories.Interfaces;
 using Infrastructure.Settings;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace Infrastructure.Repositories.Postgres;
 
@@ -14,9 +15,31 @@ public class UserRepositoryPg : PgRepository, IUserRepository
     {
     }
 
-    public Task<Result<UserModel>> CreateUser(UserModel user)
+    public async Task<Result<UserModel>> CreateUser(UserModel user)
     {
-        throw new NotImplementedException();
+        const string sqlCreateUser = 
+        """
+           INSERT 
+             INTO tbl_user
+                  (
+                    login
+                  , password
+                  , firstname
+                  , lastname
+                  )
+           VALUES (
+                    @Login
+                  , @Password
+                  , @Firstname
+                  , @Lastname
+                  )
+        RETURNING id
+        """;
+
+        await using var connection = await GetConnection();
+        await using var cmd = new NpgsqlCommand(sqlCreateUser, connection);
+
+        return null;
     }
 
     public Task<Result> DeleteUser(long id)
