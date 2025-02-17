@@ -10,6 +10,7 @@ import by.ryabchikov.tweet_service.repository.MarkRepository;
 import by.ryabchikov.tweet_service.service.MarkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class MarkServiceImpl implements MarkService {
     private final MarkMapper markMapper;
 
     @Override
+    @Transactional
     public MarkResponseTo create(MarkRequestTo markRequestTo) {
         return markMapper.toMarkResponseTo(
                 markRepository.save(markMapper.toMark(markRequestTo))
@@ -27,6 +29,7 @@ public class MarkServiceImpl implements MarkService {
     }
 
     @Override
+    @Transactional
     public List<MarkResponseTo> readAll() {
         return markRepository.findAll().stream()
                 .map(markMapper::toMarkResponseTo)
@@ -34,6 +37,7 @@ public class MarkServiceImpl implements MarkService {
     }
 
     @Override
+    @Transactional
     public MarkResponseTo readById(Long id) {
         return markMapper.toMarkResponseTo(
                 markRepository.findById(id).orElseThrow(() -> MarkNotFoundException.byId(id))
@@ -41,6 +45,7 @@ public class MarkServiceImpl implements MarkService {
     }
 
     @Override
+    @Transactional
     public MarkResponseTo update(MarkUpdateRequestTo markUpdateRequestTo) {
         long markId = markUpdateRequestTo.id();
         Mark mark = markRepository.findById(markId)
@@ -52,6 +57,7 @@ public class MarkServiceImpl implements MarkService {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         markRepository.findById(id)
                 .orElseThrow(() -> MarkNotFoundException.byId(id));
