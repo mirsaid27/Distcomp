@@ -5,13 +5,13 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Sticker } from 'src/entities/Sticker';
+import { Sticker } from '../../entities/Sticker';
 import { StickerRequestTo, UpdateStickerTo } from './Dto/StickerRequestTo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StickerResponseTo } from './Dto/StickerResponseTo';
 import { plainToInstance } from 'class-transformer';
-import { Article } from 'src/entities/Article';
+import { Article } from '../../entities/Article';
 
 @Injectable()
 export class StickerService {

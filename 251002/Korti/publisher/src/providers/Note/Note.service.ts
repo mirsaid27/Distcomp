@@ -6,12 +6,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Note } from 'src/entities/Note';
+import { Note } from '../../entities/Note';
 import { NoteResponseTo } from './Dto/NoteResponseTo';
 import { plainToInstance } from 'class-transformer';
 import { NoteRequestTo, UpdateNoteTo } from './Dto/NoteRequestTo';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Article } from 'src/entities/Article';
+import { Article } from '../../entities/Article';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -25,7 +25,6 @@ export class NoteService {
 
   async getAllNotes(): Promise<ReadonlyArray<NoteResponseTo>> {
     const notes = await this.noteRepository.find();
-    console.log(notes);
     return plainToInstance(NoteResponseTo, notes, {
       excludeExtraneousValues: true,
     });

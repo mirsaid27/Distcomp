@@ -6,11 +6,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Editor } from 'src/entities/Editor';
-import { EditorRequestTo } from './Dto/EditorRequestTo';
+import { Editor } from '../../entities/Editor';
+import { EditorRequestTo, UpdateEditorDto } from './Dto/EditorRequestTo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Article } from 'src/entities/Article';
+import { Article } from '../../entities/Article';
+import { EditorResponseTo } from './Dto/EditorResponseTo';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class EditorService {
@@ -21,14 +23,22 @@ export class EditorService {
     private articleRepository: Repository<Article>,
   ) {}
 
-  async getAllEditors(): Promise<ReadonlyArray<Editor>> {
-    return await this.editorRepository.find();
+  async getAllEditors(): Promise<ReadonlyArray<EditorResponseTo>> {
+    return plainToInstance(
+      EditorResponseTo,
+      await this.editorRepository.find(),
+      { excludeExtraneousValues: true },
+    );
   }
 
-  async createEditor(editor: EditorRequestTo): Promise<Editor> {
+  async createEditor(editor: EditorRequestTo): Promise<EditorResponseTo> {
     try {
       const newEditor = this.editorRepository.create(editor);
-      return await this.editorRepository.save(newEditor);
+      return plainToInstance(
+        EditorResponseTo,
+        await this.editorRepository.save(newEditor),
+        { excludeExtraneousValues: true },
+      );
     } catch (err) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if ((err.code as string) === '23505') {
@@ -63,10 +73,13 @@ export class EditorService {
     }
   }
 
-  async findById(id: number): Promise<Editor> {
+  async findById(id: number): Promise<EditorResponseTo> {
     try {
       const editor = await this.editorRepository.findOneBy({ id });
-      if (editor) return editor;
+      if (editor)
+        return plainToInstance(EditorResponseTo, editor, {
+          excludeExtraneousValues: true,
+        });
       else
         throw new HttpException(
           {
@@ -80,7 +93,7 @@ export class EditorService {
     }
   }
 
-  async updateEditor(item: Editor): Promise<Editor> {
+  async updateEditor(item: UpdateEditorDto): Promise<EditorResponseTo> {
     try {
       const existEditor = await this.editorRepository.findOne({
         where: { id: item.id },
@@ -104,13 +117,15 @@ export class EditorService {
         where: { id: item.id },
       });
       if (!result) throw new NotFoundException();
-      return result;
+      return plainToInstance(EditorResponseTo, result, {
+        excludeExtraneousValues: true,
+      });
     } catch {
       throw new InternalServerErrorException('Unexpected error');
     }
   }
 
-  async getEditorByArticleId(articleId: number): Promise<Editor> {
+  async getEditorByArticleId(articleId: number): Promise<EditorResponseTo> {
     try {
       const article = await this.articleRepository.findOne({
         where: { id: articleId },
@@ -120,7 +135,9 @@ export class EditorService {
         where: { id: article.editorId },
       });
       if (!editor) throw new NotFoundException();
-      return editor;
+      return plainToInstance(EditorResponseTo, editor, {
+        excludeExtraneousValues: true,
+      });
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(

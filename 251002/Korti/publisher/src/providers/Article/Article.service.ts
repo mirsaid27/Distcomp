@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Article } from 'src/entities/Article';
+import { Article } from '../../entities/Article';
 import {
   ArticleRequestTo,
   ArticleSearchParamsDto,
@@ -15,7 +15,7 @@ import {
 import { ArticleResponseTo } from './Dto/ArticleResponseTo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Editor } from 'src/entities/Editor';
+import { Editor } from '../../entities/Editor';
 import { plainToInstance } from 'class-transformer';
 
 @Injectable()
@@ -28,10 +28,13 @@ export class ArticleService {
   ) {}
 
   async getAllArticles(): Promise<ReadonlyArray<ArticleResponseTo>> {
-    return await this.articleRepository.find();
+    const articles = await this.articleRepository.find();
+    return plainToInstance(ArticleResponseTo, articles, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async createArticle(article: ArticleRequestTo): Promise<Article> {
+  async createArticle(article: ArticleRequestTo): Promise<ArticleResponseTo> {
     try {
       const editor = await this.editorRepository.findOne({
         where: { id: article.editorId },
@@ -43,7 +46,10 @@ export class ArticleService {
         ...article,
         editor: editor,
       });
-      return await this.articleRepository.save(newArticle);
+      const res = await this.articleRepository.save(newArticle);
+      return plainToInstance(ArticleResponseTo, res, {
+        excludeExtraneousValues: true,
+      });
     } catch (err) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (err.code === '23505') {
@@ -85,11 +91,13 @@ export class ArticleService {
     }
   }
 
-  async getArticleById(id: number): Promise<Article> {
+  async getArticleById(id: number): Promise<ArticleResponseTo> {
     try {
       const article = await this.articleRepository.findOne({ where: { id } });
       if (!article) throw new ConflictException();
-      return article;
+      return plainToInstance(ArticleResponseTo, article, {
+        excludeExtraneousValues: true,
+      });
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
@@ -104,7 +112,7 @@ export class ArticleService {
     }
   }
 
-  async updateArticle(body: UpdateArticleTo): Promise<Article> {
+  async updateArticle(body: UpdateArticleTo): Promise<ArticleResponseTo> {
     try {
       const editor = await this.editorRepository.findOne({
         where: { id: body.editorId },
@@ -133,7 +141,9 @@ export class ArticleService {
         created: modArticle.created,
         modified: modArticle.modified,
       });
-      return modArticle;
+      return plainToInstance(ArticleResponseTo, modArticle, {
+        excludeExtraneousValues: true,
+      });
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new HttpException(
