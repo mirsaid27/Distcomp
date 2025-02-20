@@ -15,7 +15,10 @@ const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   entities: [Editor, Article, Note, Sticker],
-  migrations: ['src/migrations/**/*.ts'],
+  //migrations: ['src/migrations/**/*.ts'],
+  migrations: [
+    'dist/migrations/*.js', // Important: Use .js, not .ts
+  ],
   migrationsTableName: 'test-migration',
   logging: true,
 });
