@@ -1,12 +1,9 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { StickerController } from './Sticker.controller';
 import { StickerService } from './Sticker.service';
-import { Response } from 'express';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { StickerResponseTo } from './Dto/StickerResponseTo';
 import { StickerRequestTo, UpdateStickerTo } from './Dto/StickerRequestTo';
-import { Sticker } from 'src/entities/Sticker';
 
 describe('StickerController', () => {
   let controller: StickerController;
@@ -18,14 +15,7 @@ describe('StickerController', () => {
     getStickerById: jest.fn(),
     deleteSticker: jest.fn(),
     updateSticker: jest.fn(),
-  };
-
-  const mockResponse = (): Partial<Response> => {
-    return {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-      send: jest.fn().mockReturnThis(),
-    };
+    getStickersByArticleId: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -45,13 +35,11 @@ describe('StickerController', () => {
 
   describe('getAll', () => {
     it('should return an array of stickers', async () => {
-      const result: Sticker[] = [{ id: 1, name: 'Test Sticker' }];
+      const result: StickerResponseTo[] = [{ id: 1, name: 'Test Sticker' }];
       jest.spyOn(service, 'getAllStickers').mockResolvedValue(result);
 
-      const res = mockResponse() as Response;
-      await controller.getAll(res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(expect.any(Array));
+      const response = await controller.getAll();
+      expect(response).toEqual(result);
     });
   });
 
@@ -67,10 +55,8 @@ describe('StickerController', () => {
 
       jest.spyOn(service, 'createSticker').mockResolvedValue(stickerResponse);
 
-      const res = mockResponse() as Response;
-      await controller.create(stickerRequest, res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.CREATED);
-      expect(res.json).toHaveBeenCalledWith(stickerResponse);
+      const response = await controller.create(stickerRequest);
+      expect(response).toEqual(stickerResponse);
     });
 
     it('should throw an error if sticker with the same name already exists', async () => {
@@ -87,8 +73,7 @@ describe('StickerController', () => {
         );
       });
 
-      const res = mockResponse() as Response;
-      await expect(controller.create(stickerRequest, res)).rejects.toThrow(
+      await expect(controller.create(stickerRequest)).rejects.toThrow(
         HttpException,
       );
     });
@@ -98,14 +83,12 @@ describe('StickerController', () => {
     it('should return a sticker by ID', async () => {
       const stickerResponse: StickerResponseTo = {
         id: 1,
-        name: 'Test Sticker' /* другие поля */,
+        name: 'Test Sticker',
       };
       jest.spyOn(service, 'getStickerById').mockResolvedValue(stickerResponse);
 
-      const res = mockResponse() as Response;
-      await controller.getOne(1, res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(stickerResponse);
+      const response = await controller.getOne(1);
+      expect(response).toEqual(stickerResponse);
     });
 
     it('should throw an error if sticker does not exist', async () => {
@@ -116,8 +99,7 @@ describe('StickerController', () => {
         );
       });
 
-      const res = mockResponse() as Response;
-      await expect(controller.getOne(1, res)).rejects.toThrow(HttpException);
+      await expect(controller.getOne(1)).rejects.toThrow(HttpException);
     });
   });
 
@@ -125,10 +107,7 @@ describe('StickerController', () => {
     it('should delete a sticker', async () => {
       jest.spyOn(service, 'deleteSticker').mockResolvedValue(undefined);
 
-      const res = mockResponse() as Response;
-      await controller.delete(1, res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.NO_CONTENT);
-      expect(res.send).toHaveBeenCalled();
+      await expect(controller.delete(1)).resolves.toBeUndefined();
     });
 
     it('should throw an error if sticker does not exist', async () => {
@@ -139,8 +118,7 @@ describe('StickerController', () => {
         );
       });
 
-      const res = mockResponse() as Response;
-      await expect(controller.delete(1, res)).rejects.toThrow(HttpException);
+      await expect(controller.delete(1)).rejects.toThrow(HttpException);
     });
   });
 
@@ -148,25 +126,23 @@ describe('StickerController', () => {
     it('should successfully update a sticker', async () => {
       const stickerRequest: UpdateStickerTo = {
         id: 1,
-        name: 'Updated Sticker' /* другие поля */,
+        name: 'Updated Sticker',
       };
       const stickerResponse: StickerResponseTo = {
         id: 1,
-        name: 'Updated Sticker' /* другие поля */,
+        name: 'Updated Sticker',
       };
 
       jest.spyOn(service, 'updateSticker').mockResolvedValue(stickerResponse);
 
-      const res = mockResponse() as Response;
-      await controller.update(stickerRequest, res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(stickerResponse);
+      const response = await controller.update(stickerRequest);
+      expect(response).toEqual(stickerResponse);
     });
 
     it('should throw an error if sticker does not exist', async () => {
       const stickerRequest: UpdateStickerTo = {
         id: 1,
-        name: 'Non-Existent Sticker' /* другие поля */,
+        name: 'Non-Existent Sticker',
       };
       jest.spyOn(service, 'updateSticker').mockImplementation(() => {
         throw new HttpException(
@@ -175,10 +151,38 @@ describe('StickerController', () => {
         );
       });
 
-      const res = mockResponse() as Response;
-      await expect(controller.update(stickerRequest, res)).rejects.toThrow(
+      await expect(controller.update(stickerRequest)).rejects.toThrow(
         HttpException,
       );
+    });
+  });
+
+  describe('getByArticles', () => {
+    it('should return stickers by article ID', async () => {
+      const stickerResponses: StickerResponseTo[] = [
+        { id: 1, name: 'Test Sticker' },
+        { id: 2, name: 'Another Sticker' },
+      ];
+      jest
+        .spyOn(service, 'getStickersByArticleId')
+        .mockResolvedValue(stickerResponses);
+
+      const response = await controller.getByArticles(1);
+      expect(response).toEqual(stickerResponses);
+    });
+
+    it('should handle errors when fetching stickers by article ID', async () => {
+      jest.spyOn(service, 'getStickersByArticleId').mockImplementation(() => {
+        throw new HttpException(
+          {
+            errorCode: 40007,
+            errorMessage: 'No stickers found for this article.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      });
+
+      await expect(controller.getByArticles(1)).rejects.toThrow(HttpException);
     });
   });
 });
