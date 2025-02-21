@@ -457,12 +457,14 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# JetBrains Rider
-*.sln.iml
-/151002/Haiduk/RV/RV/Lab3/data/data
-/151003/Mytnik/Lab3/DC_Lab3
-
 # exe & dll & bin/
 *.exe
 *.dll
 bin/
+
+*/251001/
+*/251002/
+*/251003/
+*/251004/
+!*/251001/Kryvitski
+*.json
