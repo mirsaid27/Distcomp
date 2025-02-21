@@ -1,39 +1,34 @@
-﻿using System.Reflection;
-using Service.Interfaces;
-using Service.Services;
-using Domain.Repository;
+﻿using Application.Contracts.RepositoryContracts;
+using Application.Contracts.ServiceContracts;
+using Application.Services;
 using Infrastructure.Repositories;
-using Service.Mapper;
+using Infrastructure.Repositories.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Presentation.Extensions;
 
 public static class ServiceExtensions
 {
-    public static void ConfigureServiceLayer(this IServiceCollection services)
+    public static void AddRepositories(this IServiceCollection services)
     {
-        services.AddSingleton<IEditorService, EditorService>();
-        services.AddSingleton<IArticleService, ArticleService>();
-        services.AddSingleton<IPostService, PostService>();
-        services.AddSingleton<IMarkService, MarkService>();
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        services.AddScoped<IEditorRepository, EditorRepository>();
+        services.AddScoped<IArticleRepository, ArticleRepository>();
+        services.AddScoped<IMarkRepository, MarkRepository>();
+        services.AddScoped<IPostRepository, PostRepository>();
     }
-    
-    public static void ConfigureInfrastructureLayer(this IServiceCollection services)
+
+    public static void AddServices(this IServiceCollection services)
     {
-        services.AddSingleton<IEditorRepository, EditorRepository>();
-        services.AddSingleton<IMarkRepository, MarkRepository>();
-        services.AddSingleton<IArticleRepository, ArticleRepository>();
-        services.AddSingleton<IPostRepository, PostRepository>();
+        services.AddScoped<IEditorService, EditorService>();
+        services.AddScoped<IArticleService, ArticleService>();
+        services.AddScoped<IMarkService, MarkService>();
+        services.AddScoped<IPostService, PostService>();
     }
-    
-    public static void ConfigureAutoMapper(this IServiceCollection services)
+
+    public static void AddDbContext(this IServiceCollection services, IConfigurationManager config)
     {
-        services.AddAutoMapper(cfg =>
-        {
-            cfg.AddProfile<ArticleMappingProfile>();
-            cfg.AddProfile<EditorMappingProfile>();
-            cfg.AddProfile<MarkMappingProfile>();
-            cfg.AddProfile<PostMappingProfile>();
-        }, AppDomain.CurrentDomain.GetAssemblies());
+        services.AddDbContext<RepositoryContext>(opts =>
+            opts.UseNpgsql(config.GetConnectionString("PostgresConnection"), b =>
+                b.MigrationsAssembly("Presentation")));
     }
 }

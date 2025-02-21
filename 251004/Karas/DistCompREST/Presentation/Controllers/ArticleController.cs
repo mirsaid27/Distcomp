@@ -1,62 +1,52 @@
-﻿using Service.DTO.Request.Editor;
-using Service.DTO.Request.Article;
-using Service.DTO.Request.Post;
-using Service.Interfaces;
+﻿using Application.Contracts.ServiceContracts;
+using Application.Dto.Request;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
 [ApiController]
-[Route("/api/v1.0/articles")]
-public class ArticleController(IArticleService articleService, IEditorService _editorService, IPostService _postService)
-    : ControllerBase
+[Route("api/v1.0/[controller]")]
+public class ArticlesController : ControllerBase
 {
+    private readonly IArticleService _articleService;
+
+    public ArticlesController(IArticleService articleService)
+    {
+        _articleService = articleService;
+    }
+
     [HttpGet]
-    public async Task<IActionResult> GetAllArticles()
+    public async Task<IActionResult> GetArticles()
     {
-        var article = await articleService.GetArticle(new ArticleRequestToGetAll());
-        return Ok(article);
+        var articles = await _articleService.GetArticlesAsync();
+        return Ok(articles);
     }
 
-    [HttpGet("{id:long}/editor")]
-    public async Task<IActionResult> GetEditorByArticleId(long id)
-    {
-        var editor = await _editorService.GetEditorByArticleId(new EditorRequestToGetByArticleId { ArticleId = id });
-        return Ok(editor);
-    }
-
-    [HttpGet("{id:long}/posts")]
-    public async Task<IActionResult> GetPostsByArticleId(long id)
-    {
-        var posts = await _postService.GetPostsByArticleId(new PostRequestToGetByArticleId { ArticleId = id });
-        return Ok(posts);
-    }
-
-    [HttpGet("{id:long}")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetArticleById(long id)
     {
-        var article = await articleService.GetArticleById(new ArticleRequestToGetById { Id = id });
+        var article = await _articleService.GetArticleByIdAsync(id);
         return Ok(article);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateArticle(ArticleRequestToCreate articleRequestToCreate)
+    public async Task<IActionResult> CreateArticle([FromBody] ArticleRequestDto article)
     {
-        var article = await articleService.CreateArticle(articleRequestToCreate);
-        return CreatedAtAction(nameof(GetArticleById), new { id = article.Id }, article);
+        var createdArticle = await _articleService.CreateArticleAsync(article);
+        return CreatedAtAction(nameof(CreateArticle), new { id = createdArticle.Id }, createdArticle);
     }
-
+    
     [HttpPut]
-    public async Task<IActionResult> UpdateArticle(ArticleRequestToFullUpdate articleModel)
+    public async Task<IActionResult> UpdateArticle([FromBody] ArticleRequestDto article)
     {
-        var article = await articleService.UpdateArticle(articleModel);
-        return Ok(article);
+        var updatedArticle = await _articleService.UpdateArticleAsync(article);
+        return Ok(updatedArticle);
     }
 
-    [HttpDelete("{id:long}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteArticle(long id)
     {
-        await articleService.DeleteArticle(new ArticleRequestToDeleteById { Id = id });
+        await _articleService.DeleteArticleAsync(id);
         return NoContent();
     }
 }

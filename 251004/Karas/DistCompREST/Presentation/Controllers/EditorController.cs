@@ -1,52 +1,52 @@
-﻿using Service.DTO.Request.Editor;
-using Service.Interfaces;
+﻿using Application.Contracts.ServiceContracts;
+using Application.Dto.Request;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
 [ApiController]
-[Route("/api/v1.0/editors")]
-public class EditorController : ControllerBase
+[Route("api/v1.0/[controller]")]
+public class EditorsController : ControllerBase
 {
     private readonly IEditorService _editorService;
 
-    public EditorController(IEditorService service)
+    public EditorsController(IEditorService editorService)
     {
-        _editorService = service;
+        _editorService = editorService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllEditors()
+    public async Task<IActionResult> GetEditors()
     {
-        var editors = await _editorService.GetEditors(new EditorRequestToGetAll());
+        var editors = await _editorService.GetEditorsAsync();
         return Ok(editors);
     }
 
-    [HttpGet("{id:long}")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetEditorById(long id)
     {
-        var editor = await _editorService.GetEditorById(new EditorRequestToGetById{ Id = id });
+        var editor = await _editorService.GetEditorByIdAsync(id);
         return Ok(editor);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateEditor(EditorRequestToCreate editorRequestToCreate)
+    public async Task<IActionResult> CreateEditor([FromBody] EditorRequestDto editor)
     {
-        var editor = await _editorService.CreateEditor(editorRequestToCreate);
-        return CreatedAtAction(nameof(GetEditorById), new { id = editor.Id }, editor);
+        var createdEditor = await _editorService.CreateEditorAsync(editor);
+        return CreatedAtAction(nameof(CreateEditor), new { id = createdEditor.Id }, createdEditor);
     }
-
+    
     [HttpPut]
-    public async Task<IActionResult> UpdateEditor(EditorRequestToFullUpdate editorModel)
+    public async Task<IActionResult> UpdateEditor([FromBody] EditorRequestDto editor)
     {
-        var editor = await _editorService.UpdateEditor(editorModel);
-        return Ok(editor);
+        var updatedEditor = await _editorService.UpdateEditorAsync(editor);
+        return Ok(updatedEditor);
     }
 
-    [HttpDelete("{id:long}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteEditor(long id)
     {
-        await _editorService.DeleteEditor(new EditorRequestToDeleteById() { Id = id });
+        await _editorService.DeleteEditorAsync(id);
         return NoContent();
     }
 }

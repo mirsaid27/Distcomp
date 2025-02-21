@@ -1,46 +1,52 @@
-﻿using Service.DTO.Request.Post;
-using Service.DTO.Response.Post;
-using Service.Interfaces;
+﻿using Application.Contracts.ServiceContracts;
+using Application.Dto.Request;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
 [ApiController]
-[Route("/api/v1.0/posts")]
-public class PostController(IPostService _postService) : ControllerBase
+[Route("api/v1.0/[controller]")]
+public class PostsController : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAllPost()
+    private readonly IPostService _postService;
+
+    public PostsController(IPostService postService)
     {
-        var post = await _postService.GetPosts(new PostRequestToGetAll());
-        return Ok(post);
+        _postService = postService;
     }
 
-    [HttpGet("{id:long}")]
+    [HttpGet]
+    public async Task<IActionResult> GetPosts()
+    {
+        var posts = await _postService.GetPostsAsync();
+        return Ok(posts);
+    }
+
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetPostById(long id)
     {
-        var post = await _postService.GetPostById(new PostRequestToGetById { Id = id });
+        var post = await _postService.GetPostByIdAsync(id);
         return Ok(post);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreatePost(PostRequestToCreate postRequestToCreate)
+    public async Task<IActionResult> CreatePost([FromBody] PostRequestDto post)
     {
-        var post = await _postService.CreatePost(postRequestToCreate);
-        return CreatedAtAction(nameof(GetPostById), new { id = post.Id }, post);
+        var createdPost = await _postService.CreatePostAsync(post);
+        return CreatedAtAction(nameof(CreatePost), new { id = createdPost.Id }, createdPost);
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdatePost(PostRequestToFullUpdate postModel)
+    public async Task<IActionResult> UpdatePost([FromBody] PostRequestDto post)
     {
-        var post = await _postService.UpdatePost(postModel);
-        return Ok(post);
+        var updatedPost = await _postService.UpdatePostAsync(post);
+        return Ok(updatedPost);
     }
 
-    [HttpDelete("{id:long}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePost(long id)
     {
-        await _postService.DeletePost(new PostRequestToDeleteById { Id = id });
+        await _postService.DeletePostAsync(id);
         return NoContent();
     }
 }

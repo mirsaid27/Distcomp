@@ -1,46 +1,52 @@
-﻿using Service.DTO.Request.Mark;
-using Service.DTO.Response.Mark;
-using Service.Interfaces;
+﻿using Application.Contracts.ServiceContracts;
+using Application.Dto.Request;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
 [ApiController]
-[Route("/api/v1.0/marks")]
-public class MarkController(IMarkService _markService) : ControllerBase
+[Route("api/v1.0/[controller]")]
+public class MarksController : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAllMark()
+    private readonly IMarkService _markService;
+
+    public MarksController(IMarkService markService)
     {
-        var mark = await _markService.GetMarks(new MarkRequestToGetAll());
-        return Ok(mark);
+        _markService = markService;
     }
 
-    [HttpGet("{id:long}")]
+    [HttpGet]
+    public async Task<IActionResult> GetMarks()
+    {
+        var marks = await _markService.GetMarksAsync();
+        return Ok(marks);
+    }
+
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetMarkById(long id)
     {
-        var mark = await _markService.GetMarkById(new MarkRequestToGetById{ Id = id });
+        var mark = await _markService.GetMarkByIdAsync(id);
         return Ok(mark);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateMark(MarkRequestToCreate markRequestToCreate)
+    public async Task<IActionResult> CreateMark([FromBody] MarkRequestDto mark)
     {
-        var mark = await _markService.CreateMark(markRequestToCreate);
-        return CreatedAtAction(nameof(GetMarkById), new { id = mark.Id }, mark);
+        var createdMark = await _markService.CreateMarkAsync(mark);
+        return CreatedAtAction(nameof(CreateMark), new { id = createdMark.Id }, createdMark);
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateMark(MarkRequestToFullUpdate markModel)
+    public async Task<IActionResult> UpdateMark([FromBody] MarkRequestDto mark)
     {
-        var mark = await _markService.UpdateMark(markModel);
-        return Ok(mark);
+        var updatedMark = await _markService.UpdateMarkAsync(mark);
+        return Ok(updatedMark);
     }
 
-    [HttpDelete("{id:long}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteMark(long id)
     {
-        await _markService.DeleteMark(new MarkRequestToDeleteById { Id = id });
+        await _markService.DeleteMarkAsync(id);
         return NoContent();
     }
 }

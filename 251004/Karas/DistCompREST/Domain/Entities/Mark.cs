@@ -1,7 +1,15 @@
-﻿namespace Domain.Entities;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-public class Mark
+namespace Domain.Entities;
+
+public class Mark : BaseModel
 {
-    public long Id { get; set; }
+    [Required]
+    [MinLength(2)]
+    [MaxLength(32)]
+    [Column(TypeName = "text")]
     public string Name { get; set; }
+
+    public virtual List<Article> Articles { get; set; } = [];
 }
