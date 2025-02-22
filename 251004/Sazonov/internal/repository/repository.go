@@ -12,13 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-const (
-	MemoryStorageType string = "memory"
-
-	PostgresStorageType string = "postgres"
-)
-
-type Repository struct {
+type repository struct {
 	db *sqlx.DB
 
 	WriterRepo
@@ -27,41 +21,35 @@ type Repository struct {
 	LabelRepo
 }
 
-func New(cfg config.StorageConfig) (*Repository, error) {
-	var repo Repository
-
-	switch cfg.Type {
-	case MemoryStorageType:
-	case PostgresStorageType:
-		db, err := postgres.Connect(
-			context.Background(),
-			postgres.Config{
-				User:     cfg.User,
-				Password: cfg.Password,
-				Host:     cfg.Host,
-				Port:     cfg.Port,
-				DBName:   cfg.DBName,
-				SSLMode:  cfg.SSLMode,
-			},
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		repo = Repository{
-			db: db,
-
-			WriterRepo: writer.New(db),
-			NewsRepo:   news.New(db),
-			NoticeRepo: notice.New(db),
-			LabelRepo:  label.New(db),
-		}
+func New(cfg config.StorageConfig) (Repository, error) {
+	db, err := postgres.Connect(
+		context.Background(),
+		postgres.Config{
+			User:     cfg.User,
+			Password: cfg.Password,
+			Host:     cfg.Host,
+			Port:     cfg.Port,
+			DBName:   cfg.DBName,
+			SSLMode:  cfg.SSLMode,
+		},
+	)
+	if err != nil {
+		return nil, err
 	}
 
-	return &repo, nil
+	repo := &repository{
+		db: db,
+
+		WriterRepo: writer.New(db),
+		NewsRepo:   news.New(db),
+		NoticeRepo: notice.New(db),
+		LabelRepo:  label.New(db),
+	}
+
+	return repo, nil
 }
 
-func (r *Repository) Close() {
+func (r *repository) Close() {
 	if r.db != nil {
 		r.db.Close()
 	}

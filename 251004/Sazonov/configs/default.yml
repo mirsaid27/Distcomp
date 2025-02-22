@@ -6,13 +6,15 @@ core:
   shutdown_timeout: 10s
 
 storage:
-  type: postgres
   user: postgres
   password: postgres
   host: localhost
   port: 5432
   dbname: distcomp
   sslmode: disable
+
+api:
+  notice_addr: localhost:24130
 
 http:
   port: 24110

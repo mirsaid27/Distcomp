@@ -11,6 +11,7 @@ import (
 )
 
 type Config struct {
+	Host        string
 	Port        string
 	Timeout     time.Duration
 	IdleTimeout time.Duration
@@ -20,9 +21,9 @@ type httpServer struct {
 	srv *http.Server
 }
 
-func New(cfg Config, handler http.Handler) *httpServer {
+func NewServer(cfg Config, handler http.Handler) *httpServer {
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%s", cfg.Port),
+		Addr:         fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
 		Handler:      handler,
 		ReadTimeout:  cfg.Timeout,
 		WriteTimeout: cfg.Timeout,
