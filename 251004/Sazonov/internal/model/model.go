@@ -17,6 +17,7 @@ type News struct {
 	WriterID int64     `db:"writer_id" json:"writerId"`
 	Title    string    `db:"title"     json:"title"`
 	Content  string    `db:"content"   json:"content"`
+	Labels   []string  `               json:"labels"`
 	Created  time.Time `db:"created"   json:"created"`
 	Modified time.Time `db:"modified"  json:"modified"`
 }

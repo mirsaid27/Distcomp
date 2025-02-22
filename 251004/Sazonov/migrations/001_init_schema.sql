@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS tbl_news (
 
 CREATE TABLE IF NOT EXISTS tbl_notice (
   id        bigserial   NOT NULL,
-  news_id    bigint      NOT NULL,
+  news_id   bigint      NOT NULL,
   content   text        NOT NULL CHECK(LENGTH(content) >= 2),
   PRIMARY KEY (id),
   FOREIGN KEY (news_id) REFERENCES tbl_news (id)
@@ -33,16 +33,31 @@ CREATE TABLE IF NOT EXISTS tbl_label (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_news_label (
+-- +goose StatementBegin
+CREATE OR REPLACE FUNCTION cleanup_unused_labels_trigger() RETURNS TRIGGER
+  LANGUAGE plpgsql AS $$ 
+BEGIN
+  DELETE FROM tbl_label
+  WHERE id NOT IN (SELECT DISTINCT label_id FROM m2m_news_labels);
+  RETURN NULL; 
+END; $$;
+-- +goose StatementEnd
+
+CREATE TABLE IF NOT EXISTS m2m_news_labels (
   news_id  bigint NOT NULL,
   label_id bigint NOT NULL,
   PRIMARY KEY (news_id, label_id),
-  FOREIGN KEY (news_id) REFERENCES tbl_news (id),
-  FOREIGN KEY (label_id) REFERENCES tbl_label (id)
+  FOREIGN KEY (news_id) REFERENCES tbl_news (id) ON DELETE CASCADE,
+  FOREIGN KEY (label_id) REFERENCES tbl_label (id) ON DELETE CASCADE
 );
 
+CREATE OR REPLACE TRIGGER cleanup_unused_labels
+  AFTER DELETE
+  ON m2m_news_labels
+  FOR EACH ROW EXECUTE FUNCTION cleanup_unused_labels_trigger();
+
 -- +goose Down
-DROP TABLE IF EXISTS m2m_news_label;
+DROP TABLE IF EXISTS m2m_news_labels;
 DROP TABLE IF EXISTS tbl_label;
 DROP TABLE IF EXISTS tbl_notice;
 DROP TABLE IF EXISTS tbl_news;

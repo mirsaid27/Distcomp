@@ -4,7 +4,10 @@ import (
 	"context"
 
 	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/config"
-	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/repository/psql"
+	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/repository/psql/label"
+	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/repository/psql/news"
+	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/repository/psql/notice"
+	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/repository/psql/writer"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/pkg/postgres"
 	"github.com/jmoiron/sqlx"
 )
@@ -45,15 +48,13 @@ func New(cfg config.StorageConfig) (*Repository, error) {
 			return nil, err
 		}
 
-		psqlRepo := psql.New(db)
-
 		repo = Repository{
 			db: db,
 
-			WriterRepo: psqlRepo.Writer(),
-			NewsRepo:   psqlRepo.News(),
-			NoticeRepo: psqlRepo.Notice(),
-			LabelRepo:  psqlRepo.Label(),
+			WriterRepo: writer.New(db),
+			NewsRepo:   news.New(db),
+			NoticeRepo: notice.New(db),
+			LabelRepo:  label.New(db),
 		}
 	}
 

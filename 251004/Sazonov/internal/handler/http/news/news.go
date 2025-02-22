@@ -56,9 +56,10 @@ func (h *newsHandler) Get() gin.HandlerFunc {
 
 func (h *newsHandler) Create() gin.HandlerFunc {
 	type request struct {
-		WriterID int64  `json:"writerId" validate:"required,gte=1"`
-		Title    string `json:"title"    validate:"required,min=2,max=64"`
-		Content  string `json:"content"  validate:"required,min=4,max=2048"`
+		WriterID int64    `json:"writerId" validate:"required,gte=1"`
+		Title    string   `json:"title"    validate:"required,min=2,max=64"`
+		Content  string   `json:"content"  validate:"required,min=4,max=2048"`
+		Labels   []string `json:"labels"`
 	}
 
 	type response struct{}
@@ -82,6 +83,7 @@ func (h *newsHandler) Create() gin.HandlerFunc {
 				WriterID: req.WriterID,
 				Title:    req.Title,
 				Content:  req.Content,
+				Labels:   req.Labels,
 			},
 		)
 		if err != nil {
@@ -95,10 +97,10 @@ func (h *newsHandler) Create() gin.HandlerFunc {
 
 func (h *newsHandler) Update() gin.HandlerFunc {
 	type request struct {
-		ID       int64  `json:"id"       validate:"required,gte=1"`
-		WriterID int64  `json:"writerId" validate:"omitempty,required,gte=1"`
-		Title    string `json:"title"    validate:"omitempty,required,min=2,max=64"`
-		Content  string `json:"content"  validate:"omitempty,required,min=4,max=2048"`
+		ID       int64  `json:"id,omitempty"       validate:"required,gte=1"`
+		WriterID int64  `json:"writerId,omitempty" validate:"omitempty,required,gte=1"`
+		Title    string `json:"title,omitempty"    validate:"omitempty,required,min=2,max=64"`
+		Content  string `json:"content,omitempty"  validate:"omitempty,required,min=4,max=2048"`
 	}
 
 	type response struct{}
