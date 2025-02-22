@@ -35,7 +35,7 @@ func (cc *CreatorController) Create(c echo.Context) error {
 
 	entity, err := cc.service.Create(dto)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, WrapErr(err))
+		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 	return c.JSON(http.StatusCreated, entity)
 }

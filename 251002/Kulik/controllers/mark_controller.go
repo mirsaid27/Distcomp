@@ -30,7 +30,7 @@ func (mc *MarkController) Create(c echo.Context) error {
 
 	mark, err := mc.service.Create(dto)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, WrapErr(err))
+		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 
 	fmt.Println(mark)
@@ -71,8 +71,8 @@ func (mc *MarkController) Update(c echo.Context) error {
 	}
 
 	if err := mc.service.Update(dto); err != nil {
-		fmt.Println(err)
-		return c.JSON(http.StatusInternalServerError, WrapErr(err))
+		fmt.Println("lala", err)
+		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 
 	return c.JSON(http.StatusOK, dto)

@@ -3,23 +3,37 @@ package main
 import (
 	// "fmt"
 
+	"log"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
 	"distributedcomputing/controllers"
-	"distributedcomputing/model"
+	"github.com/jmoiron/sqlx"
 	"distributedcomputing/service"
 	"distributedcomputing/storage"
+	_ "github.com/lib/pq"
 	// "net/http"
 	// "strconv"
 )
 
 
 func main() {
-	creatorRepo := storage.NewInMemStorage[model.Creator]()
-	storyRepo := storage.NewInMemStorage[model.Story]()
-	noteRepo := storage.NewInMemStorage[model.Note]()
-	markRepo := storage.NewInMemStorage[model.Mark]()
+	// creatorRepo := storage.NewInMemStorage[model.Creator]()
+	// storyRepo := storage.NewInMemStorage[model.Story]()
+	// noteRepo := storage.NewInMemStorage[model.Note]()
+	// markRepo := storage.NewInMemStorage[model.Mark]()
+
+	db, err := sqlx.Connect("postgres", "user=postgres dbname=distcomp sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	
+	creatorRepo := storage.NewCreatorStorage(db)
+	storyRepo := storage.NewStoryStorage(db)
+	noteRepo := storage.NewNoteStorage(db)
+	markRepo := storage.NewMarkStorage(db)
 
 	creatorService := service.NewCreatorService(creatorRepo)
 	storyService := service.NewStoryService(storyRepo)

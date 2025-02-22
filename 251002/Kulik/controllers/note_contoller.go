@@ -30,7 +30,7 @@ func (nc *NoteController) Create(c echo.Context) error {
 
 	note, err := nc.service.Create(dto)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, WrapErr(err))
+		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 	return c.JSON(http.StatusCreated, note)
 }
@@ -70,7 +70,7 @@ func (nc *NoteController) Update(c echo.Context) error {
 
 	if err := nc.service.Update(dto); err != nil {
 		fmt.Println(err)
-		return c.JSON(http.StatusInternalServerError, WrapErr(err))
+		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 
 	return c.JSON(http.StatusOK, dto)
