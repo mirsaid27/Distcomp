@@ -34,7 +34,7 @@ public class Label {
 
     @ManyToMany
     @JoinTable(
-            name = "label_story", // имя таблицы связи
+            name = "tbl_story_label", // имя таблицы связи
             joinColumns = @JoinColumn(name = "label_id"), // столбец для id метки
             inverseJoinColumns = @JoinColumn(name = "story_id") // столбец для id истории
     )
