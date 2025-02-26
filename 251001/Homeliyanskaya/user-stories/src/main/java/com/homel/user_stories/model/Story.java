@@ -42,10 +42,8 @@ public class Story {
     @Column(nullable = false)
     private String content;
 
-    @Column(nullable = false)
     private LocalDate created;
 
-    @Column(nullable = false)
     private LocalDate modified;
 
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
