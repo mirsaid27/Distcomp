@@ -1,5 +1,7 @@
 using API.Middlewares;
 using Application.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Persistence;
 using Persistence.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,12 @@ builder.Services.ConfigureMediatR();
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<RepositoryContext>();
+    await context.Database.MigrateAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {

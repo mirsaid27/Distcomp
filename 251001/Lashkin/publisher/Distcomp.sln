@@ -14,6 +14,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persistence", "Infrastructure\Persistence\Persistence.csproj", "{84E0AA20-DC95-4211-A577-245148905C8F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{D8647D75-C4DC-4E38-9AAC-446BA1401CC3}"
+	ProjectSection(SolutionItems) = preProject
+		..\docker-compose.yaml = ..\docker-compose.yaml
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "Presentation\API\API.csproj", "{07127BB1-DDD2-4C61-BEF6-082C3EF0F450}"
 EndProject
