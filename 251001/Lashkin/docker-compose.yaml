@@ -47,7 +47,7 @@ services:
     image: mongo:latest
     container_name: discussion-db
     ports:
-      - "27017:27017"
+      - "9042:27017"
     volumes:
       - discussion-data:/data/db
     networks:

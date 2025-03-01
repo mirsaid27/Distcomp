@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Application\Application.csproj" />
+    <ProjectReference Include="..\..\External.API\External.API.csproj" />
+    <ProjectReference Include="..\..\External.Contracts\External.Contracts.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Persistence\Persistence.csproj" />
   </ItemGroup>
 

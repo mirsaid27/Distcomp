@@ -1,5 +1,9 @@
 using API.Middlewares;
+using Application.DTO.Request;
+using Application.DTO.Response;
 using Application.Extensions;
+using External.API.Implementations;
+using External.Contracts.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 using Persistence.Extensions;
@@ -16,6 +20,8 @@ builder.Services.ConfigureRepositories(builder.Configuration);
 builder.Services.ConfigureAutoMapper();
 builder.Services.ConfigureValidation();
 builder.Services.ConfigureMediatR();
+
+builder.Services.AddHttpClient<INoticeExternalService<NoticeRequestTo, NoticeResponseTo>, NoticeExternalService>();
 
 var app = builder.Build();
 
