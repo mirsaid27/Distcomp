@@ -1,9 +1,11 @@
 package by.ryabchikov.tweet_service.controller.advice;
 
 import by.ryabchikov.tweet_service.exception.CommentNotFoundException;
+import by.ryabchikov.tweet_service.exception.CreatorLoginDuplicationException;
 import by.ryabchikov.tweet_service.exception.CreatorNotFoundException;
 import by.ryabchikov.tweet_service.exception.MarkNotFoundException;
 import by.ryabchikov.tweet_service.exception.TweetNotFoundException;
+import by.ryabchikov.tweet_service.exception.TweetTitleDuplicationException;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -48,6 +50,17 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(aggregate(exception.getMessage(), HttpStatus.NOT_FOUND));
+    }
+
+    @ExceptionHandler(value = {
+            CreatorLoginDuplicationException.class,
+            TweetTitleDuplicationException.class
+    })
+    public ResponseEntity<ExceptionObject> response403(@RequestBody Exception exception) {
+        log.error("CreatorControllerAdvice.response404: CreatorLoginDuplicationException caught.", exception);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(aggregate(exception.getMessage(), HttpStatus.FORBIDDEN));
     }
 
     private ExceptionObject aggregate(String message, HttpStatus httpStatus) {
