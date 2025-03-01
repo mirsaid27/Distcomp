@@ -1,6 +1,6 @@
-import { IsInt, IsString, MaxLength, MinLength } from 'class-validator';
-import { Expose } from 'class-transformer';
-
+import { IsDate, IsInt, IsString, MaxLength, MinLength } from 'class-validator';
+import { Exclude, Expose } from 'class-transformer';
+@Exclude()
 export class ArticleResponseTo {
   @Expose()
   @IsInt()
@@ -23,9 +23,9 @@ export class ArticleResponseTo {
   content: string;
 
   @Expose()
-  @IsString()
-  created: string;
+  @IsDate()
+  created: Date;
 
   @Expose()
-  modified: string | null;
+  modified: Date | null;
 }
