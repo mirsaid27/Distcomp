@@ -19,6 +19,6 @@ USER app
 
 COPY --from=build --chown=app:app /bin/app /bin/
 
-EXPOSE 24110
+EXPOSE 24130
 
 ENTRYPOINT [ "/bin/app" ]

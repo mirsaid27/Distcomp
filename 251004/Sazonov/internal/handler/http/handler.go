@@ -11,20 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func New(svc *service.Service) http.Handler {
+func New(svc service.Service) http.Handler {
 	router := gin.Default()
-
-	writer := writer.New(svc)
-	news := news.New(svc)
-	notice := notice.New(svc)
-	label := label.New(svc)
 
 	r := router.Group("/api")
 	{
-		writer.InitRoutes(r)
-		notice.InitRoutes(r)
-		news.InitRoutes(r)
-		label.InitRoutes(r)
+		writer.New(svc).InitRoutes(r)
+		notice.New(svc).InitRoutes(r)
+		news.New(svc).InitRoutes(r)
+		label.New(svc).InitRoutes(r)
 	}
 
 	return router
