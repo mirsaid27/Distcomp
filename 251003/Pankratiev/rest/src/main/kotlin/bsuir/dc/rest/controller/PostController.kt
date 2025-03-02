@@ -43,4 +43,10 @@ class PostController(
         postService.deletePost(id)
         return ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/by-issue/{issueId}")
+    fun getPostsByIssueId(@PathVariable issueId: Long): ResponseEntity<List<PostTo>> {
+        val posts = postService.getPostsByIssueId(issueId)
+        return ResponseEntity.ok(posts)
+    }
 }

@@ -4,12 +4,14 @@ import bsuir.dc.rest.dto.from.LabelFrom
 import bsuir.dc.rest.dto.to.LabelTo
 import bsuir.dc.rest.mapper.toEntity
 import bsuir.dc.rest.mapper.toResponse
+import bsuir.dc.rest.repository.memory.IssueLabelInMemoryRepository
 import bsuir.dc.rest.repository.memory.LabelInMemoryRepository
 import org.springframework.stereotype.Service
 
 @Service
 class LabelService(
     private val labelRepository: LabelInMemoryRepository,
+    private val issueLabelRepository: IssueLabelInMemoryRepository,
 ) {
     fun createLabel(labelFrom: LabelFrom): LabelTo {
         val label = labelFrom.toEntity()
@@ -32,5 +34,10 @@ class LabelService(
 
     fun deleteLabel(id: Long) {
         labelRepository.deleteById(id)
+    }
+
+    fun getLabelsByIssueId(issueId: Long): List<LabelTo> {
+        val issueLabels = issueLabelRepository.findAll().filter { it.issueId == issueId }
+        return issueLabels.map { getLabelById(it.labelId) }
     }
 }

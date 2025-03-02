@@ -43,4 +43,16 @@ class IssueController(
         issueService.deleteIssue(id)
         return ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/search")
+    fun searchIssues(
+        @RequestParam(required = false) labelNames: List<String>?,
+        @RequestParam(required = false) labelIds: List<Long>?,
+        @RequestParam(required = false) writerLogin: String?,
+        @RequestParam(required = false) title: String?,
+        @RequestParam(required = false) content: String?
+    ): ResponseEntity<List<IssueTo>> {
+        val issues = issueService.getIssuesByFilters(labelNames, labelIds, writerLogin, title, content)
+        return ResponseEntity.ok(issues)
+    }
 }

@@ -33,4 +33,10 @@ class PostService(
     fun deletePost(id: Long) {
         postRepository.deleteById(id)
     }
+
+    fun getPostsByIssueId(issueId: Long): List<PostTo> {
+        return postRepository.findAll()
+            .filter { it.issueId == issueId }
+            .map { it.toResponse() }
+    }
 }

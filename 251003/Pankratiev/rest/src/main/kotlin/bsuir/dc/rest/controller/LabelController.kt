@@ -43,4 +43,10 @@ class LabelController(
         labelService.deleteLabel(id)
         return ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/by-issue/{issueId}")
+    fun getLabelsByIssueId(@PathVariable issueId: Long): ResponseEntity<List<LabelTo>> {
+        val labels = labelService.getLabelsByIssueId(issueId)
+        return ResponseEntity.ok(labels)
+    }
 }

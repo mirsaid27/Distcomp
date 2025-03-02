@@ -43,4 +43,10 @@ class WriterController(
         writerService.deleteWriter(id)
         return ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/by-issue/{issueId}")
+    fun getWriterByIssueId(@PathVariable issueId: Long): ResponseEntity<WriterTo> {
+        val writer = writerService.getWriterByIssueId(issueId)
+        return ResponseEntity.ok(writer)
+    }
 }
