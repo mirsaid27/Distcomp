@@ -7,8 +7,7 @@ public class Sequence
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public string Key { get; set; } = null!;
-    
+    public ObjectId Id { get; set; }
     public string CollectionName { get; set; } = null!;
     public long CurrentId { get; set; }
 }

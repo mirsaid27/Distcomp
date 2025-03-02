@@ -20,7 +20,7 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : class
 
     public async Task<T> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        return await _collection.Find(Builders<T>.Filter.Eq("Id", id)).FirstOrDefaultAsync(cancellationToken);
+        return await _collection.Find(Builders<T>.Filter.Eq("_id", id)).FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
@@ -30,16 +30,8 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : class
 
     public async Task<T> UpdateAsync(long id, T entity, CancellationToken cancellationToken = default)
     {
-        var existingEntity = await _collection.Find(Builders<T>.Filter.Eq("Id", id)).FirstOrDefaultAsync(cancellationToken);
-        var entityType = typeof(T);
-        var idProperty = entityType.GetProperty("Key");
-        if (idProperty != null)
-        {
-            idProperty.SetValue(entity, idProperty.GetValue(existingEntity));
-        }
-
         return await _collection.FindOneAndReplaceAsync(
-            Builders<T>.Filter.Eq("Id", id), 
+            Builders<T>.Filter.Eq("_id", id), 
             entity, 
             new FindOneAndReplaceOptions<T> { ReturnDocument = ReturnDocument.After },
             cancellationToken);
@@ -47,6 +39,6 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : class
 
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
-        await _collection.DeleteOneAsync(Builders<T>.Filter.Eq("Id", id), cancellationToken);
+        await _collection.DeleteOneAsync(Builders<T>.Filter.Eq("_id", id), cancellationToken);
     }
 }
