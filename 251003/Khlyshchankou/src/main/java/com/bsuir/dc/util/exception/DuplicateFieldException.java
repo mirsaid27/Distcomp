@@ -1,4 +1,4 @@
-package com.bsuir.dc.exception;
+package com.bsuir.dc.util.exception;
 
 public class DuplicateFieldException extends RuntimeException {
     public DuplicateFieldException(String fieldName, String fieldValue) {
