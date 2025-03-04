@@ -1,10 +1,11 @@
 #include "Server.hpp"
+#include "Article.hpp"
+#include "Comment.hpp"
+#include "Editor.hpp"
+#include "Label.hpp"
 
 int main() {
-    Server server{};
-    if (!server.initialize()){
-        return 1;
-    }
+    Server<Label, Article, Comment, Editor> server;
     server.start_server();
     return 0;
 }
