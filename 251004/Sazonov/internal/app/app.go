@@ -3,12 +3,13 @@ package app
 import (
 	"context"
 
+	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/adapter"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/config"
 	handler "github.com/Khmelov/Distcomp/251004/Sazonov/internal/handler/http"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/repository"
-	httpserver "github.com/Khmelov/Distcomp/251004/Sazonov/internal/server/http"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/service"
 	appbase "github.com/Khmelov/Distcomp/251004/Sazonov/pkg/app"
+	httpserver "github.com/Khmelov/Distcomp/251004/Sazonov/pkg/http"
 )
 
 type app struct {
@@ -23,9 +24,12 @@ func New(cfg config.Config) (*app, error) {
 		return nil, err
 	}
 
-	service := service.New(repository)
+	adapter := adapter.New(cfg.API.NoticeServiceAddr)
 
-	httpServer := httpserver.New(httpserver.Config{
+	service := service.New(repository, adapter)
+
+	httpServer := httpserver.NewServer(httpserver.Config{
+		Host:        cfg.HTTP.Host,
 		Port:        cfg.HTTP.Port,
 		Timeout:     cfg.HTTP.Timeout,
 		IdleTimeout: cfg.HTTP.IdleTimeout,

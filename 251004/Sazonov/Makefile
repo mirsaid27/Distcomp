@@ -1,6 +1,8 @@
-MAIN=./cmd/api
-EXECUTABLE=./bin/api
-IMAGE_NAME=distcomp/api
+SERVICE=api
+
+MAIN=./cmd/${SERVICE}
+EXECUTABLE=./bin/${SERVICE}
+IMAGE_NAME=distcomp/${SERVICE}
 DOCKER_COMPOSE_ENV_FILE=./deploy/docker/.env.dev
 
 build:
