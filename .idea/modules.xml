@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Distcomp.iml" filepath="$PROJECT_DIR$/.idea/Distcomp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/distcomp.main.iml" filepath="$PROJECT_DIR$/.idea/modules/distcomp.main.iml" />
     </modules>
   </component>
 </project>
