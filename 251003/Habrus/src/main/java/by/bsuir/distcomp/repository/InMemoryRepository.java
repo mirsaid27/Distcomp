@@ -4,6 +4,7 @@ import by.bsuir.distcomp.entity.Identifiable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -12,8 +13,8 @@ public class InMemoryRepository<T extends Identifiable> implements IRepository<T
     private static final AtomicLong counter = new AtomicLong();
 
     @Override
-    public T findById(Long id) {
-        return storage.get(id);
+    public Optional<T> findById(Long id) {
+        return Optional.ofNullable(storage.get(id));
     }
 
     @Override

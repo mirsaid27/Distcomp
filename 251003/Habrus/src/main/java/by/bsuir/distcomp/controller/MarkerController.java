@@ -4,6 +4,7 @@ import by.bsuir.distcomp.dto.request.MarkerRequestTo;
 import by.bsuir.distcomp.dto.response.MarkerResponseTo;
 import by.bsuir.distcomp.entity.Marker;
 import by.bsuir.distcomp.service.MarkerService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,12 +31,12 @@ public class MarkerController {
     }
 
     @PostMapping
-    public ResponseEntity<MarkerResponseTo> createAuthor(@RequestBody MarkerRequestTo markerRequestTo) {
+    public ResponseEntity<MarkerResponseTo> createAuthor(@RequestBody @Valid MarkerRequestTo markerRequestTo) {
         return new ResponseEntity<>(markerService.createMarker(markerRequestTo), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<MarkerResponseTo> updateAuthor(@RequestBody MarkerRequestTo markerRequestTo) {
+    public ResponseEntity<MarkerResponseTo> updateAuthor(@RequestBody @Valid MarkerRequestTo markerRequestTo) {
         return new ResponseEntity<>(markerService.updateMarker(markerRequestTo), HttpStatus.OK);
     }
 

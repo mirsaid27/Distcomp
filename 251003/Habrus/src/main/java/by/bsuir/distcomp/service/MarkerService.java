@@ -6,9 +6,11 @@ import by.bsuir.distcomp.dto.request.MarkerRequestTo;
 import by.bsuir.distcomp.dto.response.MarkerResponseTo;
 import by.bsuir.distcomp.entity.Marker;
 import by.bsuir.distcomp.repository.MarkerRepository;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class MarkerService {
@@ -26,7 +28,9 @@ public class MarkerService {
     }
 
     public MarkerResponseTo getMarkerById(Long id) {
-        return markerMapper.toDto(markerRepository.findById(id));
+        return markerRepository.findById(id)
+                .map(markerMapper::toDto)
+                .orElseThrow(() -> new NoSuchElementException("Marker with id: " + id + " not found"));
     }
 
     public MarkerResponseTo createMarker(MarkerRequestTo markerRequestTo) {
@@ -34,10 +38,12 @@ public class MarkerService {
     }
 
     public MarkerResponseTo updateMarker(MarkerRequestTo markerRequestTo) {
+        getMarkerById(markerRequestTo.getId());
         return markerMapper.toDto(markerRepository.update(markerMapper.toEntity(markerRequestTo)));
     }
 
     public void deleteMarker(Long id) {
+        getMarkerById(id);
         markerRepository.deleteById(id);
     }
     

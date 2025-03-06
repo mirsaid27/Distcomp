@@ -4,6 +4,7 @@ import by.bsuir.distcomp.dto.request.ArticleRequestTo;
 import by.bsuir.distcomp.dto.response.ArticleResponseTo;
 import by.bsuir.distcomp.entity.Article;
 import by.bsuir.distcomp.service.ArticleService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,12 +31,12 @@ public class ArticleController {
     }
 
     @PostMapping
-    public ResponseEntity<ArticleResponseTo> createAuthor(@RequestBody ArticleRequestTo articleRequestTo) {
+    public ResponseEntity<ArticleResponseTo> createAuthor(@RequestBody @Valid ArticleRequestTo articleRequestTo) {
         return new ResponseEntity<>(articleService.createArticle(articleRequestTo), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<ArticleResponseTo> updateAuthor(@RequestBody ArticleRequestTo articleRequestTo) {
+    public ResponseEntity<ArticleResponseTo> updateAuthor(@RequestBody @Valid ArticleRequestTo articleRequestTo) {
         return new ResponseEntity<>(articleService.updateArticle(articleRequestTo), HttpStatus.OK);
     }
 

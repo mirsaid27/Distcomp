@@ -4,6 +4,7 @@ import by.bsuir.distcomp.dto.request.ReactionRequestTo;
 import by.bsuir.distcomp.dto.response.ReactionResponseTo;
 import by.bsuir.distcomp.entity.Reaction;
 import by.bsuir.distcomp.service.ReactionService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,12 +31,12 @@ public class ReactionController {
     }
 
     @PostMapping
-    public ResponseEntity<ReactionResponseTo> createAuthor(@RequestBody ReactionRequestTo reactionRequestTo) {
+    public ResponseEntity<ReactionResponseTo> createAuthor(@RequestBody @Valid ReactionRequestTo reactionRequestTo) {
         return new ResponseEntity<>(reactionService.createReaction(reactionRequestTo), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<ReactionResponseTo> updateAuthor(@RequestBody ReactionRequestTo reactionRequestTo) {
+    public ResponseEntity<ReactionResponseTo> updateAuthor(@RequestBody @Valid ReactionRequestTo reactionRequestTo) {
         return new ResponseEntity<>(reactionService.updateReaction(reactionRequestTo), HttpStatus.OK);
     }
 

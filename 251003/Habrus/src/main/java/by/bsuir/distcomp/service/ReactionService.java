@@ -6,9 +6,11 @@ import by.bsuir.distcomp.dto.request.ReactionRequestTo;
 import by.bsuir.distcomp.dto.response.ReactionResponseTo;
 import by.bsuir.distcomp.entity.Reaction;
 import by.bsuir.distcomp.repository.ReactionRepository;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ReactionService {
@@ -26,7 +28,9 @@ public class ReactionService {
     }
 
     public ReactionResponseTo getReactionById(Long id) {
-        return reactionMapper.toDto(reactionRepository.findById(id));
+        return reactionRepository.findById(id)
+                .map(reactionMapper::toDto)
+                .orElseThrow(() -> new NoSuchElementException("Reaction with id: " + id + " not found"));
     }
 
     public ReactionResponseTo createReaction(ReactionRequestTo reactionRequestTo) {
@@ -34,10 +38,12 @@ public class ReactionService {
     }
 
     public ReactionResponseTo updateReaction(ReactionRequestTo reactionRequestTo) {
+        getReactionById(reactionRequestTo.getId());
         return reactionMapper.toDto(reactionRepository.update(reactionMapper.toEntity(reactionRequestTo)));
     }
 
     public void deleteReaction(Long id) {
+        getReactionById(id);
         reactionRepository.deleteById(id);
     }
 

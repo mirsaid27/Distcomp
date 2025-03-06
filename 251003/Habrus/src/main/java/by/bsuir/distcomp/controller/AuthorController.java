@@ -4,6 +4,7 @@ import by.bsuir.distcomp.dto.request.AuthorRequestTo;
 import by.bsuir.distcomp.dto.response.AuthorResponseTo;
 import by.bsuir.distcomp.entity.Author;
 import by.bsuir.distcomp.service.AuthorService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,12 +31,12 @@ public class AuthorController {
     }
 
     @PostMapping
-    public ResponseEntity<AuthorResponseTo> createAuthor(@RequestBody AuthorRequestTo authorRequestTo) {
+    public ResponseEntity<AuthorResponseTo> createAuthor(@RequestBody @Valid AuthorRequestTo authorRequestTo) {
         return new ResponseEntity<>(authorService.createAuthor(authorRequestTo), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<AuthorResponseTo> updateAuthor(@RequestBody AuthorRequestTo authorRequestTo) {
+    public ResponseEntity<AuthorResponseTo> updateAuthor(@RequestBody @Valid AuthorRequestTo authorRequestTo) {
         return new ResponseEntity<>(authorService.updateAuthor(authorRequestTo), HttpStatus.OK);
     }
 

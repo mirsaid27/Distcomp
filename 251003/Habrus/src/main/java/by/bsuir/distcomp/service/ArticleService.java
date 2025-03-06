@@ -6,9 +6,11 @@ import by.bsuir.distcomp.dto.request.ArticleRequestTo;
 import by.bsuir.distcomp.dto.response.ArticleResponseTo;
 import by.bsuir.distcomp.entity.Article;
 import by.bsuir.distcomp.repository.ArticleRepository;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ArticleService {
@@ -26,7 +28,9 @@ public class ArticleService {
     }
 
     public ArticleResponseTo getArticleById(Long id) {
-        return articleMapper.toDto(articleRepository.findById(id));
+        return articleRepository.findById(id)
+                .map(articleMapper::toDto)
+                .orElseThrow(() -> new NoSuchElementException("Article with id: " + id + " not found"));
     }
 
     public ArticleResponseTo createArticle(ArticleRequestTo articleRequestTo) {
@@ -34,10 +38,12 @@ public class ArticleService {
     }
 
     public ArticleResponseTo updateArticle(ArticleRequestTo articleRequestTo) {
+        getArticleById(articleRequestTo.getId());
         return articleMapper.toDto(articleRepository.update(articleMapper.toEntity(articleRequestTo)));
     }
 
     public void deleteArticle(Long id) {
+        getArticleById(id);
         articleRepository.deleteById(id);
     }
     
