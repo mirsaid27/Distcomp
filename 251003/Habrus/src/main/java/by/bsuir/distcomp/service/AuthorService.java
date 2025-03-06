@@ -3,9 +3,7 @@ package by.bsuir.distcomp.service;
 import by.bsuir.distcomp.dto.mapper.AuthorMapper;
 import by.bsuir.distcomp.dto.request.AuthorRequestTo;
 import by.bsuir.distcomp.dto.response.AuthorResponseTo;
-import by.bsuir.distcomp.entity.Author;
 import by.bsuir.distcomp.repository.AuthorRepository;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

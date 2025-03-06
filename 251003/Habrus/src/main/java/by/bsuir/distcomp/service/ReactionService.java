@@ -1,12 +1,9 @@
 package by.bsuir.distcomp.service;
 
-import by.bsuir.distcomp.dto.mapper.MarkerMapper;
 import by.bsuir.distcomp.dto.mapper.ReactionMapper;
 import by.bsuir.distcomp.dto.request.ReactionRequestTo;
 import by.bsuir.distcomp.dto.response.ReactionResponseTo;
-import by.bsuir.distcomp.entity.Reaction;
 import by.bsuir.distcomp.repository.ReactionRepository;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

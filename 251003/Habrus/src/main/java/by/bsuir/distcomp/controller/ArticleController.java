@@ -2,7 +2,6 @@ package by.bsuir.distcomp.controller;
 
 import by.bsuir.distcomp.dto.request.ArticleRequestTo;
 import by.bsuir.distcomp.dto.response.ArticleResponseTo;
-import by.bsuir.distcomp.entity.Article;
 import by.bsuir.distcomp.service.ArticleService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

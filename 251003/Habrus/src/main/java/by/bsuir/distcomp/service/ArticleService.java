@@ -1,12 +1,9 @@
 package by.bsuir.distcomp.service;
 
 import by.bsuir.distcomp.dto.mapper.ArticleMapper;
-import by.bsuir.distcomp.dto.mapper.AuthorMapper;
 import by.bsuir.distcomp.dto.request.ArticleRequestTo;
 import by.bsuir.distcomp.dto.response.ArticleResponseTo;
-import by.bsuir.distcomp.entity.Article;
 import by.bsuir.distcomp.repository.ArticleRepository;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
