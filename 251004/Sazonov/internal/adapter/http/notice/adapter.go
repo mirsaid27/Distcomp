@@ -1,16 +1,15 @@
 package notice
 
-import "net/http"
+import (
+	"resty.dev/v3"
+)
 
-type noticeAdapter struct {
-	cli *http.Client
-
-	addr string
+type Adapter struct {
+	cli *resty.Client
 }
 
-func New(cli *http.Client, addr string) *noticeAdapter {
-	return &noticeAdapter{
-		cli:  cli,
-		addr: addr,
+func New(cli *resty.Client) *Adapter {
+	return &Adapter{
+		cli: cli,
 	}
 }
