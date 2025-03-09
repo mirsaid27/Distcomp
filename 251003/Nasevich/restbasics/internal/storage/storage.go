@@ -4,6 +4,17 @@ import (
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/storage/psql"
 )
 
-func New() (*psql.PSQL, error) {
-	return psql.New()
+type Storage struct {
+	DB *psql.PSQL
+}
+
+func New() (*Storage, error) {
+	db, err := psql.New()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Storage{
+		DB: db,
+	}, nil
 }

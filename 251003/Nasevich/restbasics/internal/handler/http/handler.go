@@ -1,18 +1,19 @@
 package http
 
 import (
-	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/handler/http/issue"
-
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/handler/http/creator"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/service"
 	"github.com/gorilla/mux"
 )
 
-const pathPrefix = "api/v1.0"
+const pathPrefix = "/api/v1.0"
 
-func New() *mux.Router {
+func New(srv service.Service) *mux.Router {
 	r := mux.NewRouter()
-	r.PathPrefix(pathPrefix)
+	api := r.PathPrefix(pathPrefix).Subrouter()
 
-	issue.InitRoutes(r)
+	creator := creator.New(srv.Creator)
+	creator.InitRoutes(api)
 
 	return r
 }

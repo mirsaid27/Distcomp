@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/server/http"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/service"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -18,10 +19,10 @@ type server struct {
 	servers []Server
 }
 
-func New() Server {
+func New(srv service.Service) Server {
 	result := &server{
 		servers: []Server{
-			http.New(),
+			http.New(srv),
 		},
 	}
 
