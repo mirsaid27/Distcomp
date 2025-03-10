@@ -33,19 +33,12 @@ public class ReactionController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id){
-        boolean delete = serviceImpl.delete(id);
-        if(!delete)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        serviceImpl.delete(id);
     }
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public ReactionResponseTo update(@RequestBody @Valid ReactionRequestTo request){
-        try{
-            return serviceImpl.update(request);
-        }catch( NoSuchElementException e){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
+        return serviceImpl.update(request);
     }
 }
 

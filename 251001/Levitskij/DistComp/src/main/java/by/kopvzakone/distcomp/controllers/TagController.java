@@ -33,9 +33,7 @@ public class TagController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id){
-        boolean delete = serviceImpl.delete(id);
-        if(!delete)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        serviceImpl.delete(id);
     }
     @PutMapping
     @ResponseStatus(HttpStatus.OK)

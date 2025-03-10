@@ -3,6 +3,8 @@ package by.kopvzakone.distcomp.dto;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class TweetRequestTo {
     long id;
@@ -11,4 +13,5 @@ public class TweetRequestTo {
     String title;
     @Size(min = 4, max = 2048)
     String content;
+    private List<String> tags;
 }

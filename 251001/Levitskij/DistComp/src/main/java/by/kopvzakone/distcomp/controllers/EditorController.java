@@ -27,24 +27,17 @@ public class EditorController {
     }
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EditorResponseTo create(@RequestBody @Valid EditorRequestTo editorRequest){
-        return serviceImpl.create(editorRequest);
+    public EditorResponseTo create(@RequestBody @Valid EditorRequestTo request){
+        return serviceImpl.create(request);
     }
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id){
-        boolean delete = serviceImpl.delete(id);
-        if(!delete)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        serviceImpl.delete(id);
     }
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public EditorResponseTo update(@RequestBody @Valid EditorRequestTo editorRequest){
-        try{
-            return serviceImpl.update(editorRequest);
-        }catch( NoSuchElementException e){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
+    public EditorResponseTo update(@RequestBody @Valid EditorRequestTo request){
+        return serviceImpl.update(request);
     }
 }

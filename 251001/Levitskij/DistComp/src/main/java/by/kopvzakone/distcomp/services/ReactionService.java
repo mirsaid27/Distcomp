@@ -27,8 +27,8 @@ public class ReactionService {
     public ReactionResponseTo update(ReactionRequestTo req) {
         return repImpl.update(mapper.in(req)).map(mapper::out).orElseThrow();
     }
-    public boolean delete(Long id) {
-        return repImpl.delete(id);
+    public void delete(Long id) {
+        repImpl.delete(id);
     }
 }
 

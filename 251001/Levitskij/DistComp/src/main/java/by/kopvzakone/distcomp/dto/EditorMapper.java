@@ -1,8 +1,7 @@
 package by.kopvzakone.distcomp.dto;
 
 import by.kopvzakone.distcomp.entities.Editor;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
+import org.mapstruct.*;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface EditorMapper {
