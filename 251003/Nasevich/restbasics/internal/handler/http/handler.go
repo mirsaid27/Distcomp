@@ -2,6 +2,9 @@ package http
 
 import (
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/handler/http/creator"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/handler/http/issue"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/handler/http/mark"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/handler/http/message"
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/internal/service"
 	"github.com/gorilla/mux"
 )
@@ -14,6 +17,15 @@ func New(srv service.Service) *mux.Router {
 
 	creator := creator.New(srv.Creator)
 	creator.InitRoutes(api)
+
+	issue := issue.New(srv.Issue)
+	issue.InitRoutes(api)
+
+	message := message.New(srv.Message)
+	message.InitRoutes(api)
+
+	mark := mark.New(srv.Mark)
+	mark.InitRoutes(api)
 
 	return r
 }
