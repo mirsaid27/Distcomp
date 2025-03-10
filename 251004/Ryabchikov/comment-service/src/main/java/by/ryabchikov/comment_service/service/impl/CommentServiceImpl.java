@@ -23,15 +23,20 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
 
     @Override
-    @Transactional
+//    @Transactional
     public CommentResponseTo create(CommentRequestTo commentRequestTo) {
+        System.out.println("Comment micro + service: request : " + commentRequestTo);
+        Comment comment = commentMapper.toComment(commentRequestTo);
+        comment.setCountry("Default");
+        comment.setId((long) (Math.random() * 10000000));
+        System.out.println(comment);
         return commentMapper.toCommentResponseTo(
-                commentRepository.save(commentMapper.toComment(commentRequestTo))
+                commentRepository.save(comment)
         );
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public List<CommentResponseTo> readAll() {
         ArrayList<CommentResponseTo> commentResponseTos = new ArrayList<>();
         commentRepository.findAll().forEach(comment -> {
@@ -42,7 +47,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public CommentResponseTo readById(Long id) {
         return commentMapper.toCommentResponseTo(
                 commentRepository.findById(id).orElseThrow(() -> CommentNotFoundException.byId(id))
@@ -50,7 +55,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public CommentResponseTo update(CommentUpdateRequestTo commentUpdateRequestTo) {
         long commentId = commentUpdateRequestTo.id();
         Comment comment =
@@ -68,7 +73,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public void deleteById(Long id) {
         commentRepository.findById(id).orElseThrow(() -> CommentNotFoundException.byId(id));
 

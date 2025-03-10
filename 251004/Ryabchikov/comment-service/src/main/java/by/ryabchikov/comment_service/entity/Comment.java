@@ -1,12 +1,14 @@
 package by.ryabchikov.comment_service.entity;
 
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.core.mapping.Table;
 
 @Setter
+@ToString
 @Table
 public class Comment {
 
