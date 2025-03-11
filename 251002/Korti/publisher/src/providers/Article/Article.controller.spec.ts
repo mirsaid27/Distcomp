@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { ArticleController } from './Article.controller';
 import { ArticleService } from './Article.service';
 import { ArticleResponseTo } from './Dto/ArticleResponseTo';
 import { ArticleRequestTo, UpdateArticleTo } from './Dto/ArticleRequestTo';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
 
 describe('ArticleController', () => {
   let controller: ArticleController;
@@ -17,15 +15,7 @@ describe('ArticleController', () => {
     getArticleById: jest.fn(),
     deleteArticle: jest.fn(),
     updateArticle: jest.fn(),
-  };
-
-  const mockResponse = (): Partial<Response> => {
-    return {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-      send: jest.fn().mockReturnThis(),
-      sendStatus: jest.fn().mockReturnThis(),
-    };
+    findByParams: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -51,16 +41,14 @@ describe('ArticleController', () => {
           editorId: 1,
           title: 'Test Article',
           content: 'Content',
-          created: '',
+          created: new Date(),
           modified: null,
         },
       ];
       jest.spyOn(service, 'getAllArticles').mockResolvedValue(result);
 
-      const res = mockResponse() as Response;
-      await controller.getAll(res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(result);
+      const response = await controller.getAll();
+      expect(response).toEqual(result);
     });
   });
 
@@ -76,16 +64,14 @@ describe('ArticleController', () => {
         editorId: 1,
         title: 'New Article',
         content: 'Content',
-        created: '',
+        created: new Date(),
         modified: null,
       };
 
       jest.spyOn(service, 'createArticle').mockResolvedValue(articleResponse);
 
-      const res = mockResponse() as Response;
-      await controller.create(articleRequest, res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.CREATED);
-      expect(res.json).toHaveBeenCalledWith(articleResponse);
+      const response = await controller.create(articleRequest);
+      expect(response).toEqual(articleResponse);
     });
 
     it('should throw an error if article already exists', async () => {
@@ -104,8 +90,7 @@ describe('ArticleController', () => {
         );
       });
 
-      const res = mockResponse() as Response;
-      await expect(controller.create(articleRequest, res)).rejects.toThrow(
+      await expect(controller.create(articleRequest)).rejects.toThrow(
         HttpException,
       );
     });
@@ -118,15 +103,13 @@ describe('ArticleController', () => {
         editorId: 1,
         title: 'Test Article',
         content: 'Content',
-        created: '',
+        created: new Date(),
         modified: null,
       };
       jest.spyOn(service, 'getArticleById').mockResolvedValue(articleResponse);
 
-      const res = mockResponse() as Response;
-      await controller.getOne(1, res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(articleResponse);
+      const response = await controller.getOne(1);
+      expect(response).toEqual(articleResponse);
     });
 
     it('should throw an error if article does not exist', async () => {
@@ -140,8 +123,7 @@ describe('ArticleController', () => {
         );
       });
 
-      const res = mockResponse() as Response;
-      await expect(controller.getOne(1, res)).rejects.toThrow(HttpException);
+      await expect(controller.getOne(1)).rejects.toThrow(HttpException);
     });
   });
 
@@ -149,10 +131,7 @@ describe('ArticleController', () => {
     it('should delete an article', async () => {
       jest.spyOn(service, 'deleteArticle').mockResolvedValue(undefined);
 
-      const res = mockResponse() as Response;
-      await controller.deleteOne(1, res);
-      expect(res.send).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.NO_CONTENT);
+      await expect(controller.deleteOne(1)).resolves.toBeUndefined();
     });
 
     it('should throw an error if article does not exist', async () => {
@@ -166,8 +145,7 @@ describe('ArticleController', () => {
         );
       });
 
-      const res = mockResponse() as Response;
-      await expect(controller.deleteOne(1, res)).rejects.toThrow(HttpException);
+      await expect(controller.deleteOne(1)).rejects.toThrow(HttpException);
     });
   });
 
@@ -184,16 +162,14 @@ describe('ArticleController', () => {
         editorId: 1,
         title: 'Updated Article',
         content: 'Updated Content',
-        created: '',
+        created: new Date(),
         modified: null,
       };
 
       jest.spyOn(service, 'updateArticle').mockResolvedValue(articleResponse);
 
-      const res = mockResponse() as Response;
-      await controller.update(articleRequest, res);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(articleResponse);
+      const response = await controller.update(articleRequest);
+      expect(response).toEqual(articleResponse);
     });
 
     it('should throw an error if article does not exist', async () => {
@@ -213,10 +189,36 @@ describe('ArticleController', () => {
         );
       });
 
-      const res = mockResponse() as Response;
-      await expect(controller.update(articleRequest, res)).rejects.toThrow(
+      await expect(controller.update(articleRequest)).rejects.toThrow(
         HttpException,
       );
+    });
+  });
+
+  describe('findArticlesByParams', () => {
+    it('should return articles based on query parameters', async () => {
+      const expectedArticles: ArticleResponseTo[] = [
+        {
+          id: 1,
+          editorId: 1,
+          title: 'Test Article',
+          content: 'Content',
+          created: new Date(),
+          modified: null,
+        },
+      ];
+
+      jest.spyOn(service, 'findByParams').mockResolvedValue(expectedArticles);
+
+      const response = await controller.findArticlesByParams(
+        ['sticker1'],
+        [1],
+        'editorLogin',
+        'title',
+        'content',
+      );
+
+      expect(response).toEqual(expectedArticles);
     });
   });
 });
