@@ -22,6 +22,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UserRequestDTOValidator>();
 
 builder.Services.AddRepositories();
 builder.Services.AddServices();
+builder.Services.AddDbContext(builder.Configuration);
 
 var app = builder.Build();
 
