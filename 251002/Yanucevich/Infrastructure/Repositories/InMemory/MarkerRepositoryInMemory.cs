@@ -21,23 +21,22 @@ public class MarkerRepositoryInMemory : IMarkerRepository
 
     public Task<Result<MarkerModel>> CreateMarker(MarkerModel marker)
     {
-        if (_markers.Values.Where(m => m.Name == marker.Name).Any()){
+        if (_markers.Values.Where(m => m.Name == marker.Name).Any())
+        {
             return Task.FromResult(Result.Failure<MarkerModel>(MarkerErrors.MarkerNotUniqueError));
         }
 
-        _markers.Add(_id, new MarkerModel{Id = _id, Name = marker.Name});
+        _markers.Add(_id, new MarkerModel { Id = _id, Name = marker.Name });
         return Task.FromResult(Result.Success(_markers[_id++]));
     }
 
     public Task<Result<MarkerModel>> GetMarkerById(long id)
     {
-        if(_markers.TryGetValue(id, out var result)){
+        if (_markers.TryGetValue(id, out var result))
+        {
             return Task.FromResult(Result.Success(result));
         }
-        return Task.FromResult(Result.Failure<MarkerModel>(
-            MarkerErrors.MarkerNotUniqueError
-            )
-        );
+        return Task.FromResult(Result.Failure<MarkerModel>(MarkerErrors.MarkerNotUniqueError));
     }
 
     public Task<Result<IEnumerable<MarkerModel>>> GetMarkers()
@@ -48,26 +47,32 @@ public class MarkerRepositoryInMemory : IMarkerRepository
     public Task<Result> DeleteMarker(long id)
     {
         return Task.FromResult(
-            _markers.Remove(id) 
-                ? Result.Success() 
-                : Result.Failure(MarkerErrors.MarkerNotFoundError));
+            _markers.Remove(id)
+                ? Result.Success()
+                : Result.Failure(MarkerErrors.MarkerNotFoundError)
+        );
     }
 
     public Task<Result<MarkerModel>> UpdateMarker(MarkerModel marker)
     {
-        if(!_markers.ContainsKey(marker.Id)){
-            return Task.FromResult(Result.Failure<MarkerModel>(
-                MarkerErrors.MarkerNotFoundError
-            ));
+        if (!_markers.ContainsKey(marker.Id))
+        {
+            return Task.FromResult(Result.Failure<MarkerModel>(MarkerErrors.MarkerNotFoundError));
         }
 
-        if (_markers.Values.Where(m => m.Name == marker.Name && m.Id != marker.Id).Any()){
-            return Task.FromResult(Result.Failure<MarkerModel>(
-                MarkerErrors.MarkerNotUniqueError
-            ));
+        if (_markers.Values.Where(m => m.Name == marker.Name && m.Id != marker.Id).Any())
+        {
+            return Task.FromResult(Result.Failure<MarkerModel>(MarkerErrors.MarkerNotUniqueError));
         }
 
         _markers[marker.Id] = marker;
         return Task.FromResult(Result.Success(_markers[marker.Id]));
+    }
+
+    public Task<Result<IEnumerable<MarkerModel>>> GetMarkersCreateIfDoNotExist(
+        IEnumerable<MarkerModel> markers
+    )
+    {
+        throw new NotImplementedException();
     }
 }

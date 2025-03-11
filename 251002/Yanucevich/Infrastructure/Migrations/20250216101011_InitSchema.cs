@@ -8,8 +8,7 @@ public class InitSchema : Migration
 {
     public override void Up()
     {
-        const string init_script = 
-"""
+        const string init_script = """
 CREATE TABLE IF NOT EXISTS tbl_user (
   id        bigserial     NOT NULL,
   login     varchar(64)   NOT NULL UNIQUE CHECK (LENGTH(login) >= 2),
@@ -48,8 +47,8 @@ CREATE TABLE IF NOT EXISTS m2m_tweet_marker (
   tweet_id  bigint NOT NULL,
   marker_id bigint NOT NULL,
   PRIMARY KEY (tweet_id, marker_id),
-  FOREIGN KEY (tweet_id) REFERENCES tbl_tweet (id),
-  FOREIGN KEY (marker_id) REFERENCES tbl_marker (id)
+  CONSTRAINT fk_m2m_tweet_marker_to_tweet FOREIGN KEY (tweet_id) REFERENCES tbl_tweet (id),
+  CONSTRAINT fk_m2m_tweet_marker_to_marker FOREIGN KEY (marker_id) REFERENCES tbl_marker (id)
 );
 """;
         Execute.Sql(init_script);
@@ -57,8 +56,7 @@ CREATE TABLE IF NOT EXISTS m2m_tweet_marker (
 
     public override void Down()
     {
-        const string init_down_script = 
-"""
+        const string init_down_script = """
 DROP TABLE IF EXISTS m2m_tweet_marker;
 DROP TABLE IF EXISTS tbl_marker;
 DROP TABLE IF EXISTS tbl_reaction;

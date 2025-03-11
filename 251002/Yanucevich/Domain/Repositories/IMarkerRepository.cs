@@ -11,4 +11,8 @@ public interface IMarkerRepository
     Task<Result<MarkerModel>> GetMarkerById(long id);
     Task<Result<MarkerModel>> UpdateMarker(MarkerModel marker);
     Task<Result> DeleteMarker(long id);
+
+    Task<Result<IEnumerable<MarkerModel>>> GetMarkersCreateIfDoNotExist(
+        IEnumerable<MarkerModel> markers
+    );
 }

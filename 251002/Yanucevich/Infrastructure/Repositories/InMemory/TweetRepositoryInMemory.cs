@@ -13,19 +13,24 @@ public class TweetRepositoryInMemory : ITweetRepository
 
     public Task<Result<TweetModel>> CreateTweet(TweetModel tweet)
     {
-        if(_tweets.Values.Where(t => t.Title == tweet.Title).Any()){
+        if (_tweets.Values.Where(t => t.Title == tweet.Title).Any())
+        {
             return Task.FromResult(Result.Failure<TweetModel>(TweetErrors.TweetNotUniqueError));
         }
 
         var time = DateTime.Now;
-        _tweets.Add(_id, new TweetModel{
-            Id = _id,
-            UserId = tweet.UserId,
-            Title = tweet.Title, 
-            Content = tweet.Content, 
-            Created = time,
-            Modified = time,
-        });
+        _tweets.Add(
+            _id,
+            new TweetModel
+            {
+                Id = _id,
+                UserId = tweet.UserId,
+                Title = tweet.Title,
+                Content = tweet.Content,
+                Created = time,
+                Modified = time,
+            }
+        );
 
         return Task.FromResult(Result.Success(_tweets[_id++]));
     }
@@ -33,9 +38,7 @@ public class TweetRepositoryInMemory : ITweetRepository
     public Task<Result> DeleteTweet(long id)
     {
         return Task.FromResult(
-            _tweets.Remove(id)
-                ? Result.Success()
-                : Result.Failure(TweetErrors.TweetNotFoundError)
+            _tweets.Remove(id) ? Result.Success() : Result.Failure(TweetErrors.TweetNotFoundError)
         );
     }
 
@@ -55,28 +58,32 @@ public class TweetRepositoryInMemory : ITweetRepository
 
     public Task<Result<TweetModel>> UpdateTweet(TweetModel tweet)
     {
-        if(!_tweets.ContainsKey(tweet.Id)){
-            return Task.FromResult(Result.Failure<TweetModel>(
-                TweetErrors.TweetNotFoundError
-            ));
+        if (!_tweets.ContainsKey(tweet.Id))
+        {
+            return Task.FromResult(Result.Failure<TweetModel>(TweetErrors.TweetNotFoundError));
         }
 
-        if(_tweets.Values.Where(t => t.Title == tweet.Title && t.Id != tweet.Id).Any()){
-            return Task.FromResult(Result.Failure<TweetModel>(
-                TweetErrors.TweetNotUniqueError
-            ));
+        if (_tweets.Values.Where(t => t.Title == tweet.Title && t.Id != tweet.Id).Any())
+        {
+            return Task.FromResult(Result.Failure<TweetModel>(TweetErrors.TweetNotUniqueError));
         }
 
-        TweetModel newModel = new TweetModel{
+        TweetModel newModel = new TweetModel
+        {
             Id = tweet.Id,
             UserId = tweet.UserId,
             Title = tweet.Title,
             Content = tweet.Content,
             Created = _tweets[tweet.Id].Created,
-            Modified = DateTime.UtcNow
+            Modified = DateTime.UtcNow,
         };
         _tweets[tweet.Id] = newModel;
 
         return Task.FromResult(Result.Success(_tweets[tweet.Id]));
+    }
+
+    public Task<Result> AddMarkersToTweet(long tweetId, IEnumerable<long> markerIds)
+    {
+        throw new NotImplementedException();
     }
 }

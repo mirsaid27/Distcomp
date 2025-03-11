@@ -13,32 +13,30 @@ namespace Infrastructure.Repositories.Postgres;
 
 public class TweetRepositoryPg : PgRepository, ITweetRepository
 {
-    public TweetRepositoryPg(IOptions<InfrastructureOptions> settings) : base(settings.Value)
-    {
-    }
+    public TweetRepositoryPg(IOptions<InfrastructureOptions> settings)
+        : base(settings.Value) { }
 
     public async Task<Result<TweetModel>> CreateTweet(TweetModel tweet)
     {
-        const string sqlCreateTweet = 
-        """
-           INSERT 
-             INTO tbl_tweet
-                  (
-                    user_id
-                  , title
-                  , content
-                  , created
-                  , modified
-                  )
-           VALUES (
-                    @UserId
-                  , @Title
-                  , @Content
-                  , @Created
-                  , @Modified
-                  )
-        RETURNING id
-        """;
+        const string sqlCreateTweet = """
+               INSERT 
+                 INTO tbl_tweet
+                      (
+                        user_id
+                      , title
+                      , content
+                      , created
+                      , modified
+                      )
+               VALUES (
+                        @UserId
+                      , @Title
+                      , @Content
+                      , @Created
+                      , @Modified
+                      )
+            RETURNING id
+            """;
 
         await using var connection = await GetConnection();
         await using var cmd = new NpgsqlCommand(sqlCreateTweet, connection);
@@ -51,27 +49,33 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
         cmd.Parameters.AddWithValue("Created", time);
         cmd.Parameters.AddWithValue("Modified", time);
 
-        try{
+        try
+        {
             using var reader = await cmd.ExecuteReaderAsync(System.Data.CommandBehavior.SingleRow);
-            if (await reader.ReadAsync()){
+            if (await reader.ReadAsync())
+            {
                 var tweetId = reader.GetInt64(0);
-                return new TweetModel{
+                return new TweetModel
+                {
                     Id = tweetId,
                     UserId = tweet.UserId,
                     Title = tweet.Title,
                     Content = tweet.Content,
                     Created = time,
-                    Modified = time
+                    Modified = time,
                 };
             }
         }
-        catch(NpgsqlException ex) when (ex.SqlState == "23505"){
+        catch (NpgsqlException ex) when (ex.SqlState == "23505")
+        {
             return Result.Failure<TweetModel>(TweetErrors.TweetNotUniqueError);
         }
-        catch (NpgsqlException ex) when (ex.SqlState == "23503"){
+        catch (NpgsqlException ex) when (ex.SqlState == "23503")
+        {
             return Result.Failure<TweetModel>(TweetErrors.UserForTweetNotFoundError);
         }
-        catch (NpgsqlException ex){
+        catch (NpgsqlException ex)
+        {
             return Result.Failure<TweetModel>(Error.DatabaseError);
         }
         return Result.Failure<TweetModel>(Error.Unknown);
@@ -79,12 +83,11 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
 
     public async Task<Result> DeleteTweet(long id)
     {
-        const string sqlDeleteTweet = 
-        """
-        DELETE
-          FROM tbl_tweet
-         WHERE id = @Id
-        """;
+        const string sqlDeleteTweet = """
+            DELETE
+              FROM tbl_tweet
+             WHERE id = @Id
+            """;
 
         await using var connection = await GetConnection();
 
@@ -93,10 +96,12 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
 
         int result;
 
-        try{
+        try
+        {
             result = await command.ExecuteNonQueryAsync();
         }
-        catch(NpgsqlException ex){
+        catch (NpgsqlException ex)
+        {
             return Result.Failure(Error.DatabaseError);
         }
         return result == 0 ? Result.Failure(TweetErrors.TweetNotFoundError) : Result.Success();
@@ -104,27 +109,28 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
 
     public async Task<Result<TweetModel>> GetTweetById(long id)
     {
-        const string sqlGetTweetById =
-        """
-        SELECT id
-             , user_id
-             , title
-             , content
-             , created
-             , modified
-          FROM tbl_tweet
-         WHERE id = @Id
-        """;
+        const string sqlGetTweetById = """
+            SELECT id
+                 , user_id
+                 , title
+                 , content
+                 , created
+                 , modified
+              FROM tbl_tweet
+             WHERE id = @Id
+            """;
 
         await using var connection = await GetConnection();
 
         using var cmd = new NpgsqlCommand(sqlGetTweetById, connection);
         cmd.Parameters.AddWithValue("Id", id);
 
-        try{
+        try
+        {
             var reader = await cmd.ExecuteReaderAsync();
 
-            if (await reader.ReadAsync()){
+            if (await reader.ReadAsync())
+            {
                 var tweetId = reader.GetInt64(reader.GetOrdinal("id"));
                 var userId = reader.GetInt64(reader.GetOrdinal("user_id"));
                 var title = reader.GetString(reader.GetOrdinal("title"));
@@ -132,47 +138,51 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
                 var created = reader.GetDateTime(reader.GetOrdinal("created"));
                 var modified = reader.GetDateTime(reader.GetOrdinal("modified"));
 
-                return new TweetModel{
+                return new TweetModel
+                {
                     Id = tweetId,
                     UserId = userId,
                     Title = title,
                     Content = content,
                     Created = created,
-                    Modified = modified
+                    Modified = modified,
                 };
             }
-            else{
+            else
+            {
                 return Result.Failure<TweetModel>(TweetErrors.TweetNotFoundError);
             }
         }
-        catch(NpgsqlException ex){
+        catch (NpgsqlException ex)
+        {
             return Result.Failure<TweetModel>(Error.DatabaseError);
         }
     }
 
     public async Task<Result<IEnumerable<TweetModel>>> GetTweets()
     {
-        const string sqlGetTweets =
-        """
-        SELECT id
-             , user_id
-             , title
-             , content
-             , created
-             , modified
-          FROM tbl_tweet
-        """;
+        const string sqlGetTweets = """
+            SELECT id
+                 , user_id
+                 , title
+                 , content
+                 , created
+                 , modified
+              FROM tbl_tweet
+            """;
 
         await using var connection = await GetConnection();
 
         using var cmd = new NpgsqlCommand(sqlGetTweets, connection);
 
-        try{
+        try
+        {
             using var reader = await cmd.ExecuteReaderAsync();
 
             var tweets = new List<TweetModel>();
 
-            while (await reader.ReadAsync()){
+            while (await reader.ReadAsync())
+            {
                 var tweetId = reader.GetInt64(reader.GetOrdinal("id"));
                 var userId = reader.GetInt64(reader.GetOrdinal("user_id"));
                 var title = reader.GetString(reader.GetOrdinal("title"));
@@ -180,34 +190,37 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
                 var created = reader.GetDateTime(reader.GetOrdinal("created"));
                 var modified = reader.GetDateTime(reader.GetOrdinal("modified"));
 
-                tweets.Add(new TweetModel{
-                    Id = tweetId,
-                    UserId = userId,
-                    Title = title,
-                    Content = content,
-                    Created = created,
-                    Modified = modified
-                });
+                tweets.Add(
+                    new TweetModel
+                    {
+                        Id = tweetId,
+                        UserId = userId,
+                        Title = title,
+                        Content = content,
+                        Created = created,
+                        Modified = modified,
+                    }
+                );
             }
             return tweets;
         }
-        catch(NpgsqlException ex){
+        catch (NpgsqlException ex)
+        {
             return Result.Failure<IEnumerable<TweetModel>>(Error.DatabaseError);
         }
     }
 
     public async Task<Result<TweetModel>> UpdateTweet(TweetModel tweet)
     {
-        const string sqlUpdateTweet = 
-        """
-           UPDATE tbl_tweet
-              SET user_id = @UserId
-                , title = @Title
-                , content = @Content
-                , modified = @Modified
-            WHERE id = @Id
-        RETURNING created, id
-        """;
+        const string sqlUpdateTweet = """
+               UPDATE tbl_tweet
+                  SET user_id = @UserId
+                    , title = @Title
+                    , content = @Content
+                    , modified = @Modified
+                WHERE id = @Id
+            RETURNING created, id
+            """;
         await using var connection = await GetConnection();
         await using var cmd = new NpgsqlCommand(sqlUpdateTweet, connection);
 
@@ -219,32 +232,74 @@ public class TweetRepositoryPg : PgRepository, ITweetRepository
         cmd.Parameters.AddWithValue("Content", tweet.Content);
         cmd.Parameters.AddWithValue("Modified", time);
 
-        try{
+        try
+        {
             using var reader = await cmd.ExecuteReaderAsync(System.Data.CommandBehavior.SingleRow);
-            if (await reader.ReadAsync()){
+            if (await reader.ReadAsync())
+            {
                 var tweetId = reader.GetInt64(reader.GetOrdinal("id"));
                 var created = reader.GetDateTime(reader.GetOrdinal("created"));
-                return new TweetModel{
+                return new TweetModel
+                {
                     Id = tweetId,
                     UserId = tweet.UserId,
                     Title = tweet.Title,
                     Content = tweet.Content,
                     Created = created,
-                    Modified = time
+                    Modified = time,
                 };
             }
         }
-        catch(NpgsqlException ex) when (ex.SqlState == "23505"){
+        catch (NpgsqlException ex) when (ex.SqlState == "23505")
+        {
             return Result.Failure<TweetModel>(TweetErrors.TweetNotUniqueError);
         }
-        catch (NpgsqlException ex) when (ex.SqlState == "23503"){
+        catch (NpgsqlException ex) when (ex.SqlState == "23503")
+        {
             return Result.Failure<TweetModel>(TweetErrors.UserForTweetNotFoundError);
         }
-        catch (NpgsqlException ex){
+        catch (NpgsqlException ex)
+        {
             return Result.Failure<TweetModel>(Error.DatabaseError);
         }
         return Result.Failure<TweetModel>(Error.Unknown);
+    }
 
+    public async Task<Result> AddMarkersToTweet(long tweetId, IEnumerable<long> markerIds)
+    {
+        const string sqlAddMarkersToTweet = """
+            INSERT 
+              INTO m2m_tweet_marker 
+                   (
+                     tweet_id
+                   , marker_id
+                   )
+            SELECT @TweetId
+                 , unnest(@MarkerIds)
+            """;
+        await using var connection = await GetConnection();
+        using var cmd = new NpgsqlCommand(sqlAddMarkersToTweet, connection);
 
+        cmd.Parameters.AddWithValue("TweetId", tweetId);
+        cmd.Parameters.AddWithValue("MarkerIds", markerIds.ToArray());
+
+        try
+        {
+            await cmd.ExecuteNonQueryAsync();
+        }
+        catch (NpgsqlException ex) when (ex.SqlState == "23505")
+        {
+            return Result.Failure<TweetModel>(TweetErrors.TweetNotUniqueError);
+        }
+        catch (NpgsqlException ex) when (ex.SqlState == "23503")
+        {
+            return Result.Failure<TweetModel>(TweetErrors.UserForTweetNotFoundError);
+        }
+        catch (NpgsqlException ex)
+        {
+            return Result.Failure<TweetModel>(Error.DatabaseError);
+        }
+
+        return Result.Success();
     }
 }

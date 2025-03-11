@@ -13,23 +13,29 @@ public class PgRepository : IPgRepository
 
     protected const int DefaultTimeoutInSeconds = 5;
 
-    public PgRepository(InfrastructureOptions settings){
+    public PgRepository(InfrastructureOptions settings)
+    {
         _settings = settings;
     }
-    
-    protected async Task<NpgsqlConnection> GetConnection(){
+
+    protected async Task<NpgsqlConnection> GetConnection()
+    {
         if (
-            Transaction.Current is not null &&
-            Transaction.Current.TransactionInformation.Status is TransactionStatus.Aborted
-        ){
-            throw new TransactionAbortedException("Transaction was aborted (probably by user cancellation request)");
+            Transaction.Current is not null
+            && Transaction.Current.TransactionInformation.Status is TransactionStatus.Aborted
+        )
+        {
+            throw new TransactionAbortedException(
+                "Transaction was aborted (probably by user cancellation request)"
+            );
         }
 
         var connection = new NpgsqlConnection(_settings.PostgresConnectionString);
         await connection.OpenAsync();
 
         // due to in-process migrations
-        if (!_typesReloaded){
+        if (!_typesReloaded)
+        {
             await connection.ReloadTypesAsync();
             _typesReloaded = true;
         }
@@ -43,10 +49,7 @@ public class PgRepository : IPgRepository
     {
         return new TransactionScope(
             TransactionScopeOption.Required,
-            new TransactionOptions{
-                IsolationLevel = level,
-                Timeout = TimeSpan.FromSeconds(5)
-            },
+            new TransactionOptions { IsolationLevel = level, Timeout = TimeSpan.FromSeconds(5) },
             TransactionScopeAsyncFlowOption.Enabled
         );
     }

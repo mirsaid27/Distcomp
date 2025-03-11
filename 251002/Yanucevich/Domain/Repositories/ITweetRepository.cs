@@ -10,5 +10,6 @@ public interface ITweetRepository
     Task<Result<IEnumerable<TweetModel>>> GetTweets();
     Task<Result<TweetModel>> GetTweetById(long id);
     Task<Result<TweetModel>> UpdateTweet(TweetModel tweet);
-    Task<Result> DeleteTweet(long id); 
+    Task<Result> DeleteTweet(long id);
+    Task<Result> AddMarkersToTweet(long tweetId, IEnumerable<long> markerIds);
 }
