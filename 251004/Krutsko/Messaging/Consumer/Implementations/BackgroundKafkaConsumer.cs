@@ -9,11 +9,10 @@ namespace Messaging.Consumer.Implementations;
 
 public class BackgroundKafkaConsumer<TK, TV> : BackgroundService
 {
-    private readonly KafkaConsumerConfig<TK, TV> _config;
-    private IKafkaHandler<TK, TV> _handler;
+    private readonly KafkaConsumerConfig _config;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public BackgroundKafkaConsumer(IOptions<KafkaConsumerConfig<TK, TV>> config,
+    public BackgroundKafkaConsumer(IOptions<KafkaConsumerConfig> config,
         IServiceScopeFactory serviceScopeFactory)
     {
         _serviceScopeFactory = serviceScopeFactory;
@@ -23,7 +22,7 @@ public class BackgroundKafkaConsumer<TK, TV> : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var scope = _serviceScopeFactory.CreateScope();
-        _handler = scope.ServiceProvider.GetRequiredService<IKafkaHandler<TK, TV>>();
+        var handler = scope.ServiceProvider.GetRequiredService<IKafkaHandler<TK, TV>>();
 
         var builder = new ConsumerBuilder<TK, TV>(_config)
             .SetValueDeserializer(new Deserializer<TV>());
@@ -33,11 +32,11 @@ public class BackgroundKafkaConsumer<TK, TV> : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            var result = consumer.Consume(TimeSpan.FromMilliseconds(1000));
+            var result = consumer.Consume(stoppingToken);
 
             if (result != null)
             {
-                await _handler.HandleAsync(result.Message.Key, result.Message.Value);
+                await handler.HandleAsync(result.Message.Key, result.Message.Value);
 
                 consumer.Commit(result);
                 

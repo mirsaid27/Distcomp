@@ -20,6 +20,6 @@ public class Deserializer<T> : IDeserializer<T>
 
         var dataJson = Encoding.UTF8.GetString(data);
 
-        return JsonSerializer.Deserialize<T>(dataJson);
+        return JsonSerializer.Deserialize<T>(dataJson)!;
     }
 }
