@@ -4,6 +4,7 @@ using Application.DTO.Request.News;
 using Application.DTO.Request.Post;
 using Application.DTO.Response;
 using Application.DTO.Response.Editor;
+using Application.DTO.Response.Mark;
 using Application.DTO.Response.News;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("/api/v1.0/news")]
-public class NewsController (INewsService _newsService, IEditorService _editorService, IPostService _postService) : ControllerBase
+public class NewsController (INewsService _newsService, IEditorService _editorService, IMarkService _markService, IPostService _postService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllNews()
@@ -46,7 +47,12 @@ public class NewsController (INewsService _newsService, IEditorService _editorSe
         [HttpPost]
         public async Task<IActionResult> CreateNews(NewsRequestToCreate newsRequestToCreate)
         {
-            var news = await _newsService.CreateNews(newsRequestToCreate);
+            IEnumerable<long>? markIds = null;
+            if (newsRequestToCreate.Marks != null)
+            {
+                    markIds = (await _markService.CreateMarksIfDontExist(newsRequestToCreate.Marks)).Select(mark => mark.Id);
+            }
+            var news = await _newsService.CreateNews(newsRequestToCreate,markIds);
             return CreatedAtAction(nameof(GetNewsById), new { id = news.Id }, news);
         }
 

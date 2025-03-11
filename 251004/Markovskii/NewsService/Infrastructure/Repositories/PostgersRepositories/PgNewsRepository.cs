@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices.JavaScript;
+using Dapper;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Repository;
@@ -187,6 +188,31 @@ public class PgNewsRepository : PgRepository,INewsRepository
             new NotFoundException("Id", $"{news.Id}");
         }
         throw new BadRequestException("Error", new Dictionary<string, string[]>());
+    }
+
+    public async void AddMarksToNews(long newsId, IEnumerable<long> markIds)
+    {
+        const string sqlAddMarksToNews =
+            """
+            INSERT INTO m2m_news_mark (news_id, mark_id)
+            SELECT @NewsId, unnest(@MarkIds)
+            """;
+        await using var connection = await GetConnection();
+        using var cmd = new NpgsqlCommand(sqlAddMarksToNews, connection);
+        
+        cmd.Parameters.AddWithValue("NewsId", newsId);
+        cmd.Parameters.AddWithValue("MarkIds", markIds.ToArray()); 
+
+        try
+        {
+            await cmd.ExecuteNonQueryAsync();
+        }
+        catch
+        {
+            throw new BadRequestException("Error", new Dictionary<string, string[]>());
+        }
+
+        return;
     }
 
     public async Task<IEnumerable<News?>?> GetAllNews()

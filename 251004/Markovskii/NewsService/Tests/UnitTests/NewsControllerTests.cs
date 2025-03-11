@@ -17,6 +17,7 @@ namespace Tests.UnitTests
         private readonly Mock<INewsService> _mockNewsService;
         private readonly Mock<IEditorService> _mockEditorService;
         private readonly Mock<IPostService> _mockPostService;
+        private readonly Mock<IMarkService> _mockMarkService;
         private readonly NewsController _controller;
 
         public NewsControllerTests()
@@ -24,7 +25,8 @@ namespace Tests.UnitTests
             _mockNewsService = new Mock<INewsService>();
             _mockEditorService = new Mock<IEditorService>();
             _mockPostService = new Mock<IPostService>();
-            _controller = new NewsController(_mockNewsService.Object, _mockEditorService.Object, _mockPostService.Object);
+            _mockMarkService = new Mock<IMarkService>();
+            _controller = new NewsController(_mockNewsService.Object, _mockEditorService.Object,_mockMarkService.Object, _mockPostService.Object);
         }
 
         [Fact]
@@ -109,8 +111,6 @@ namespace Tests.UnitTests
             // Arrange
             var newsRequest = new NewsRequestToCreate { Title = "New News" };
             var createdNews = new NewsResponseToGetById { Id = 1, Title = "New News" };
-            _mockNewsService.Setup(service => service.CreateNews(newsRequest))
-                .ReturnsAsync(createdNews);
 
             // Act
             var result = await _controller.CreateNews(newsRequest);

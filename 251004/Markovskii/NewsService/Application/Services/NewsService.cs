@@ -12,11 +12,17 @@ namespace Application.Services;
 
 public class NewsService(INewsRepository _newsRepository, IMapper _mapper) : INewsService
 {
-    public async Task<NewsResponseToGetById?> CreateNews(NewsRequestToCreate model)
+    public async Task<NewsResponseToGetById?> CreateNews(NewsRequestToCreate model, IEnumerable<long>? markIds)
     {
         News news = _mapper.Map<News>(model);
+        
         Validate(news);
+        
         news = await _newsRepository.AddNews(news);
+        if (markIds != null)
+        {
+            _newsRepository.AddMarksToNews(news.Id, markIds);
+        }
         return _mapper.Map<NewsResponseToGetById>(news);
     }
 

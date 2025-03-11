@@ -32,5 +32,7 @@ public class GeneralProfile : Profile
         CreateMap<MarkRequestToCreate, Mark>();
         CreateMap<MarkRequestToFullUpdate, Mark>();
         CreateMap<Mark, MarkResponseToGetById>();
+
+        CreateMap<MarkRequestToCreateMarksIfDontExist, IEnumerable<Mark>?>();
     }
 }

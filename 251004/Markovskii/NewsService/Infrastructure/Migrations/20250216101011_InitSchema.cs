@@ -49,9 +49,32 @@ CREATE TABLE IF NOT EXISTS m2m_news_mark (
   news_id  bigint NOT NULL,
   mark_id bigint NOT NULL,
   PRIMARY KEY (news_id, mark_id),
-  FOREIGN KEY (news_id) REFERENCES tbl_news (id),
-  FOREIGN KEY (mark_id) REFERENCES tbl_mark (id)
+  FOREIGN KEY (news_id) REFERENCES tbl_news (id) ON DELETE CASCADE,
+  FOREIGN KEY (mark_id) REFERENCES tbl_mark (id) ON DELETE CASCADE
 );
+
+CREATE OR REPLACE FUNCTION delete_orphaned_marks()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Проверяем, остались ли записи с таким mark_id в m2m_news_mark
+    IF NOT EXISTS (
+        SELECT 1
+        FROM m2m_news_mark
+        WHERE mark_id = OLD.mark_id
+    ) THEN
+        -- Если записей нет, удаляем запись из tbl_mark
+        DELETE FROM tbl_mark
+        WHERE id = OLD.mark_id;
+    END IF;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_delete_orphaned_marks
+AFTER DELETE ON m2m_news_mark
+FOR EACH ROW
+EXECUTE FUNCTION delete_orphaned_marks();
 """;
         Execute.Sql(init_script);
     }

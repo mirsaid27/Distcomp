@@ -175,4 +175,35 @@ public class PgMarkRepository : PgRepository,IMarkRepository
 
             return marks;
     }
+
+    public async Task<IEnumerable<Mark?>?> GetMarksCreateIfNotExist(IEnumerable<string> marks)
+    {
+        const string createIfNotExist = 
+            """
+            INSERT INTO tbl_mark (name)
+            SELECT unnest(@Names)
+            ON CONFLICT (name) DO UPDATE
+            SET name = EXCLUDED.name
+            RETURNING id;
+            """;
+        
+            await using var connection = await GetConnection();
+            using var cmd = new NpgsqlCommand(createIfNotExist, connection);
+            cmd.Parameters.AddWithValue("Names", marks.ToArray());
+            try
+            {
+                var reader = await cmd.ExecuteReaderAsync();
+                var returnedIds = new List<long>();
+                while (await reader.ReadAsync())
+                {
+                    returnedIds.Add(reader.GetInt64(reader.GetOrdinal("id")));
+                }
+                return returnedIds?.Select(id => new Mark() {Id = id});
+
+            }
+            catch
+            {
+                throw new BadRequestException("Error", new Dictionary<string, string[]>());
+            }
+    }
 }
