@@ -62,6 +62,16 @@ public class GlobalExceptionMiddleware
                 });
                 break;
             }
+            case HttpRequestException httpRequestException:
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    errorCode = (int)HttpStatusCode.BadRequest,
+                    errorMessage = httpRequestException.Message
+                });
+                break;
+            }
             default:
             {
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

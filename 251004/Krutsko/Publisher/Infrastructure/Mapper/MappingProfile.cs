@@ -12,9 +12,6 @@ public class MappingProfile : Profile
         CreateMap<User, UserResponseDTO>();
         CreateMap<UserRequestDTO, User>();
 
-        CreateMap<Notice, NoticeResponseDTO>();
-        CreateMap<NoticeRequestDTO, Notice>();
-
         CreateMap<Tag, TagResponseDTO>();
         CreateMap<TagRequestDTO, Tag>();
 

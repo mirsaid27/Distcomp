@@ -29,7 +29,5 @@ public class Story : BaseModel
     public long UserId { get; set; }
     public virtual User User { get; set; }
 
-    public virtual List<Notice> Notices { get; set; } = [];
-
     public virtual List<Tag> Tags { get; set; } = [];
 }

@@ -7,7 +7,6 @@ public class AppDbContext : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Story> Stories { get; set; }
-    public DbSet<Notice> Notices { get; set; }
     public DbSet<Tag> Tags { get; set; }
     
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) 
@@ -29,9 +28,6 @@ public class AppDbContext : DbContext
         
         modelBuilder.Entity<Story>()
             .ToTable("tbl_story");
-        
-        modelBuilder.Entity<Notice>()
-            .ToTable("tbl_notice");
         
         modelBuilder.Entity<Story>()
             .HasIndex(s => s.Title)
