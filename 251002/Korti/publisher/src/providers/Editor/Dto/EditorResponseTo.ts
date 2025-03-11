@@ -1,6 +1,7 @@
 import { Exclude, Expose } from 'class-transformer';
 import { IsInt, IsString, Length } from 'class-validator';
 
+@Exclude()
 export class EditorResponseTo {
   @Expose()
   @IsInt()
@@ -10,11 +11,6 @@ export class EditorResponseTo {
   @Length(2, 64)
   @Expose()
   login: string;
-
-  @IsString()
-  @Length(8, 128)
-  @Exclude()
-  password: string;
 
   @IsString()
   @Length(2, 64)
