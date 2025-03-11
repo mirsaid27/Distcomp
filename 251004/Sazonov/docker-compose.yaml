@@ -22,7 +22,6 @@ services:
     restart: unless-stopped
 
     environment:
-      API_STORAGE_TYPE: postgres
       API_STORAGE_HOST: db
       API_STORAGE_PORT: ${POSTGRES_PORT}
       API_STORAGE_USER: ${POSTGRES_USER}
@@ -106,7 +105,7 @@ services:
   notice:
     image: distcomp/notice
     container_name: notice_api
-    restart: unless-stopped
+    restart: on-failure
 
     environment:
       NOTICE_API_CASSANDRA_ADDRS: ${CASSANDRA_ADDRS}
