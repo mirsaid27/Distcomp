@@ -11,10 +11,10 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services.AddSingleton<IUserRepository, DatabaseUserRepository>();
-        services.AddSingleton<IStoryRepository, DatabaseStoryRepository>();
-        services.AddSingleton<ITagRepository, DatabaseTagRepository>();
-        services.AddSingleton<INoticeRepository, DatabaseNoticeRepository>();
+        services.AddScoped<IUserRepository, DatabaseUserRepository>();
+        services.AddScoped<IStoryRepository, DatabaseStoryRepository>();
+        services.AddScoped<ITagRepository, DatabaseTagRepository>();
+        services.AddScoped<INoticeRepository, DatabaseNoticeRepository>();
 
         return services;
     }

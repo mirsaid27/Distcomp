@@ -45,8 +45,8 @@ public class StoryService : IStoryService
         var storyToCreate = _mapper.Map<Story>(story);
 
         storyToCreate.UserId = story.UserId;
-        storyToCreate.Created = DateTime.Now;
-        storyToCreate.Modified = DateTime.Now;
+        storyToCreate.Created = DateTime.UtcNow;
+        storyToCreate.Modified = DateTime.UtcNow;
         
         var createdStory = await _storyRepository.CreateAsync(storyToCreate);
         return _mapper.Map<StoryResponseDTO>(createdStory);
@@ -57,7 +57,7 @@ public class StoryService : IStoryService
         await _validator.ValidateAndThrowAsync(story);
         var storyToUpdate = _mapper.Map<Story>(story);
         
-        storyToUpdate.Modified = DateTime.Now;
+        storyToUpdate.Modified = DateTime.UtcNow;
         
         var updatedStory = await _storyRepository.UpdateAsync(storyToUpdate)
                            ?? throw new NotFoundException(ErrorCodes.StoryNotFound, ErrorMessages.StoryNotFoundMessage(story.Id));

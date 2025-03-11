@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
 using DistComp.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace DistComp.Middleware;
 
@@ -37,6 +38,17 @@ public class GlobalExceptionMiddleware
                     errorCode = (int)HttpStatusCode.BadRequest,
                     errorMessage = validationException.Message,
                     errors = validationException.Errors
+                });
+                break;
+            }
+            case DbUpdateException dbUpdateException:
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    errorCode = (int)HttpStatusCode.Forbidden,
+                    errorMessage = dbUpdateException.Message,
+                    error = dbUpdateException?.InnerException?.Message
                 });
                 break;
             }
