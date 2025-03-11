@@ -7,6 +7,7 @@ using Messaging.MessageBus.Implementations;
 using Messaging.MessageBus.Interfaces;
 using Messaging.Producer;
 using Messaging.Producer.Implementations;
+using Messaging.Producer.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -45,7 +46,7 @@ public static class KafkaExtensions
                 return builder.Build();
             });
 
-        services.AddSingleton<KafkaProducer<TK, TV>>();
+        services.AddSingleton<IKafkaProducer<TK, TV>, KafkaProducer<TK, TV>>();
 
         services.Configure(configAction);
 

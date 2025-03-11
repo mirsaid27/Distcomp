@@ -1,13 +1,12 @@
 ﻿using Messaging.MessageBus.Interfaces;
-using Messaging.Producer;
-using Messaging.Producer.Implementations;
+using Messaging.Producer.Interfaces;
 
 namespace Messaging.MessageBus.Implementations;
 
 public class KafkaMessageBus<TK, TV> : IMessageBus<TK, TV>
 {
-    public KafkaProducer<TK, TV> Producer { get; }
-    public KafkaMessageBus(KafkaProducer<TK, TV> producer)
+    public IKafkaProducer<TK, TV> Producer { get; }
+    public KafkaMessageBus(IKafkaProducer<TK, TV> producer)
     {
         Producer = producer;
     }
