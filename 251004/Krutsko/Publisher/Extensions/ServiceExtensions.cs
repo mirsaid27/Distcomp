@@ -2,6 +2,7 @@
 using Publisher.Data;
 using Publisher.HttpClients;
 using Publisher.HttpClients.Implementations;
+using Publisher.HttpClients.Interfaces;
 using Publisher.Repositories.Implementations;
 using Publisher.Repositories.Interfaces;
 using Publisher.Services.Implementations;
@@ -34,7 +35,7 @@ public static class ServiceExtensions
     {
         services
             .AddHttpClient(nameof(DiscussionClient), 
-                client => client.BaseAddress = new Uri("http://localhost:24130/api/v1/"));
+                client => client.BaseAddress = new Uri("http://localhost:24130/api/v1.0/"));
 
         return services;
     }

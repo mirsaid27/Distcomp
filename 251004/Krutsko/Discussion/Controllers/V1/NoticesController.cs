@@ -1,55 +1,52 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Publisher.DTO.RequestDTO;
-using Publisher.DTO.ResponseDTO;
-using Publisher.HttpClients;
-using Publisher.HttpClients.Interfaces;
-using Publisher.Services.Interfaces;
+﻿using Discussion.DTO.Request;
+using Discussion.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Publisher.Controllers.V1;
+namespace Discussion.Controllers.V1;
 
 [ApiController]
 [Route("api/v1.0/[controller]")]
 public class NoticesController : ControllerBase
 {
-    private readonly IDiscussionClient _noticeClient;
+    private readonly INoticeService _noticeService;
 
-    public NoticesController(IDiscussionClient noticeClient)
+    public NoticesController(INoticeService noticeService)
     {
-        _noticeClient = noticeClient;
+        _noticeService = noticeService;
     }
-
+    
     [HttpGet]
     public async Task<IActionResult> GetNotices()
     {
-        var notices = await _noticeClient.GetNoticesAsync();
+        var notices = await _noticeService.GetNoticesAsync();
         return Ok(notices);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetNoticeById(long id)
     {
-        var notice = await _noticeClient.GetNoticeByIdAsync(id);
+        var notice = await _noticeService.GetNoticeByIdAsync(id);
         return Ok(notice);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateNotice([FromBody] NoticeRequestDTO notice)
     {
-        var createdNotice = await _noticeClient.CreateNoticeAsync(notice);
+        var createdNotice = await _noticeService.CreateNoticeAsync(notice);
         return CreatedAtAction(nameof(CreateNotice), new { id = createdNotice.Id }, createdNotice);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateNotice([FromBody] NoticeRequestDTO notice)
     {
-        var updatedNotice = await _noticeClient.UpdateNoticeAsync(notice);
+        var updatedNotice = await _noticeService.UpdateNoticeAsync(notice);
         return Ok(updatedNotice);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteNotice(long id)
     {
-        await _noticeClient.DeleteNoticeAsync(id);
+        await _noticeService.DeleteNoticeAsync(id);
         return NoContent();
     }
 }

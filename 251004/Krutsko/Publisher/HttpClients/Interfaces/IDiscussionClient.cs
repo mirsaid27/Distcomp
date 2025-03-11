@@ -1,7 +1,7 @@
 ﻿using Publisher.DTO.RequestDTO;
 using Publisher.DTO.ResponseDTO;
 
-namespace Publisher.HttpClients;
+namespace Publisher.HttpClients.Interfaces;
 
 public interface IDiscussionClient
 {
