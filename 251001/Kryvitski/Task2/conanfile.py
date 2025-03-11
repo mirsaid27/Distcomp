@@ -9,6 +9,7 @@ class ExampleRecipe(ConanFile):
     def requirements(self):
         self.requires("cpp-httplib/0.18.3")
         self.requires("nlohmann_json/3.11.3")
+        self.requires("libpqxx/7.10.0")
 
     def layout(self):
         cmake_layout(self)

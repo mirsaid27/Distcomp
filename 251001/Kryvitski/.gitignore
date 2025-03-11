@@ -468,4 +468,4 @@ bin/
 */251004/
 !*/251001/Kryvitski
 *.json
-*/.vscode
+../../../.vscode/

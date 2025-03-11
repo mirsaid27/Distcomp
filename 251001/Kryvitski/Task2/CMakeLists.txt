@@ -6,16 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(httplib REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(libpqxx REQUIRED)
 
 add_executable(
     ${PROJECT_NAME}
     src/main.cpp
-    src/Server.cpp
-    src/ArticleHandler.cpp
-    src/EditorHandler.cpp
-    src/EntityHandler.cpp
-    src/CommentHandler.cpp
-    src/LabelHandler.cpp
+    src/Entity.cpp
+    src/DBController.cpp
 )
 
 target_include_directories( ${PROJECT_NAME} PRIVATE include)
@@ -24,4 +21,5 @@ target_link_libraries(
     ${PROJECT_NAME} 
     httplib::httplib
     nlohmann_json::nlohmann_json
+    libpqxx::pqxx
 )
