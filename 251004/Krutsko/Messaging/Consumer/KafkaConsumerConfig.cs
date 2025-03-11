@@ -6,9 +6,8 @@ public class KafkaConsumerConfig : ConsumerConfig
 {
     public string Topic { get; set; }
 
-    public KafkaConsumerConfig(string topic)
+    public KafkaConsumerConfig()
     {
-        Topic = topic;
         AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
         EnableAutoOffsetStore = false;
     }

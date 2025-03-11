@@ -8,7 +8,7 @@ public class Tag : BaseModel
     [Required]
     [MinLength(2)]
     [MaxLength(32)]
-    [Column(TypeName = "text")]
+    [Column("name", TypeName = "text")]
     public string Name { get; set; }
 
     public virtual List<Story> Stories { get; set; } = [];
