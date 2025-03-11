@@ -25,6 +25,7 @@ public class Story : BaseModel
     [DataType(DataType.DateTime)]
     public DateTime Modified { get; set; }
     
+    [Column("user_id")]
     public long UserId { get; set; }
     public virtual User User { get; set; }
 

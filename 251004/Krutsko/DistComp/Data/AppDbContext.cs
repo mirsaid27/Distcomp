@@ -21,6 +21,18 @@ public class AppDbContext : DbContext
             .HasIndex(u => u.Login)
             .IsUnique();
 
+        modelBuilder.Entity<User>()
+            .ToTable("tbl_user");
+        
+        modelBuilder.Entity<Tag>()
+            .ToTable("tbl_tag");
+        
+        modelBuilder.Entity<Story>()
+            .ToTable("tbl_story");
+        
+        modelBuilder.Entity<Notice>()
+            .ToTable("tbl_notice");
+        
         modelBuilder.Entity<Story>()
             .HasIndex(s => s.Title)
             .IsUnique();
