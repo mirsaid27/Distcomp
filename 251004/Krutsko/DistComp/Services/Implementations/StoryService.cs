@@ -13,13 +13,15 @@ namespace DistComp.Services.Implementations;
 public class StoryService : IStoryService
 {
     private readonly IStoryRepository _storyRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly StoryRequestDTOValidator _validator;
 
-    public StoryService(IStoryRepository storyRepository,
+    public StoryService(IStoryRepository storyRepository, IUserRepository userRepository,
         IMapper mapper, StoryRequestDTOValidator validator)
     {
         _storyRepository = storyRepository;
+        _userRepository = userRepository;
         _mapper = mapper;
         _validator = validator;
     }
@@ -41,7 +43,8 @@ public class StoryService : IStoryService
     {
         await _validator.ValidateAndThrowAsync(story);
         var storyToCreate = _mapper.Map<Story>(story);
-        
+
+        storyToCreate.UserId = story.UserId;
         storyToCreate.Created = DateTime.Now;
         storyToCreate.Modified = DateTime.Now;
         
@@ -63,7 +66,7 @@ public class StoryService : IStoryService
 
     public async Task DeleteStoryAsync(long id)
     {
-        if (await _storyRepository.DeleteAsync(id) is null)
+        if (!await _storyRepository.DeleteAsync(id))
         {
             throw new NotFoundException(ErrorCodes.StoryNotFound, ErrorMessages.StoryNotFoundMessage(id));
         }

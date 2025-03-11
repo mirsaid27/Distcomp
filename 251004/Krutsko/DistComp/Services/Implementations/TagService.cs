@@ -56,7 +56,7 @@ public class TagService : ITagService
 
     public async Task DeleteTagAsync(long id)
     {
-        if (await _tagRepository.DeleteAsync(id) is null)
+        if (!await _tagRepository.DeleteAsync(id))
         {
             throw new NotFoundException(ErrorCodes.TagNotFound, ErrorMessages.TagNotFoundMessage(id));
         }

@@ -57,7 +57,7 @@ public class UserService : IUserService
 
     public async Task DeleteUserAsync(long id)
     {
-        if (await _userRepository.DeleteAsync(id) is null)
+        if (!await _userRepository.DeleteAsync(id))
         {
             throw new NotFoundException(ErrorCodes.UserNotFound, ErrorMessages.UserNotFoundMessage(id));
         }

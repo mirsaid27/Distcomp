@@ -56,7 +56,7 @@ public class NoticeService : INoticeService
 
     public async Task DeleteNoticeAsync(long id)
     {
-        if (await _noticeRepository.DeleteAsync(id) is null)
+        if (!await _noticeRepository.DeleteAsync(id))
         {
             throw new NotFoundException(ErrorCodes.NoticeNotFound, ErrorMessages.NoticeNotFoundMessage(id));
         }
