@@ -40,16 +40,6 @@ public class GlobalExceptionMiddleware
                 });
                 break;
             }
-            case ConflictException conflictException:
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.Conflict;
-                await context.Response.WriteAsJsonAsync(new
-                {
-                    errorCode = conflictException.ErrorCode,
-                    errorMessage = conflictException.Message
-                });
-                break;
-            }
             case NotFoundException notFoundException:
             {
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
