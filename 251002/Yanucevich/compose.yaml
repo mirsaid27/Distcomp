@@ -1,17 +1,35 @@
 services:
-  social-net:
-    image: significantnose/social-net:latest  
-    build: .
+  social-net-pubilsher:
+    image: significantnose/social-net-publisher:latest  
+    build: ./Publisher/
     ports:
       - 24110:24110
     environment:
       ConnectionStrings__npg: "User ID=postgres;Host=db;Password=postgres;Port=5432;Database=distcomp;Pooling=true;"
+      DiscussionSettings__DiscussionUrl: "http://social-net-discussion:24130"
       ASPNETCORE_URLS: "http://0.0.0.0:24110"
 
     restart: unless-stopped
 
     depends_on:
       db:
+        condition: service_healthy
+
+  social-net-discussion:
+    image: significantnose/social-net-discussion:latest
+    build: ./Discussion/
+    ports:
+      - 24130:24130
+    environment:
+      ReactionDatabase__MongoConnectionString: "mongodb://mango:27017"
+      ReactionDatabase__DatabaseName": "ReactionStore"
+      ReactionDatabase__ReactionCollectionName: "Reaction"
+      ASPNETCORE_URLS: "http://0.0.0.0:24130"
+
+    restart: unless-stopped
+
+    depends_on:
+      mango:
         condition: service_healthy
 
   db:
@@ -30,6 +48,19 @@ services:
 
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready", "-d", "${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
+  mango:
+    image: mongo
+    container_name: mango
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
       timeout: 5s
       retries: 3
