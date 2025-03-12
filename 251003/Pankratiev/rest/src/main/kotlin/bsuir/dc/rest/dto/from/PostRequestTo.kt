@@ -2,7 +2,7 @@ package bsuir.dc.rest.dto.from
 
 import jakarta.validation.constraints.Size
 
-data class PostFrom(
+data class PostRequestTo(
     val id: Long = 0,
     val issueId: Long = 0,
 

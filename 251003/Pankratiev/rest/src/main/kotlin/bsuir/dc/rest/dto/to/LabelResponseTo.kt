@@ -1,6 +1,6 @@
 package bsuir.dc.rest.dto.to
 
-data class LabelTo(
+data class LabelResponseTo(
     val id: Long,
     val name: String
 )

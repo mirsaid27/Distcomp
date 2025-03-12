@@ -2,7 +2,7 @@ package bsuir.dc.rest.dto.to
 
 import java.time.LocalDateTime
 
-data class IssueTo(
+data class IssueResponseTo(
     val id: Long,
     val writerId: Long,
     val title: String,

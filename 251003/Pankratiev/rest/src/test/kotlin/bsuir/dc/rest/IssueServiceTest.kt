@@ -1,6 +1,6 @@
 package bsuir.dc.rest
 
-import bsuir.dc.rest.dto.from.IssueFrom
+import bsuir.dc.rest.dto.from.IssueRequestTo
 import bsuir.dc.rest.entity.IssueLabel
 import bsuir.dc.rest.entity.Label
 import bsuir.dc.rest.entity.Writer
@@ -31,8 +31,8 @@ class IssueServiceTest {
 
 	@Test
 	fun createIssueTest() {
-		val issueFrom = IssueFrom(title = "Test Issue", content = "Test Content", writerId = 1)
-		val createdIssue = issueService.createIssue(issueFrom)
+		val issueRequestTo = IssueRequestTo(title = "Test Issue", content = "Test Content", writerId = 1)
+		val createdIssue = issueService.createIssue(issueRequestTo)
 		assertNotNull(createdIssue.id)
 		assertEquals("Test Issue", createdIssue.title)
 		assertEquals("Test Content", createdIssue.content)
@@ -40,8 +40,8 @@ class IssueServiceTest {
 
 	@Test
 	fun getIssueByIdTest() {
-		val issueFrom = IssueFrom(title = "Find me", content = "Content", writerId = 1)
-		val createdIssue = issueService.createIssue(issueFrom)
+		val issueRequestTo = IssueRequestTo(title = "Find me", content = "Content", writerId = 1)
+		val createdIssue = issueService.createIssue(issueRequestTo)
 		val foundIssue = issueService.getIssueById(createdIssue.id)
 		assertEquals(createdIssue.id, foundIssue.id)
 		assertEquals("Find me", foundIssue.title)
@@ -49,8 +49,8 @@ class IssueServiceTest {
 
 	@Test
 	fun getAllIssuesTest() {
-		issueService.createIssue(IssueFrom(title = "Issue 1", content = "Content 1", writerId = 1))
-		issueService.createIssue(IssueFrom(title = "Issue 2", content = "Content 2", writerId = 1))
+		issueService.createIssue(IssueRequestTo(title = "Issue 1", content = "Content 1", writerId = 1))
+		issueService.createIssue(IssueRequestTo(title = "Issue 2", content = "Content 2", writerId = 1))
 		val issues = issueService.getAllIssues()
 		assertTrue(issues.any { it.title == "Issue 1" })
 		assertTrue(issues.any { it.title == "Issue 2" })
@@ -58,11 +58,11 @@ class IssueServiceTest {
 
 	@Test
 	fun updateIssueTest() {
-		val issueFrom = IssueFrom(title = "Old Title", content = "Old Content", writerId = 1)
-		val createdIssue = issueService.createIssue(issueFrom)
-		val updatedIssueFrom = IssueFrom(title = "New Title", content = "New Content", writerId = 1)
+		val issueRequestTo = IssueRequestTo(title = "Old Title", content = "Old Content", writerId = 1)
+		val createdIssue = issueService.createIssue(issueRequestTo)
+		val updatedIssueRequestTo = IssueRequestTo(title = "New Title", content = "New Content", writerId = 1)
 		Thread.sleep(10)
-		val updatedIssue = issueService.updateIssue(createdIssue.id, updatedIssueFrom)
+		val updatedIssue = issueService.updateIssue(createdIssue.id, updatedIssueRequestTo)
 		assertEquals(createdIssue.id, updatedIssue.id)
 		assertEquals("New Title", updatedIssue.title)
 		assertEquals("New Content", updatedIssue.content)
@@ -71,8 +71,8 @@ class IssueServiceTest {
 
 	@Test
 	fun deleteIssueTest() {
-		val issueFrom = IssueFrom(title = "Title", content = "Content", writerId = 1)
-		val createdIssue = issueService.createIssue(issueFrom)
+		val issueRequestTo = IssueRequestTo(title = "Title", content = "Content", writerId = 1)
+		val createdIssue = issueService.createIssue(issueRequestTo)
 		issueService.deleteIssue(createdIssue.id)
 		assertThrows<NoSuchElementException> {
 			issueService.getIssueById(createdIssue.id)
@@ -93,8 +93,8 @@ class IssueServiceTest {
 		val label = Label(id = 1, name = "Bug")
 		labelRepository.save(label)
 
-		val issueFrom = IssueFrom(title = "Issue with bug", content = "Detailed bug description", writerId = 1)
-		val createdIssue = issueService.createIssue(issueFrom)
+		val issueRequestTo = IssueRequestTo(title = "Issue with bug", content = "Detailed bug description", writerId = 1)
+		val createdIssue = issueService.createIssue(issueRequestTo)
 		issueLabelRepository.save(IssueLabel(issueId = createdIssue.id, labelId = label.id))
 
 		val filteredByLabelName = issueService.getIssuesByFilters(

@@ -1,7 +1,7 @@
 package bsuir.dc.rest.service
 
-import bsuir.dc.rest.dto.from.IssueFrom
-import bsuir.dc.rest.dto.to.IssueTo
+import bsuir.dc.rest.dto.from.IssueRequestTo
+import bsuir.dc.rest.dto.to.IssueResponseTo
 import bsuir.dc.rest.mapper.toEntity
 import bsuir.dc.rest.mapper.toResponse
 import bsuir.dc.rest.repository.memory.IssueInMemoryRepository
@@ -18,22 +18,22 @@ class IssueService(
     private val issueLabelRepository: IssueLabelInMemoryRepository,
     private val writerRepository: WriterInMemoryRepository,
 ) {
-    fun createIssue(issueFrom: IssueFrom): IssueTo {
-        val issue = issueFrom.toEntity()
+    fun createIssue(issueRequestTo: IssueRequestTo): IssueResponseTo {
+        val issue = issueRequestTo.toEntity()
         val savedIssue = issueRepository.save(issue)
         return savedIssue.toResponse()
     }
 
-    fun getIssueById(id: Long): IssueTo {
+    fun getIssueById(id: Long): IssueResponseTo {
         val issue = issueRepository.findById(id)
         return issue.toResponse()
     }
 
-    fun getAllIssues(): List<IssueTo> =
+    fun getAllIssues(): List<IssueResponseTo> =
         issueRepository.findAll().map { it.toResponse() }
 
-    fun updateIssue(id: Long, issueFrom: IssueFrom): IssueTo {
-        val updatedIssue = issueFrom.toEntity().apply {
+    fun updateIssue(id: Long, issueRequestTo: IssueRequestTo): IssueResponseTo {
+        val updatedIssue = issueRequestTo.toEntity().apply {
             this.id = id
             this.modified = LocalDateTime.now()
         }
@@ -50,7 +50,7 @@ class IssueService(
         writerLogin: String?,
         title: String?,
         content: String?
-    ): List<IssueTo> {
+    ): List<IssueResponseTo> {
         val issueIdsByNames = getIssueIdsByLabelNames(labelNames)
         val issueIdsByLabelIds = getIssueIdsByLabelIds(labelIds)
         val writerId = getWriterIdByLogin(writerLogin)
@@ -96,7 +96,7 @@ class IssueService(
         writerId: Long?,
         title: String?,
         content: String?
-    ): List<IssueTo> {
+    ): List<IssueResponseTo> {
         return issueRepository.findAll()
             .filter { issue ->
                 (issueIdsByNames == null || issue.id in issueIdsByNames) &&

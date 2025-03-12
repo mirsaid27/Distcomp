@@ -1,7 +1,7 @@
 package bsuir.dc.rest.service
 
-import bsuir.dc.rest.dto.from.WriterFrom
-import bsuir.dc.rest.dto.to.WriterTo
+import bsuir.dc.rest.dto.from.WriterRequestTo
+import bsuir.dc.rest.dto.to.WriterResponseTo
 import bsuir.dc.rest.mapper.toEntity
 import bsuir.dc.rest.mapper.toResponse
 import bsuir.dc.rest.repository.memory.IssueInMemoryRepository
@@ -13,22 +13,22 @@ class WriterService(
     private val writerRepository: WriterInMemoryRepository,
     private val issueRepository: IssueInMemoryRepository,
 ) {
-    fun createWriter(writerFrom: WriterFrom): WriterTo {
-        val writer = writerFrom.toEntity()
+    fun createWriter(writerRequestTo: WriterRequestTo): WriterResponseTo {
+        val writer = writerRequestTo.toEntity()
         val savedWriter = writerRepository.save(writer)
         return savedWriter.toResponse()
     }
 
-    fun getWriterById(id: Long): WriterTo {
+    fun getWriterById(id: Long): WriterResponseTo {
         val writer = writerRepository.findById(id)
         return writer.toResponse()
     }
 
-    fun getAllWriters(): List<WriterTo> =
+    fun getAllWriters(): List<WriterResponseTo> =
         writerRepository.findAll().map { it.toResponse() }
 
-    fun updateWriter(id: Long, writerFrom: WriterFrom): WriterTo {
-        val updatedWriter = writerFrom.toEntity().apply { this.id = id }
+    fun updateWriter(id: Long, writerRequestTo: WriterRequestTo): WriterResponseTo {
+        val updatedWriter = writerRequestTo.toEntity().apply { this.id = id }
         return writerRepository.update(updatedWriter).toResponse()
     }
 
@@ -36,7 +36,7 @@ class WriterService(
         writerRepository.deleteById(id)
     }
 
-    fun getWriterByIssueId(issueId: Long): WriterTo {
+    fun getWriterByIssueId(issueId: Long): WriterResponseTo {
         val issue = issueRepository.findById(issueId)
         val writer = writerRepository.findById(issue.writerId)
         return writer.toResponse()

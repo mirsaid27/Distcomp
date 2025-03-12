@@ -2,7 +2,7 @@ package bsuir.dc.rest.dto.from
 
 import jakarta.validation.constraints.Size
 
-data class WriterFrom(
+data class WriterRequestTo(
     val id: Long = 0,
 
     @field:Size(min = 2, max = 64)

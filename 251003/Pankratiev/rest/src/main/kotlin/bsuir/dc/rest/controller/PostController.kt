@@ -1,7 +1,7 @@
 package bsuir.dc.rest.controller
 
-import bsuir.dc.rest.dto.from.PostFrom
-import bsuir.dc.rest.dto.to.PostTo
+import bsuir.dc.rest.dto.from.PostRequestTo
+import bsuir.dc.rest.dto.to.PostResponseTo
 import bsuir.dc.rest.service.PostService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -15,26 +15,26 @@ class PostController(
 ) {
 
     @PostMapping
-    fun createPost(@RequestBody @Valid postFrom: PostFrom): ResponseEntity<PostTo> {
-        val createdPost = postService.createPost(postFrom)
+    fun createPost(@RequestBody @Valid postRequestTo: PostRequestTo): ResponseEntity<PostResponseTo> {
+        val createdPost = postService.createPost(postRequestTo)
         return ResponseEntity(createdPost, HttpStatus.CREATED)
     }
 
     @GetMapping("/{id}")
-    fun getPostById(@PathVariable id: Long): ResponseEntity<PostTo> {
+    fun getPostById(@PathVariable id: Long): ResponseEntity<PostResponseTo> {
         val post = postService.getPostById(id)
         return ResponseEntity.ok(post)
     }
 
     @GetMapping
-    fun getAllPosts(): ResponseEntity<List<PostTo>> {
+    fun getAllPosts(): ResponseEntity<List<PostResponseTo>> {
         val posts = postService.getAllPosts()
         return ResponseEntity.ok(posts)
     }
 
     @PutMapping()
-    fun updatePost(@RequestBody @Valid postFrom: PostFrom): ResponseEntity<PostTo> {
-        val updatedPost = postService.updatePost(postFrom.id, postFrom)
+    fun updatePost(@RequestBody @Valid postRequestTo: PostRequestTo): ResponseEntity<PostResponseTo> {
+        val updatedPost = postService.updatePost(postRequestTo.id, postRequestTo)
         return ResponseEntity.ok(updatedPost)
     }
 
@@ -45,7 +45,7 @@ class PostController(
     }
 
     @GetMapping("/by-issue/{issueId}")
-    fun getPostsByIssueId(@PathVariable issueId: Long): ResponseEntity<List<PostTo>> {
+    fun getPostsByIssueId(@PathVariable issueId: Long): ResponseEntity<List<PostResponseTo>> {
         val posts = postService.getPostsByIssueId(issueId)
         return ResponseEntity.ok(posts)
     }

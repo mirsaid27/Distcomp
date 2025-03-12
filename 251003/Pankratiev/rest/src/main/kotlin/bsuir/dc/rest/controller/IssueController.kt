@@ -1,7 +1,7 @@
 package bsuir.dc.rest.controller
 
-import bsuir.dc.rest.dto.from.IssueFrom
-import bsuir.dc.rest.dto.to.IssueTo
+import bsuir.dc.rest.dto.from.IssueRequestTo
+import bsuir.dc.rest.dto.to.IssueResponseTo
 import bsuir.dc.rest.service.IssueService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -15,26 +15,26 @@ class IssueController(
 ) {
 
     @PostMapping
-    fun createIssue(@RequestBody @Valid issueFrom: IssueFrom): ResponseEntity<IssueTo> {
-        val createdIssue = issueService.createIssue(issueFrom)
+    fun createIssue(@RequestBody @Valid issueRequestTo: IssueRequestTo): ResponseEntity<IssueResponseTo> {
+        val createdIssue = issueService.createIssue(issueRequestTo)
         return ResponseEntity(createdIssue, HttpStatus.CREATED)
     }
 
     @GetMapping("/{id}")
-    fun getIssueById(@PathVariable id: Long): ResponseEntity<IssueTo> {
+    fun getIssueById(@PathVariable id: Long): ResponseEntity<IssueResponseTo> {
         val issue = issueService.getIssueById(id)
         return ResponseEntity.ok(issue)
     }
 
     @GetMapping
-    fun getAllIssues(): ResponseEntity<List<IssueTo>> {
+    fun getAllIssues(): ResponseEntity<List<IssueResponseTo>> {
         val issues = issueService.getAllIssues()
         return ResponseEntity.ok(issues)
     }
 
     @PutMapping()
-    fun updateIssue(@RequestBody @Valid issueFrom: IssueFrom): ResponseEntity<IssueTo> {
-        val updatedIssue = issueService.updateIssue(issueFrom.id, issueFrom)
+    fun updateIssue(@RequestBody @Valid issueRequestTo: IssueRequestTo): ResponseEntity<IssueResponseTo> {
+        val updatedIssue = issueService.updateIssue(issueRequestTo.id, issueRequestTo)
         return ResponseEntity.ok(updatedIssue)
     }
 
@@ -51,7 +51,7 @@ class IssueController(
         @RequestParam(required = false) writerLogin: String?,
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) content: String?
-    ): ResponseEntity<List<IssueTo>> {
+    ): ResponseEntity<List<IssueResponseTo>> {
         val issues = issueService.getIssuesByFilters(labelNames, labelIds, writerLogin, title, content)
         return ResponseEntity.ok(issues)
     }

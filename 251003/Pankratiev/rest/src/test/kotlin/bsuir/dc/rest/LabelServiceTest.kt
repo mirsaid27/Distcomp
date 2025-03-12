@@ -1,6 +1,6 @@
 package bsuir.dc.rest
 
-import bsuir.dc.rest.dto.from.LabelFrom
+import bsuir.dc.rest.dto.from.LabelRequestTo
 import bsuir.dc.rest.entity.IssueLabel
 import bsuir.dc.rest.repository.memory.IssueLabelInMemoryRepository
 import bsuir.dc.rest.service.LabelService
@@ -21,16 +21,16 @@ class LabelServiceTest {
 
     @Test
     fun createLabelTest() {
-        val labelFrom = LabelFrom(name = "Test Label")
-        val createdLabel = labelService.createLabel(labelFrom)
+        val labelRequestTo = LabelRequestTo(name = "Test Label")
+        val createdLabel = labelService.createLabel(labelRequestTo)
         assertNotNull(createdLabel.id)
         assertEquals("Test Label", createdLabel.name)
     }
 
     @Test
     fun getLabelByIdTest() {
-        val labelFrom = LabelFrom(name = "Label 1")
-        val createdLabel = labelService.createLabel(labelFrom)
+        val labelRequestTo = LabelRequestTo(name = "Label 1")
+        val createdLabel = labelService.createLabel(labelRequestTo)
         val foundLabel = labelService.getLabelById(createdLabel.id)
         assertEquals(createdLabel.id, foundLabel.id)
         assertEquals("Label 1", foundLabel.name)
@@ -38,8 +38,8 @@ class LabelServiceTest {
 
     @Test
     fun getAllLabelsTest() {
-        labelService.createLabel(LabelFrom(name = "Label 1"))
-        labelService.createLabel(LabelFrom(name = "Label 2"))
+        labelService.createLabel(LabelRequestTo(name = "Label 1"))
+        labelService.createLabel(LabelRequestTo(name = "Label 2"))
         val labels = labelService.getAllLabels()
         assertTrue(labels.any { it.name == "Label 1" })
         assertTrue(labels.any { it.name == "Label 2" })
@@ -47,18 +47,18 @@ class LabelServiceTest {
 
     @Test
     fun updateLabelTest() {
-        val labelFrom = LabelFrom(name = "Old Label")
-        val createdLabel = labelService.createLabel(labelFrom)
-        val updatedLabelFrom = LabelFrom(name = "New Label")
-        val updatedLabel = labelService.updateLabel(createdLabel.id, updatedLabelFrom)
+        val labelRequestTo = LabelRequestTo(name = "Old Label")
+        val createdLabel = labelService.createLabel(labelRequestTo)
+        val updatedLabelRequestTo = LabelRequestTo(name = "New Label")
+        val updatedLabel = labelService.updateLabel(createdLabel.id, updatedLabelRequestTo)
         assertEquals(createdLabel.id, updatedLabel.id)
         assertEquals("New Label", updatedLabel.name)
     }
 
     @Test
     fun deleteLabelTest() {
-        val labelFrom = LabelFrom(name = "To Delete")
-        val createdLabel = labelService.createLabel(labelFrom)
+        val labelRequestTo = LabelRequestTo(name = "To Delete")
+        val createdLabel = labelService.createLabel(labelRequestTo)
         labelService.deleteLabel(createdLabel.id)
         assertThrows<NoSuchElementException> {
             labelService.getLabelById(createdLabel.id)
@@ -67,8 +67,8 @@ class LabelServiceTest {
 
     @Test
     fun getLabelsByIssueIdTest() {
-        val labelFrom = LabelFrom(name = "Bug")
-        val createdLabel = labelService.createLabel(labelFrom)
+        val labelRequestTo = LabelRequestTo(name = "Bug")
+        val createdLabel = labelService.createLabel(labelRequestTo)
         issueLabelRepository.save(IssueLabel(issueId = 1, labelId = createdLabel.id))
         val labels = labelService.getLabelsByIssueId(1)
         assertTrue(labels.any { it.id == createdLabel.id })

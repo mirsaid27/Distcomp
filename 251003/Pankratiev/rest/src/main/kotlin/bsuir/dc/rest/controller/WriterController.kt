@@ -1,7 +1,7 @@
 package bsuir.dc.rest.controller
 
-import bsuir.dc.rest.dto.from.WriterFrom
-import bsuir.dc.rest.dto.to.WriterTo
+import bsuir.dc.rest.dto.from.WriterRequestTo
+import bsuir.dc.rest.dto.to.WriterResponseTo
 import bsuir.dc.rest.service.WriterService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -15,26 +15,26 @@ class WriterController(
 ) {
 
     @PostMapping
-    fun createWriter(@RequestBody @Valid writerFrom: WriterFrom): ResponseEntity<WriterTo> {
-        val createdWriter = writerService.createWriter(writerFrom)
+    fun createWriter(@RequestBody @Valid writerRequestTo: WriterRequestTo): ResponseEntity<WriterResponseTo> {
+        val createdWriter = writerService.createWriter(writerRequestTo)
         return ResponseEntity(createdWriter, HttpStatus.CREATED)
     }
 
     @GetMapping("/{id}")
-    fun getWriterById(@PathVariable id: Long): ResponseEntity<WriterTo> {
+    fun getWriterById(@PathVariable id: Long): ResponseEntity<WriterResponseTo> {
         val writer = writerService.getWriterById(id)
         return ResponseEntity.ok(writer)
     }
 
     @GetMapping
-    fun getAllWriters(): ResponseEntity<List<WriterTo>> {
+    fun getAllWriters(): ResponseEntity<List<WriterResponseTo>> {
         val writers = writerService.getAllWriters()
         return ResponseEntity.ok(writers)
     }
 
     @PutMapping()
-    fun updateWriter(@RequestBody @Valid writerFrom: WriterFrom): ResponseEntity<WriterTo> {
-        val updatedWriter = writerService.updateWriter(writerFrom.id, writerFrom)
+    fun updateWriter(@RequestBody @Valid writerRequestTo: WriterRequestTo): ResponseEntity<WriterResponseTo> {
+        val updatedWriter = writerService.updateWriter(writerRequestTo.id, writerRequestTo)
         return ResponseEntity.ok(updatedWriter)
     }
 
@@ -45,7 +45,7 @@ class WriterController(
     }
 
     @GetMapping("/by-issue/{issueId}")
-    fun getWriterByIssueId(@PathVariable issueId: Long): ResponseEntity<WriterTo> {
+    fun getWriterByIssueId(@PathVariable issueId: Long): ResponseEntity<WriterResponseTo> {
         val writer = writerService.getWriterByIssueId(issueId)
         return ResponseEntity.ok(writer)
     }

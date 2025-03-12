@@ -1,6 +1,6 @@
 package bsuir.dc.rest.dto.from
 
-data class IssueLabelFrom (
+data class IssueLabelRequestTo (
     val issueId: Long,
     val labelId: Long
 )
