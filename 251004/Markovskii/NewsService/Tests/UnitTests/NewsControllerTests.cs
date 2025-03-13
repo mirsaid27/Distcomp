@@ -16,17 +16,14 @@ namespace Tests.UnitTests
     {
         private readonly Mock<INewsService> _mockNewsService;
         private readonly Mock<IEditorService> _mockEditorService;
-        private readonly Mock<IPostService> _mockPostService;
         private readonly Mock<IMarkService> _mockMarkService;
         private readonly NewsController _controller;
 
         public NewsControllerTests()
         {
             _mockNewsService = new Mock<INewsService>();
-            _mockEditorService = new Mock<IEditorService>();
-            _mockPostService = new Mock<IPostService>();
-            _mockMarkService = new Mock<IMarkService>();
-            _controller = new NewsController(_mockNewsService.Object, _mockEditorService.Object,_mockMarkService.Object, _mockPostService.Object);
+            _mockEditorService = new Mock<IEditorService>(); _mockMarkService = new Mock<IMarkService>();
+            _controller = new NewsController(_mockNewsService.Object, _mockEditorService.Object,_mockMarkService.Object);
         }
 
         [Fact]
@@ -76,8 +73,6 @@ namespace Tests.UnitTests
                 new PostResponseToGetById { Id = 1, Content = "First Post" },
                 new PostResponseToGetById { Id = 2, Content = "Second Post" }
             };
-            _mockPostService.Setup(service => service.GetPostsByNewsId(It.IsAny<PostRequestToGetByNewsId>()))
-                .ReturnsAsync(posts);
 
             // Act
             var result = await _controller.GetPostsByNewsId(1);

@@ -4,15 +4,15 @@ using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Repository;
+using Domain.Repositories;
 
 namespace Application.Services;
 
-public class PostService (IPostRepository _postRepository,INewsRepository _newsRepository, IMapper _mapper) : IPostService
+public class PostService(IPostRepository _postRepository,IMapper _mapper) : IPostService
 {
     public async Task<PostResponseToGetById?> CreatePost(PostRequestToCreate model)
     {
-        Post post = _mapper.Map<Post>(model);
+        PostMongoDb post = _mapper.Map<PostMongoDb>(model);
         Validate(post);
         post = await _postRepository.AddPost(post);
         return _mapper.Map<PostResponseToGetById>(post);
@@ -38,7 +38,7 @@ public class PostService (IPostRepository _postRepository,INewsRepository _newsR
 
     public async Task<PostResponseToGetById?> UpdatePost(PostRequestToFullUpdate model)
     {
-        var post = _mapper.Map<Post>(model);
+        var post = _mapper.Map<PostMongoDb>(model);
         Validate(post);
         post = await _postRepository.UpdatePost(post);
         return _mapper.Map<PostResponseToGetById>(post);
@@ -50,7 +50,7 @@ public class PostService (IPostRepository _postRepository,INewsRepository _newsR
         return _mapper.Map<PostResponseToGetById>(post);
     }
     
-    private bool Validate(Post post)
+    private bool Validate(PostMongoDb post)
     {
         var errors = new Dictionary<string, string[]>();
         if (post.Content.Length < 2 || post.Content.Length > 2048)

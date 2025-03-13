@@ -9,6 +9,7 @@ services:
       - 24110:24110
     environment:
       ConnectionStrings__npg: "User ID=postgres;Host=db;Password=postgres;Port=5432;Database=distcomp;Pooling=true;"
+      DiscussionSettings__DiscussionUrl: "http://discussion_service:24130"
       ASPNETCORE_URLS: "http://0.0.0.0:24110"
 
     restart: unless-stopped
@@ -17,6 +18,25 @@ services:
       db:
         condition: service_healthy
 
+  discussion_service:
+    image: discussion_service
+    build:
+      context: ./DiscussionService/
+      dockerfile: ./Dockerfile
+    ports:
+      - 24130:24130
+    environment:
+      PostDatabase__MongoConnectionString: "mongodb://mango:27017"
+      PostDatabase__DatabaseName: "PostStore"
+      PostDatabase__PostCollectionName: "Post"
+      ASPNETCORE_URLS: "http://0.0.0.0:24130"
+
+    restart: unless-stopped
+
+    depends_on:
+      mango:
+        condition: service_healthy
+        
   db:
     image: postgres:16.0-alpine
     container_name: db
@@ -33,6 +53,18 @@ services:
 
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready", "-d", "${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+      
+  mango:
+    image: mongo
+    container_name: mango
+    ports:
+      - 9042:27017
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
       timeout: 5s
       retries: 3

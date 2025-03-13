@@ -1,46 +1,112 @@
-﻿    using Application.DTO.Request.Post;
-    using Application.DTO.Response.Post;
-    using Application.Interfaces;
-    using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using WebApi.Settings;
 
-    namespace WebApi.Controllers;
+namespace WebApi.Controllers;
 
-    [ApiController]
-    [Route("/api/v1.0/posts")]
-    public class PostController (IPostService _postService) : ControllerBase
+[ApiController]
+[Route("/api/v1.0/posts")]
+public class PostController : ControllerBase
+{
+    private readonly HttpClient _httpClient;
+    private readonly DiscussionSettings _discussionSettings;
+
+    public PostController(
+        HttpClient httpClient,
+        IOptions<DiscussionSettings> discussionSettings
+    )
     {
-        [HttpGet]
-        public async Task<IActionResult> GetAllPost()
-        {
-            var post = await _postService.GetPosts(new PostRequestToGetAll());
-            return Ok(post);
-        }
-        
-        [HttpGet("{id:long}")]
-        public async Task<IActionResult> GetPostById(long id)
-        {
-            PostResponseToGetById post = await _postService.GetPostById(new PostRequestToGetById() {Id = id});
-            return Ok(post);
-        }
+        _httpClient = httpClient;
+        _discussionSettings = discussionSettings.Value;
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> CreatePost(PostRequestToCreate postRequestToCreate)
+    [HttpPost]
+    public async Task<IActionResult> CreatePost([FromBody] object requestBody)
+    {
+        var microserviceUrl = $"{_discussionSettings.DiscussionUrl}/api/v1.0/posts/";
+
+        var response = await _httpClient.PostAsJsonAsync(microserviceUrl, requestBody);
+
+        if (response.IsSuccessStatusCode)
         {
-            var post = await _postService.CreatePost(postRequestToCreate);
-            return CreatedAtAction(nameof(GetPostById), new { id = post.Id }, post);
+            var content = await response.Content.ReadAsStringAsync();
+            return StatusCode((int)response.StatusCode, content);
         }
-        
-        [HttpPut]
-        public async Task<IActionResult> UpdatePost(PostRequestToFullUpdate postModel)
+        else
         {
-            var post = await _postService.UpdatePost(postModel);
-            return Ok(post);
-        }
-        
-        [HttpDelete("{id:long}")]
-        public async Task<IActionResult> DeletePost(long id)
-        {
-            var post = await _postService.DeletePost(new PostRequestToDeleteById(){Id = id});
-            return NoContent();
+            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
         }
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPosts()
+    {
+        var microserviceUrl = $"{_discussionSettings.DiscussionUrl}/api/v1.0/posts/";
+
+        var response = await _httpClient.GetAsync(microserviceUrl);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return StatusCode((int)response.StatusCode, content);
+        }
+        else
+        {
+            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+        }
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetPostByIdQuery(string id)
+    {
+        var microserviceUrl = $"{_discussionSettings.DiscussionUrl}/api/v1.0/posts/{id}";
+
+        var response = await _httpClient.GetAsync(microserviceUrl);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return StatusCode((int)response.StatusCode, content);
+        }
+        else
+        {
+            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+        }
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> UpdatePost([FromBody] object requestBody)
+    {
+        var microserviceUrl = $"{_discussionSettings.DiscussionUrl}/api/v1.0/posts/";
+
+        var response = await _httpClient.PutAsJsonAsync(microserviceUrl, requestBody);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return StatusCode((int)response.StatusCode, content);
+        }
+        else
+        {
+            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeletePost(string id)
+    {
+        var microserviceUrl = $"{_discussionSettings.DiscussionUrl}/api/v1.0/posts/{id}";
+
+        var response = await _httpClient.DeleteAsync(microserviceUrl);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return StatusCode((int)response.StatusCode, content);
+        }
+        else
+        {
+            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+        }
+    }   
+}

@@ -13,7 +13,7 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("/api/v1.0/news")]
-public class NewsController (INewsService _newsService, IEditorService _editorService, IMarkService _markService, IPostService _postService) : ControllerBase
+public class NewsController (INewsService _newsService, IEditorService _editorService, IMarkService _markService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAllNews()
@@ -34,8 +34,9 @@ public class NewsController (INewsService _newsService, IEditorService _editorSe
         [HttpGet("{id:long}/posts")]
         public async Task<IActionResult> GetPostsByNewsId(long id)
         {
-            var posts = await _postService.GetPostsByNewsId(new PostRequestToGetByNewsId() { NewsId = id });
-            return Ok(posts);
+            throw new NotImplementedException();
+            //var posts = await _postService.GetPostsByNewsId(new PostRequestToGetByNewsId() { NewsId = id });
+            //return Ok(posts);
         }
         [HttpGet("{id:long}")]
         public async Task<IActionResult> GetNewsById(long id)

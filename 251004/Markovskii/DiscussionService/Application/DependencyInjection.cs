@@ -9,9 +9,7 @@ public static class DependencyInjection
 {
     public static void AddApplication(this IServiceCollection services)
     {
-        services.AddSingleton<IEditorService, EditorService>();
-        services.AddSingleton<INewsService, NewsService>();
-        services.AddSingleton<IMarkService, MarkService>();
+        services.AddSingleton<IPostService, PostService>();
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
     }
 }

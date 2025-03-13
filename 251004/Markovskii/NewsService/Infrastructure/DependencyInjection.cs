@@ -13,7 +13,6 @@ public static class DependencyInjection
 
         services.AddSingleton<IMarkRepository, PgMarkRepository>();
         services.AddSingleton<IEditorRepository, PgEditorRepository>();
-        services.AddSingleton<IPostRepository, PgPostRepository>();
         services.AddSingleton<INewsRepository, PgNewsRepository>(); 
 
         return services;

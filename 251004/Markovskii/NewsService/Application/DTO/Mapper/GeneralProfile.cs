@@ -25,10 +25,6 @@ public class GeneralProfile : Profile
         CreateMap<NewsRequestToFullUpdate, News>();
         CreateMap<News, NewsResponseToGetById>();
         
-        CreateMap<PostRequestToCreate, Post>();
-        CreateMap<PostRequestToFullUpdate, Post>();
-        CreateMap<Post, PostResponseToGetById>();
-        
         CreateMap<MarkRequestToCreate, Mark>();
         CreateMap<MarkRequestToFullUpdate, Mark>();
         CreateMap<Mark, MarkResponseToGetById>();
