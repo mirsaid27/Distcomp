@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size
 data class IssueRequestTo(
     val id: Long = 0,
     val writerId: Long = 0,
+    val labels: List<String> = listOf(),
 
     @field:Size(min = 2, max = 64)
     val title: String = "",

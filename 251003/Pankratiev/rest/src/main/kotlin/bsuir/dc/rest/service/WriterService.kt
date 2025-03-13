@@ -4,14 +4,14 @@ import bsuir.dc.rest.dto.from.WriterRequestTo
 import bsuir.dc.rest.dto.to.WriterResponseTo
 import bsuir.dc.rest.mapper.toEntity
 import bsuir.dc.rest.mapper.toResponse
-import bsuir.dc.rest.repository.memory.IssueInMemoryRepository
-import bsuir.dc.rest.repository.memory.WriterInMemoryRepository
+import bsuir.dc.rest.repository.IssueRepository
+import bsuir.dc.rest.repository.WriterRepository
 import org.springframework.stereotype.Service
 
 @Service
 class WriterService(
-    private val writerRepository: WriterInMemoryRepository,
-    private val issueRepository: IssueInMemoryRepository,
+    private val writerRepository: WriterRepository,
+    private val issueRepository: IssueRepository,
 ) {
     fun createWriter(writerRequestTo: WriterRequestTo): WriterResponseTo {
         val writer = writerRequestTo.toEntity()
@@ -20,7 +20,7 @@ class WriterService(
     }
 
     fun getWriterById(id: Long): WriterResponseTo {
-        val writer = writerRepository.findById(id)
+        val writer = writerRepository.findById(id).orElseThrow { NoSuchElementException() }
         return writer.toResponse()
     }
 
@@ -29,16 +29,16 @@ class WriterService(
 
     fun updateWriter(id: Long, writerRequestTo: WriterRequestTo): WriterResponseTo {
         val updatedWriter = writerRequestTo.toEntity().apply { this.id = id }
-        return writerRepository.update(updatedWriter).toResponse()
+        return writerRepository.save(updatedWriter).toResponse()
     }
 
     fun deleteWriter(id: Long) {
+        writerRepository.findById(id).orElseThrow { NoSuchElementException() }
         writerRepository.deleteById(id)
     }
 
-    fun getWriterByIssueId(issueId: Long): WriterResponseTo {
-        val issue = issueRepository.findById(issueId)
-        val writer = writerRepository.findById(issue.writerId)
-        return writer.toResponse()
+    fun getWriterByIssueId(issueId: Long): WriterResponseTo? {
+        val issue = issueRepository.findById(issueId).orElseThrow { NoSuchElementException() }
+        return issue.writer.toResponse()
     }
 }
