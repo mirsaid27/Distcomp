@@ -23,6 +23,8 @@ public class ErrorHandler {
         BadRequestException(HttpStatus.BAD_REQUEST, 5),
         NoSuchElementException(HttpStatus.NOT_FOUND, 6),
         DataIntegrityViolationException(HttpStatus.FORBIDDEN, 7),
+        NotFound(HttpStatus.NOT_FOUND, 8),
+        Forbidden(HttpStatus.FORBIDDEN, 9),
         RuntimeException(HttpStatus.INTERNAL_SERVER_ERROR, 99);
 
         private final HttpStatusCode httpStatusCode;

@@ -28,5 +28,6 @@ public interface Repo<T> extends JpaRepository<T, Long> {
         } else {
             throw new NoSuchElementException("No element with id " + id);
         }
+
     }
 }
