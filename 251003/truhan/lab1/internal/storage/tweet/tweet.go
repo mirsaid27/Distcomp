@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Khmelov/Distcomp/251003/truhan/lab1/internal/model"
@@ -46,7 +45,6 @@ func (r repo) Create(ctx context.Context, req model.Tweet) (model.Tweet, error) 
 
 	err := r.db.QueryRowContext(ctx, query, req.AuthorID, req.Title, req.Content).Scan(&id, &created)
 	if err != nil {
-		log.Println(err)
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23503" {
 			return model.Tweet{}, ErrTweetNotFound
 		}
@@ -92,7 +90,6 @@ func (r repo) Get(ctx context.Context, id int64) (model.Tweet, error) {
 			return result, ErrTweetNotFound
 		}
 
-		log.Println(err.Error())
 		return result, fmt.Errorf("failed to retrieve tweet by ID: %w", err)
 	}
 
@@ -110,11 +107,9 @@ func (r repo) Update(ctx context.Context, req model.Tweet) (model.Tweet, error) 
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Println("tweet not found with id:", req.ID)
 			return result, ErrTweetNotFound
 		}
 
-		log.Println("error with query:", err)
 		return result, fmt.Errorf("failed to update tweet: %w", err)
 	}
 
@@ -126,18 +121,15 @@ func (r repo) Delete(ctx context.Context, id int64) error {
 
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
-		log.Println("Error executing DELETE query:", err)
 		return fmt.Errorf("failed to delete tweet: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Println("Error getting rows affected:", err)
 		return fmt.Errorf("failed to check rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
-		log.Println("No tweet found with ID:", id)
 		return ErrTweetNotFound
 	}
 

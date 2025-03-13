@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
-
 	"github.com/Khmelov/Distcomp/251003/truhan/lab1/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -43,7 +41,6 @@ func (r repo) Create(ctx context.Context, req model.Label) (model.Label, error) 
 
 	err := r.db.QueryRowContext(ctx, query, req.Name).Scan(&id)
 	if err != nil {
-		log.Println(err)
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 			return model.Label{}, ErrConstraintsCheck
 		}
@@ -61,18 +58,15 @@ func (r repo) Delete(ctx context.Context, id int64) error {
 
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
-		log.Println("Error executing DELETE query:", err)
 		return fmt.Errorf("failed to delete Repo: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Println("Error getting rows affected:", err)
 		return fmt.Errorf("failed to check rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
-		log.Println("No Repo found with ID:", id)
 		return ErrCommentNotFound
 	}
 
@@ -121,11 +115,9 @@ func (r repo) Update(ctx context.Context, req model.Label) (model.Label, error) 
 	err := r.db.QueryRowContext(ctx, query, req.Name, req.ID).Scan(&result.ID, &result.Name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Println("Repo not found with id:", req.ID)
 			return result, ErrCommentNotFound
 		}
 
-		log.Println("error with query:", err)
 		return result, fmt.Errorf("failed to update Repo: %w", err)
 	}
 

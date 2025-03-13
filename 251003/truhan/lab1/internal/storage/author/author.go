@@ -5,20 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
-
 	"github.com/Khmelov/Distcomp/251003/truhan/lab1/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
 var (
-	ErrLoginExists       = fmt.Errorf("author with this login already exists")
-	ErrAuthorNotFound    = fmt.Errorf("author not found")
-	ErrFailedToCreate    = fmt.Errorf("failed to create Repo")
-	ErrFailedToUpdate    = fmt.Errorf("failed to update Repo")
-	ErrFailedToDelete    = fmt.Errorf("failed to delete Repo")
-	ErrInvalidAuthorData = fmt.Errorf("invalid Repo data")
+	ErrLoginExists    = fmt.Errorf("author with this login already exists")
+	ErrAuthorNotFound = fmt.Errorf("author not found")
 )
 
 type Repo interface {
@@ -104,11 +98,9 @@ func (r repo) Update(ctx context.Context, req model.Author) (model.Author, error
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Println("Repo not found with id:", req.ID)
 			return result, ErrAuthorNotFound
 		}
 
-		log.Println("error with query:", err)
 		return result, fmt.Errorf("failed to update Repo: %w", err)
 	}
 
@@ -120,18 +112,15 @@ func (r repo) Delete(ctx context.Context, id int64) error {
 
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
-		log.Println("Error executing DELETE query:", err)
 		return fmt.Errorf("failed to delete Repo: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Println("Error getting rows affected:", err)
 		return fmt.Errorf("failed to check rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
-		log.Println("No Repo found with ID:", id)
 		return ErrAuthorNotFound
 	}
 
