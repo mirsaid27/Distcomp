@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { auth, Client, mapping } from 'cassandra-driver';
+import { Client, mapping } from 'cassandra-driver';
 import { config } from 'dotenv';
 config();
 
 @Injectable()
 export class CassandraService {
-  private client: Client;
+  public client: Client;
   mapper: mapping.Mapper;
 
   constructor(private configService: ConfigService) {
@@ -15,13 +15,9 @@ export class CassandraService {
 
   private createClient() {
     this.client = new Client({
-      contactPoints: ['localhost'],
+      contactPoints: ['127.0.0.1:9042'],
       localDataCenter: 'datacenter1',
       keyspace: 'distcomp',
-      authProvider: new auth.PlainTextAuthProvider('cassandra', 'cassandra'),
-      protocolOptions: {
-        port: 9042,
-      },
     });
   }
 

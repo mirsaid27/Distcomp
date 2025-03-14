@@ -15,6 +15,5 @@ import { CassandraModule } from './cassandra/cassandra.module';
   ],
   controllers: [AppController],
   providers: [AppService],
-  exports: [],
 })
 export class AppModule {}
