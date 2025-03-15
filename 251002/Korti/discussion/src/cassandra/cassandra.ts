@@ -23,7 +23,12 @@ export class Cassandra {
           models: {
             Note: {
               tables: ['tbl_note'],
-              mappings: new mapping.UnderscoreCqlToCamelCaseMappings(),
+              columns: {
+                articleId: 'articleid',
+                id: 'id',
+                content: 'content',
+                country: 'country',
+              },
             },
           },
         });
