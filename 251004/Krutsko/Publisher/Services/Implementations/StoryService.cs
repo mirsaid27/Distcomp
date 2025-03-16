@@ -58,6 +58,7 @@ public class StoryService : IStoryService
         var storyToUpdate = _mapper.Map<Story>(story);
         
         storyToUpdate.Modified = DateTime.UtcNow;
+        storyToUpdate.Created = DateTime.UtcNow;
         
         var updatedStory = await _storyRepository.UpdateAsync(storyToUpdate)
                            ?? throw new NotFoundException(ErrorCodes.StoryNotFound, ErrorMessages.StoryNotFoundMessage(story.Id));

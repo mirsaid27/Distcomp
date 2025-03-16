@@ -25,16 +25,17 @@ public static class KafkaExtensions
     public static IServiceCollection AddKafkaConsumer<TK, TV, THandler>(this IServiceCollection services,
         Action<KafkaConsumerConfig> configAction) where THandler : class, IKafkaHandler<TK, TV>
     {
+        services.Configure(configAction);
         services.AddScoped<IKafkaHandler<TK, TV>, THandler>();
         services.AddHostedService<BackgroundKafkaConsumer<TK, TV>>();
-        services.Configure(configAction);
-
+        
         return services;
     }
 
     public static IServiceCollection AddKafkaProducer<TK, TV>(this IServiceCollection services,
         Action<KafkaProducerConfig> configAction)
     {
+        services.Configure(configAction);
         services.AddSingleton(
             sp =>
             {
@@ -47,8 +48,6 @@ public static class KafkaExtensions
             });
 
         services.AddSingleton<IKafkaProducer<TK, TV>, KafkaProducer<TK, TV>>();
-
-        services.Configure(configAction);
 
         return services;
     }

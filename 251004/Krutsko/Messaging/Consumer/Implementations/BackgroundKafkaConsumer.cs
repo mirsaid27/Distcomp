@@ -19,29 +19,49 @@ public class BackgroundKafkaConsumer<TK, TV> : BackgroundService
         _config = config.Value;
     }
     
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var scope = _serviceScopeFactory.CreateScope();
-        var handler = scope.ServiceProvider.GetRequiredService<IKafkaHandler<TK, TV>>();
-
-        var builder = new ConsumerBuilder<TK, TV>(_config)
-            .SetValueDeserializer(new Deserializer<TV>());
-
-        using var consumer = builder.Build();
-        consumer.Subscribe(_config.Topic);
-
-        while (!stoppingToken.IsCancellationRequested)
+        return Task.Run(() =>
         {
-            var result = consumer.Consume(stoppingToken);
+            using var consumer = new ConsumerBuilder<TK, TV>(_config)
+                .SetValueDeserializer(new Deserializer<TV>())
+                .Build();
+            consumer.Subscribe(_config.Topic);
 
-            if (result != null)
+            try
             {
-                await handler.HandleAsync(result.Message.Key, result.Message.Value);
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    var result = consumer.Consume(TimeSpan.FromMilliseconds(1000));
+                    if (result != null)
+                    {
+                        // Для каждого сообщения создаём новый scope
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var handler = scope.ServiceProvider.GetRequiredService<IKafkaHandler<TK, TV>>();
 
-                consumer.Commit(result);
-                
-                consumer.StoreOffset(result);
+                        // Можно синхронно ожидать обработку, так как мы находимся в отдельном потоке
+                        handler.HandleAsync(result.Message.Key, result.Message.Value)
+                            .GetAwaiter().GetResult();
+
+                        consumer.Commit(result);
+                        consumer.StoreOffset(result);
+                    }
+                }
             }
-        }
+            catch (OperationCanceledException)
+            {
+                // Ожидаемое завершение
+            }
+            catch (Exception ex)
+            {
+                // Здесь можно добавить логирование ошибки
+                Console.WriteLine($"Ошибка в цикле потребления: {ex.Message}");
+            }
+            finally
+            {
+                consumer.Close();
+            }
+        }, stoppingToken);
     }
+
 }

@@ -17,7 +17,7 @@ public static class ServiceExtensions
         services.AddScoped<IUserRepository, DatabaseUserRepository>();
         services.AddScoped<IStoryRepository, DatabaseStoryRepository>();
         services.AddScoped<ITagRepository, DatabaseTagRepository>();
-
+        
         return services;
     }
 

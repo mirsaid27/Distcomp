@@ -39,10 +39,22 @@ builder.Services.AddDbContext(builder.Configuration)
     .AddKafkaProducer<string, KafkaMessage<NoticeRequestDTO>>(options =>
     {
         options.Topic = "InTopic";
+        options.BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKER");
+        options.AllowAutoCreateTopics = true;
     })
     .AddKafkaConsumer<string, KafkaMessage<NoticeResponseDTO>, OutTopicHandler>(options =>
     {
         options.Topic = "OutTopic";
+        options.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+        options.EnableAutoOffsetStore = false;
+        options.GroupId = "notices-group";
+        options.BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKER");
+        options.AllowAutoCreateTopics = true;  ///!!!!!!!!!!!!!!
+    })
+    .AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = Environment.GetEnvironmentVariable("REDIS_HOST");
+        options.InstanceName = "Publisher";
     });
 
 var app = builder.Build();
