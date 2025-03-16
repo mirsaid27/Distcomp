@@ -39,7 +39,6 @@ public class DiscussionClient : IDiscussionClient
 
         var responseJson = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<NoticeResponseDTO>(responseJson, JsonSerializerOptions);
-
     }
 
     public async Task<NoticeResponseDTO?> CreateNoticeAsync(NoticeRequestDTO post)

@@ -4,6 +4,11 @@ using Publisher.Infrastructure.Mapper;
 using Publisher.Infrastructure.Validators;
 using Publisher.Middleware;
 using FluentValidation;
+using Messaging;
+using Messaging.Extensions;
+using Publisher.Consumers;
+using Publisher.DTO.RequestDTO;
+using Publisher.DTO.ResponseDTO;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,12 +34,23 @@ builder.Services.AddValidatorsFromAssemblyContaining<UserRequestDTOValidator>();
 builder.Services.AddRepositories();
 builder.Services.AddServices();
 builder.Services.AddDiscussionClient();
-builder.Services.AddDbContext(builder.Configuration);
+builder.Services.AddDbContext(builder.Configuration)
+    .AddKafkaMessageBus()
+    .AddKafkaProducer<string, KafkaMessage<NoticeRequestDTO>>(options =>
+    {
+        options.Topic = "InTopic";
+    })
+    .AddKafkaConsumer<string, KafkaMessage<NoticeResponseDTO>, OutTopicHandler>(options =>
+    {
+        options.Topic = "OutTopic";
+    });
 
 var app = builder.Build();
 
 // Middleware для глобальных ошибок
 app.UseMiddleware<GlobalExceptionMiddleware>();
+
+app.Map("/", () => "Hello, World!");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -49,5 +65,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.ApplyMigrations(app.Services);
 
 app.Run();

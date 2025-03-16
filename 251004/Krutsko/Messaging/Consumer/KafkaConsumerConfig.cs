@@ -10,5 +10,8 @@ public class KafkaConsumerConfig : ConsumerConfig
     {
         AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
         EnableAutoOffsetStore = false;
+        GroupId = "my-consumer-group";
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKER");
+        AllowAutoCreateTopics = true; ///!!!!!!!!!!!!!!
     }
 }

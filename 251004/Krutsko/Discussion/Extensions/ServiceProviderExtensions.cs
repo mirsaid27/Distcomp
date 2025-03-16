@@ -13,8 +13,8 @@ public static class ServiceProviderExtensions
 {
     public static IServiceCollection AddCassandra(this IServiceCollection services, IConfiguration config)
     {
-        var address = config.GetValue<string>("Cassandra:Address");
-        var schema = config.GetValue<string>("Cassandra:Schema");
+        var address = Environment.GetEnvironmentVariable("CASSANDRA_HOST");
+        var schema = Environment.GetEnvironmentVariable("SCHEMA");
         var session = new CassandraConnector(address!, schema!).GetSession();
         services.AddSingleton(session);
             

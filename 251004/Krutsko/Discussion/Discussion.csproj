@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,6 +14,16 @@
         <PackageReference Include="AutoMapper" Version="13.0.1" />
         <PackageReference Include="FluentValidation" Version="11.11.0" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Messaging\Messaging.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

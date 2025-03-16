@@ -1,6 +1,11 @@
 using System.Text.Json.Serialization;
+using Discussion.DTO.Request;
+using Discussion.DTO.Response;
 using Discussion.Extensions;
+using Discussion.KafkaConsumers;
 using Discussion.Middleware;
+using Messaging;
+using Messaging.Extensions;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,9 +24,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCassandra(builder.Configuration)
     .AddServices()
     .AddRepositories()
-    .AddInfrastructure();
+    .AddInfrastructure()
+    .AddKafkaProducer<string, KafkaMessage<NoticeResponseDTO>>(options =>
+    {
+        options.Topic = "OutTopic";
+    })
+    .AddKafkaConsumer<string, KafkaMessage<NoticeRequestDTO>, InTopicHandler>(options =>
+    {
+        options.Topic = "InTopic";
+    });
 
 var app = builder.Build();
+
+app.Map("/", () => "Hello, World!");
 
 // Middleware для глобальных ошибок
 app.UseMiddleware<GlobalExceptionMiddleware>();
