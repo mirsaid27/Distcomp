@@ -32,7 +32,7 @@ public class BackgroundKafkaConsumer<TK, TV> : BackgroundService
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    var result = consumer.Consume(TimeSpan.FromMilliseconds(1000));
+                    var result = consumer.Consume(stoppingToken);
                     if (result != null)
                     {
                         // Для каждого сообщения создаём новый scope

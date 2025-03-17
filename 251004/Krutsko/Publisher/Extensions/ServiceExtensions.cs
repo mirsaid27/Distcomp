@@ -3,6 +3,7 @@ using Publisher.Data;
 using Publisher.HttpClients;
 using Publisher.HttpClients.Implementations;
 using Publisher.HttpClients.Interfaces;
+using Publisher.Repositories;
 using Publisher.Repositories.Implementations;
 using Publisher.Repositories.Interfaces;
 using Publisher.Services.Implementations;
@@ -18,6 +19,21 @@ public static class ServiceExtensions
         services.AddScoped<IStoryRepository, DatabaseStoryRepository>();
         services.AddScoped<ITagRepository, DatabaseTagRepository>();
         
+        // Download Scrutor to Decorate
+        services.Decorate<IUserRepository, CachedUserRepository>();
+        services.Decorate<IStoryRepository, CachedStoryRepository>();
+        services.Decorate<ITagRepository, CachedTagRepository>();
+        
+        /*
+        services.AddScoped<DatabaseUserRepository>();
+        services.AddScoped<IUserRepository>(sp =>
+        {
+            var innerRepo = sp.GetRequiredService<DatabaseUserRepository>();
+            var cache = sp.GetRequiredService<IDistributedCache>();
+            return new CachedUserRepository(innerRepo, cache);
+        });
+        */
+        
         return services;
     }
 
@@ -26,7 +42,9 @@ public static class ServiceExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IStoryService, StoryService>();
         services.AddScoped<ITagService, TagService>();
+        
         services.AddScoped<IDiscussionClient, DiscussionClient>();
+        services.Decorate<IDiscussionClient, CachedDiscussionClient>();
 
         return services;
     }

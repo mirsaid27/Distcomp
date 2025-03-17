@@ -5,6 +5,8 @@ using Publisher.DTO.ResponseDTO;
 using Publisher.Exceptions;
 using Publisher.Infrastructure.Validators;
 using Publisher.Models;
+using Publisher.Repositories;
+using Publisher.Repositories.Implementations;
 using Publisher.Repositories.Interfaces;
 using Publisher.Services.Interfaces;
 using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;

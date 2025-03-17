@@ -105,6 +105,7 @@ services:
       POSTGRES_PORT: 5432
       DISCUSSION_HOST: discussion
       KAFKA_BROKER: kafka:9092
+      REDIS_HOST: redis
     depends_on:
       - postgres
       - init-kafka-topics
@@ -122,7 +123,6 @@ services:
       CASSANDRA_HOST: cassandra
       SCHEMA: distcomp
       KAFKA_BROKER: kafka:9092
-      REDIS_HOST: redis
     depends_on:
       - init-cassandra
       - init-kafka-topics
