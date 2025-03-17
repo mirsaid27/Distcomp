@@ -2,13 +2,13 @@
 #include <format>
 #include <iostream>
 
-DBController::~DBController() {
+PostgresController::~PostgresController() {
     if (m_connection && m_connection->is_open()) {
         m_connection->close();
     }
 }
 
-bool DBController::initialize() {
+bool PostgresController::initialize() {
     std::string connection_query = std::format(
         "dbname={} user={} password={} host={} port={}", 
         SCEME, USER, PASSWORD, HOST, PORT
@@ -27,7 +27,7 @@ bool DBController::initialize() {
     return true;
 }
 
-pqxx::result DBController::execute(const std::string& query) noexcept {
+pqxx::result PostgresController::execute(const std::string& query) noexcept {
     pqxx::result result{};
     try {
         pqxx::work txn(*m_connection);

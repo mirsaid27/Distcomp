@@ -1,39 +1,40 @@
 #pragma once
 #include <httplib.h>
 #include <concepts>
-#include "DBController.hpp"
+#include "Entity.hpp"
+#include "CassandraController.hpp"
     
-template<Entity T>
-class Handler {
+template<CassandraEntity T>
+class DiscussionHandler {
 public:
-    explicit Handler(std::shared_ptr<DBController> controller);
-    ~Handler() = default;
+    explicit DiscussionHandler(std::shared_ptr<CassandraController> controller);
+    ~DiscussionHandler() = default;
 
     void initialize();
     void handle_post(const httplib::Request& req, httplib::Response& res);
     void handle_get_all(const httplib::Request& req, httplib::Response& res);
-    void handle_get_one(const httplib::Request& req, httplib::Response& res, uint64_t id);
-    void handle_delete(const httplib::Request& req, httplib::Response& res, uint64_t id);
+    void handle_get_one(const httplib::Request& req, httplib::Response& res, const std::string& id);
+    void handle_delete(const httplib::Request& req, httplib::Response& res, const std::string& id);
     void handle_put(const httplib::Request& req, httplib::Response& res);
 
 private:
-    std::shared_ptr<DBController> m_controller;
+    std::shared_ptr<CassandraController> m_controller;
 };
 
-template <Entity T>
-inline Handler<T>::Handler(std::shared_ptr<DBController> controller)
+template <CassandraEntity T>
+inline DiscussionHandler<T>::DiscussionHandler(std::shared_ptr<CassandraController> controller)
 {
     m_controller = std::move(controller);
 }
 
-template <Entity T>
-void Handler<T>::initialize()
+template <CassandraEntity T>
+void DiscussionHandler<T>::initialize()
 {
     auto result = m_controller->create_table<T>();
 }
 
-template<Entity T>
-void Handler<T>::handle_post(const httplib::Request& req, httplib::Response& res) {
+template<CassandraEntity T>
+void DiscussionHandler<T>::handle_post(const httplib::Request& req, httplib::Response& res) {
     T entity{};
     try {
         entity = T::from_json(req.body);
@@ -53,8 +54,8 @@ void Handler<T>::handle_post(const httplib::Request& req, httplib::Response& res
     }
 }
 
-template<Entity T>
-void Handler<T>::handle_get_all(const httplib::Request& req, httplib::Response& res) {
+template<CassandraEntity T>
+void DiscussionHandler<T>::handle_get_all(const httplib::Request& req, httplib::Response& res) {
     std::vector<T> entities = m_controller->get_all<T>();
 
     json entities_json = json::array();
@@ -68,8 +69,8 @@ void Handler<T>::handle_get_all(const httplib::Request& req, httplib::Response& 
     res.set_content(entities_json.dump(), "application/json");
 }
 
-template<Entity T>
-void Handler<T>::handle_get_one(const httplib::Request& req, httplib::Response& res, uint64_t id) {
+template<CassandraEntity T>
+void DiscussionHandler<T>::handle_get_one(const httplib::Request& req, httplib::Response& res, const std::string& id) {
     std::optional<T> entity = m_controller->get_by_id<T>(id);
 
     if (entity.has_value()) {
@@ -82,8 +83,8 @@ void Handler<T>::handle_get_one(const httplib::Request& req, httplib::Response& 
     }
 }
 
-template<Entity T>
-void Handler<T>::handle_delete(const httplib::Request& req, httplib::Response& res, uint64_t id) {
+template<CassandraEntity T>
+void DiscussionHandler<T>::handle_delete(const httplib::Request& req, httplib::Response& res, const std::string& id) {
     if (m_controller->delete_by_id<T>(id)){
         res.status = 204;
     }
@@ -92,8 +93,8 @@ void Handler<T>::handle_delete(const httplib::Request& req, httplib::Response& r
     }
 }
 
-template<Entity T>
-void Handler<T>::handle_put(const httplib::Request& req, httplib::Response& res) {
+template<CassandraEntity T>
+void DiscussionHandler<T>::handle_put(const httplib::Request& req, httplib::Response& res) {
     T entity = T::from_json(req.body);
     m_controller->update_by_id(entity);
     res.status = 200;

@@ -19,12 +19,12 @@ private:
     constexpr static uint16_t SERVER_PORT = 24110;
 
     httplib::Server m_server;
-    std::shared_ptr<DBController> m_controller;
+    std::shared_ptr<PostgresController> m_controller;
 };
 
 template<Entity ... Ts>
 Server<Ts...>::Server() noexcept {
-    m_controller = std::make_shared<DBController>();
+    m_controller = std::make_shared<PostgresController>();
     m_controller->initialize();
     (register_entity<Ts>(), ...);
 }

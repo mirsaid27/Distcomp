@@ -8,34 +8,34 @@
 
 using namespace std::string_literals;
 
-class DBController final {
+class PostgresController final {
 public:
-    DBController() noexcept = default;
-    ~DBController() noexcept;
+    PostgresController() noexcept = default;
+    ~PostgresController();
 
-    DBController(const DBController&) = delete;
-    DBController(DBController&&) = delete;
-    DBController& operator=(const DBController&) = delete;
-    DBController& operator=(DBController&&) = delete;
+    PostgresController(const PostgresController&) = delete;
+    PostgresController(PostgresController&&) = delete;
+    PostgresController& operator=(const PostgresController&) = delete;
+    PostgresController& operator=(PostgresController&&) = delete;
 
     bool initialize();
 
-    template<Entity T>
+    template<PostgresEntity T>
     [[nodiscard]] bool create_table();
                     
-    template<Entity T>
+    template<PostgresEntity T>
     [[nodiscard]] bool insert(const T& entity);
 
-    template<Entity T>
+    template<PostgresEntity T>
     std::vector<T> get_all();
 
-    template<Entity T>
+    template<PostgresEntity T>
     std::optional<T> get_by_id(uint64_t id);
 
-    template<Entity T>
+    template<PostgresEntity T>
     void update_by_id(const T& entity);
 
-    template<Entity T>
+    template<PostgresEntity T>
     [[nodiscard]] bool delete_by_id(uint64_t id);
     
 private:
@@ -52,8 +52,8 @@ private:
     std::unique_ptr<pqxx::connection> m_connection;
 };
 
-template<Entity T>
-std::vector<T> DBController::get_all() {
+template<PostgresEntity T>
+std::vector<T> PostgresController::get_all() {
     std::string query = std::format(
         "SELECT * FROM {};", 
         T::table_name
@@ -67,8 +67,8 @@ std::vector<T> DBController::get_all() {
     return entities;
 }
 
-template<Entity T>
-std::optional<T> DBController::get_by_id(uint64_t id) {
+template<PostgresEntity T>
+std::optional<T> PostgresController::get_by_id(uint64_t id) {
     std::string query = std::format(
         "SELECT * FROM {} WHERE id = {};", 
         T::table_name,
@@ -81,8 +81,8 @@ std::optional<T> DBController::get_by_id(uint64_t id) {
     return T::from_row(result[0]);
 }
 
-template<Entity T>
-bool DBController::create_table() 
+template<PostgresEntity T>
+bool PostgresController::create_table() 
 {
     std::string drop_query = std::format(
         "DROP TABLE IF EXISTS {} CASCADE;", 
@@ -95,23 +95,23 @@ bool DBController::create_table()
     return true;
 }
 
-template<Entity T>
-bool DBController::insert(const T& entity) 
+template<PostgresEntity T>
+bool PostgresController::insert(const T& entity) 
 {
     std::string insert_query = entity.generate_insert_query();
     auto result = execute(insert_query);
     return result.affected_rows() > 0;
 }
 
-template<Entity T>
-void DBController::update_by_id(const T& entity) 
+template<PostgresEntity T>
+void PostgresController::update_by_id(const T& entity) 
 {
     std::string update_query = entity.generate_update_query();
     auto result = execute(update_query);
 }
 
-template<Entity T>
-bool DBController::delete_by_id(uint64_t id) 
+template<PostgresEntity T>
+bool PostgresController::delete_by_id(uint64_t id) 
 {
     std::string query = std::format(
         "DELETE FROM {} WHERE id = {};", 
