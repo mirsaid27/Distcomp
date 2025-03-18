@@ -7,8 +7,7 @@ using Shared.Domain;
 
 namespace Application.Features.Reaction.Queries;
 
-public class GetReactionByIdQueryHandler
-    : IQueryHandler<GetReactionByIdQuery, ReactionMongoProjection>
+public class GetReactionByIdQueryHandler : IQueryHandler<GetReactionByIdQuery, ReactionProjection>
 {
     private readonly IReactionRepository _reactionRepository;
 
@@ -17,7 +16,7 @@ public class GetReactionByIdQueryHandler
         _reactionRepository = reactionRepository;
     }
 
-    public async Task<Result<ReactionMongoProjection>> Handle(
+    public async Task<Result<ReactionProjection>> Handle(
         GetReactionByIdQuery request,
         CancellationToken cancellationToken
     )
@@ -26,9 +25,9 @@ public class GetReactionByIdQueryHandler
 
         if (!resultReaction.IsSuccess)
         {
-            return Result.Failure<ReactionMongoProjection>(resultReaction.Error);
+            return Result.Failure<ReactionProjection>(resultReaction.Error);
         }
 
-        return resultReaction.Value.ToReactionMongoProjection();
+        return resultReaction.Value.ToReactionProjection();
     }
 }

@@ -13,44 +13,11 @@ using Shared.Domain;
 
 namespace Infrastructure.Repositories.Mongo;
 
-/*public static class ToMongoModelMapper*/
-/*{*/
-/*    public static ReactionMongoModel ToMongoModel(this ReactionModel model)*/
-/*    {*/
-/*        return new ReactionMongoModel*/
-/*        {*/
-/*            Id = model.Id.ToString(),*/
-/*            TweetId = model.TweetId,*/
-/*            Content = model.Content,*/
-/*        };*/
-/*    }*/
-/*}*/
-
-/*public static class ToModelMapper*/
-/*{*/
-/*    public static ReactionModel ToModel(this ReactionMongoModel model)*/
-/*    {*/
-/*        return new ReactionModel*/
-/*        {*/
-/*            Id = long.Parse(model.Id),*/
-/*            TweetId = model.TweetId,*/
-/*            Content = model.Content,*/
-/*        };*/
-/*    }*/
-/*}*/
-
 public class ReactionRepositoryMongo : IReactionRepository, IMongoRepository
 {
     private readonly IMongoCollection<ReactionMongoModel> _reactionCollection;
-    private long _idGenerator = 1;
-    private ILogger<ReactionRepositoryMongo> _logger;
-    private Dictionary<long, string> _numericIdToMongoId = new();
-    private Dictionary<string, long> _mongoIdToNumericId = new();
 
-    public ReactionRepositoryMongo(
-        IOptions<MongoOptions> settings,
-        ILogger<ReactionRepositoryMongo> logger
-    )
+    public ReactionRepositoryMongo(IOptions<MongoOptions> settings)
     {
         var mongoClient = new MongoClient(settings.Value.MongoConnectionString);
 
@@ -59,30 +26,29 @@ public class ReactionRepositoryMongo : IReactionRepository, IMongoRepository
         _reactionCollection = mongoDatabase.GetCollection<ReactionMongoModel>(
             settings.Value.ReactionCollectionName
         );
-        _logger = logger;
+
+        var indexKeysDefinition = Builders<ReactionMongoModel>.IndexKeys.Ascending(p => p.Id);
+        var indexModel = new CreateIndexModel<ReactionMongoModel>(
+            indexKeysDefinition,
+            new CreateIndexOptions { Unique = true }
+        );
+        _reactionCollection.Indexes.CreateOne(indexModel);
     }
 
-    private long getNextId()
+    public async Task<Result<ReactionModel>> CreateReaction(ReactionModel reaction)
     {
-        return _idGenerator++;
-    }
+        var reactionMongo = reaction.ToReactionMongoModel();
+        var maxReaction = await _reactionCollection
+            .Find(_ => true)
+            .SortByDescending(p => p.Id)
+            .Limit(1)
+            .FirstOrDefaultAsync();
+        reactionMongo.Id = (maxReaction?.Id ?? 0) + 1;
+        reactionMongo.MongoId = ObjectId.GenerateNewId();
 
-    public async Task<Result<ReactionMongoModel>> CreateReaction(ReactionMongoModel reaction)
-    {
-        /*var reactionMongo = reaction.ToMongoModel();*/
-        var newId = getNextId();
-        var newMongoId = ObjectId.GenerateNewId().ToString();
-        _numericIdToMongoId.Add(newId, newMongoId);
-        _mongoIdToNumericId.Add(newMongoId, newId);
-        reaction.Id = newMongoId;
+        await _reactionCollection.InsertOneAsync(reactionMongo);
 
-        await _reactionCollection.InsertOneAsync(reaction);
-        _logger.LogCritical(reaction.ToString());
-
-        /*await _reactionCollection.FindAsync(x => x.Id == newId);*/
-        /*return Result.Success<ReactionModel>(reactionMongo.ToModel());*/
-        reaction.Id = newId.ToString();
-        return reaction;
+        return reactionMongo.ToReactionModel();
 
         /*catch (NpgsqlException ex) when (ex.SqlState == "23503")*/
         /*{*/
@@ -98,8 +64,7 @@ public class ReactionRepositoryMongo : IReactionRepository, IMongoRepository
 
     public async Task<Result> DeleteReaction(long id)
     {
-        var mongoId = _numericIdToMongoId[id];
-        await _reactionCollection.DeleteOneAsync(x => x.Id == mongoId);
+        var reaction = await _reactionCollection.FindOneAndDeleteAsync(r => r.Id == id);
         return Result.Success();
         /*catch (NpgsqlException ex)*/
         /*{*/
@@ -111,44 +76,57 @@ public class ReactionRepositoryMongo : IReactionRepository, IMongoRepository
         /*    : Result.Success();*/
     }
 
-    public async Task<Result<ReactionMongoModel>> GetReactionById(long id)
+    public async Task<Result<ReactionModel>> GetReactionById(long id)
     {
-        var mongoId = _numericIdToMongoId[id];
-        var result = await _reactionCollection.Find(x => x.Id == mongoId).FirstOrDefaultAsync();
-        result.Id = id.ToString();
-        return result;
+        var reaction = await _reactionCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+        if (reaction is null)
+        {
+            return Result.Failure<ReactionModel>(ReactionErrors.ReactionNotFoundError);
+        }
+        return reaction.ToReactionModel();
+
         /*catch (NpgsqlException ex)*/
         /* {*/
         /*     return Result.Failure<ReactionModel>(Error.DatabaseError);*/
         /* }*/
     }
 
-    public async Task<Result<IEnumerable<ReactionMongoModel>>> GetReactions()
+    public async Task<Result<IEnumerable<ReactionModel>>> GetReactions()
     {
-        var result = await _reactionCollection.Find(_ => true).ToListAsync();
-        result.ForEach(m => m.Id = _mongoIdToNumericId[m.Id].ToString());
-        /*foreach (var r in result)*/
-        /*{*/
-        /*    result[r.Id] = _mongoIdToNumericId[r.Id].ToString();*/
-        /*}*/
-        /*result = result.Where(m => m.Id = _mongoIdToNumericId[m.Id].ToString());*/
+        var reactions = await _reactionCollection.Find(_ => true).ToListAsync();
+        return Result.Success(reactions.Select(r => r.ToReactionModel()));
 
-        return Result.Success<IEnumerable<ReactionMongoModel>>(result);
         /*catch (NpgsqlException ex)*/
         /*{*/
         /*    return Result.Failure<IEnumerable<ReactionModel>>(Error.DatabaseError);*/
         /*}*/
     }
 
-    public async Task<Result<ReactionMongoModel>> UpdateReaction(ReactionMongoModel reaction)
+    public async Task<Result<ReactionModel>> UpdateReaction(ReactionModel reaction)
     {
-        var prevId = reaction.Id;
-        var mongoId = _numericIdToMongoId[long.Parse(reaction.Id)];
-        reaction.Id = mongoId;
+        var reactionMongo = await _reactionCollection
+            .Find(x => x.Id == reaction.Id)
+            .FirstOrDefaultAsync();
+        if (reactionMongo is null)
+        {
+            return Result.Failure<ReactionModel>(ReactionErrors.ReactionNotFoundError);
+        }
+        var newReactionMongo = reaction.ToReactionMongoModel();
+        newReactionMongo.MongoId = reactionMongo.MongoId;
 
-        await _reactionCollection.ReplaceOneAsync(x => x.Id == reaction.Id, reaction);
-        reaction.Id = prevId;
-        return reaction;
+        var result = await _reactionCollection.ReplaceOneAsync(
+            r => r.Id == reaction.Id,
+            newReactionMongo
+        );
+        if (result.IsAcknowledged && result.ModifiedCount > 0)
+        {
+            return newReactionMongo.ToReactionModel();
+        }
+        else
+        {
+            return Result.Failure<ReactionModel>(Error.Unknown);
+        }
+
         /*catch (NpgsqlException ex) when (ex.SqlState == "23503")*/
         /*{*/
         /*    return Result.Failure<ReactionModel>(ReactionErrors.TweetForReactionNotFoundError);*/

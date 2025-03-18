@@ -15,14 +15,4 @@ public static class ModelToProjectionMapper
             Content = model.Content,
         };
     }
-
-    public static ReactionMongoProjection ToReactionMongoProjection(this ReactionMongoModel model)
-    {
-        return new ReactionMongoProjection
-        {
-            Id = long.Parse(model.Id),
-            TweetId = model.TweetId,
-            Content = model.Content,
-        };
-    }
 }

@@ -9,7 +9,7 @@ using Shared.Domain;
 namespace Application.Features.Reaction.Commands;
 
 public class CreateReactionCommandHandler
-    : ICommandHandler<CreateReactionCommand, ReactionMongoProjection>
+    : ICommandHandler<CreateReactionCommand, ReactionProjection>
 {
     private readonly IReactionRepository _reactionRepository;
 
@@ -18,20 +18,20 @@ public class CreateReactionCommandHandler
         _reactionRepository = reactionRepository;
     }
 
-    public async Task<Result<ReactionMongoProjection>> Handle(
+    public async Task<Result<ReactionProjection>> Handle(
         CreateReactionCommand request,
         CancellationToken cancellationToken
     )
     {
         var resultReaction = await _reactionRepository.CreateReaction(
-            new ReactionMongoModel { TweetId = request.tweetId, Content = request.content }
+            new ReactionModel { TweetId = request.tweetId, Content = request.content }
         );
 
         if (!resultReaction.IsSuccess)
         {
-            return Result.Failure<ReactionMongoProjection>(resultReaction.Error);
+            return Result.Failure<ReactionProjection>(resultReaction.Error);
         }
 
-        return resultReaction.Value.ToReactionMongoProjection();
+        return resultReaction.Value.ToReactionProjection();
     }
 }

@@ -3,5 +3,4 @@ using Domain.Projections;
 
 namespace Application.Features.Reaction.Queries;
 
-public record class GetReactionsQuery : IQuery<IEnumerable<ReactionMongoProjection>>;
-
+public record class GetReactionsQuery : IQuery<IEnumerable<ReactionProjection>>;
