@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(Lab1 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(httplib REQUIRED)
@@ -10,12 +10,7 @@ find_package(nlohmann_json REQUIRED)
 add_executable(
     ${PROJECT_NAME}
     src/main.cpp
-    src/Server.cpp
-    src/ArticleHandler.cpp
-    src/EditorHandler.cpp
-    src/EntityHandler.cpp
-    src/CommentHandler.cpp
-    src/LabelHandler.cpp
+    src/Entity.cpp
 )
 
 target_include_directories( ${PROJECT_NAME} PRIVATE include)
