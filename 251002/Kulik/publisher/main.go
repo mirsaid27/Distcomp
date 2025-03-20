@@ -2,20 +2,39 @@ package main
 
 import (
 	// "fmt"
-
 	"log"
+	"net/http/httputil"
+	"net/url"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
 	"distributedcomputing/controllers"
-	"github.com/jmoiron/sqlx"
 	"distributedcomputing/service"
 	"distributedcomputing/storage"
+
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	// "net/http"
-	// "strconv"
 )
 
+func reverseProxy(target string) echo.HandlerFunc {
+	targetURL, err := url.Parse(target)
+	if err != nil {
+		log.Fatalf("Invalid proxy target URL: %v", err)
+	}
+
+
+	proxy := httputil.NewSingleHostReverseProxy(targetURL)
+
+
+	return func(c echo.Context) error {
+		c.Request().URL.Host = targetURL.Host
+		c.Request().URL.Scheme = targetURL.Scheme
+		c.Request().Host = targetURL.Host
+		proxy.ServeHTTP(c.Response(), c.Request())
+		return nil
+	}
+}
 
 func main() {
 	// creatorRepo := storage.NewInMemStorage[model.Creator]()
@@ -32,17 +51,17 @@ func main() {
 	
 	creatorRepo := storage.NewCreatorStorage(db)
 	storyRepo := storage.NewStoryStorage(db)
-	noteRepo := storage.NewNoteStorage(db)
+	// noteRepo := storage.NewNoteStorage(db)
 	markRepo := storage.NewMarkStorage(db)
 
 	creatorService := service.NewCreatorService(creatorRepo)
 	storyService := service.NewStoryService(storyRepo)
-	noteService := service.NewNoteService(noteRepo)
+	// noteService := service.NewNoteService(noteRepo)
 	markService := service.NewMarkService(markRepo)
 
 	creatorController := controllers.NewCreatorController(creatorService)
 	storyController := controllers.NewStoryController(storyService)
-	noteController := controllers.NewNoteController(noteService)
+	// noteController := controllers.NewNoteController(noteService)
 	markController := controllers.NewMarkController(markService)
 
 
@@ -61,11 +80,9 @@ func main() {
 	e.DELETE("/api/v1.0/stories/:id", storyController.Delete)
 	e.GET("/api/v1.0/stories/:id", storyController.Get)
 
-	e.POST("/api/v1.0/notes", noteController.Create)
-	e.PUT("/api/v1.0/notes", noteController.Update)
-	e.GET("/api/v1.0/notes", noteController.GetAll)
-	e.DELETE("/api/v1.0/notes/:id", noteController.Delete)
-	e.GET("/api/v1.0/notes/:id", noteController.Get)
+	targetIP := "http://localhost:24130"
+	e.Any("/api/v1.0/notes/*", reverseProxy(targetIP))
+	e.Any("/api/v1.0/notes", reverseProxy(targetIP))  
 
 	e.POST("/api/v1.0/marks", markController.Create)
 	e.PUT("/api/v1.0/marks", markController.Update)
