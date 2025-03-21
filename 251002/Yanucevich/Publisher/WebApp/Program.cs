@@ -16,7 +16,9 @@ builder
     .Services.AddApplicationServices()
     .AddValidationServices()
     .AddPostgresInfrastructure(builder.Configuration)
-    .AddRepositories();
+    .AddRepositories()
+    .AddKafkaPublishers(builder.Configuration)
+    .AddKafkaConsumers(builder.Configuration);
 
 builder.Services.AddControllers();
 

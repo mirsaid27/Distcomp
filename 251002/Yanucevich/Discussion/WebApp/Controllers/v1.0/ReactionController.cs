@@ -4,9 +4,11 @@ using Application.Features.Reaction.Commands;
 using Application.Features.Reaction.Queries;
 using Asp.Versioning;
 using Discussion.Abstractions;
+using Domain.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using Shared.Domain;
 
 namespace Discussion.Controllers;
 
@@ -33,7 +35,9 @@ public class ReactionController : MediatrController
     [HttpGet]
     public async Task<IActionResult> GetReactions()
     {
-        var result = await _mediator.Send(new GetReactionsQuery());
+        Result<IEnumerable<ReactionProjection>>? result = await _mediator.Send(
+            new GetReactionsQuery()
+        );
 
         if (!result.IsSuccess)
         {
@@ -59,7 +63,7 @@ public class ReactionController : MediatrController
     [HttpPut]
     public async Task<IActionResult> UpdateReaction(UpdateReactionCommand command)
     {
-        var result = await _mediator.Send(command);
+        Result<ReactionProjection> result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
         {
@@ -72,7 +76,7 @@ public class ReactionController : MediatrController
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteReaction(long id)
     {
-        var result = await _mediator.Send(new DeleteReactionCommand(id));
+        Result result = await _mediator.Send(new DeleteReactionCommand(id));
 
         if (!result.IsSuccess)
         {

@@ -10,7 +10,9 @@ builder.Logging.AddConsole();
 builder
     .Services.AddApplicationServices()
     .AddMongoInfrastructure(builder.Configuration)
-    .AddRepositories();
+    .AddRepositories()
+    .AddKafkaPublishers(builder.Configuration)
+    .AddKafkaConsumers(builder.Configuration);
 
 builder.Services.AddControllers();
 

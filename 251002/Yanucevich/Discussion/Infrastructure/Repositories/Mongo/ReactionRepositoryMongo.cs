@@ -38,12 +38,15 @@ public class ReactionRepositoryMongo : IReactionRepository, IMongoRepository
     public async Task<Result<ReactionModel>> CreateReaction(ReactionModel reaction)
     {
         var reactionMongo = reaction.ToReactionMongoModel();
-        var maxReaction = await _reactionCollection
-            .Find(_ => true)
-            .SortByDescending(p => p.Id)
-            .Limit(1)
-            .FirstOrDefaultAsync();
-        reactionMongo.Id = (maxReaction?.Id ?? 0) + 1;
+        if (reactionMongo.Id == -1)
+        {
+            var maxReaction = await _reactionCollection
+                .Find(_ => true)
+                .SortByDescending(p => p.Id)
+                .Limit(1)
+                .FirstOrDefaultAsync();
+            reactionMongo.Id = (maxReaction?.Id ?? 0) + 1;
+        }
         reactionMongo.MongoId = ObjectId.GenerateNewId();
 
         await _reactionCollection.InsertOneAsync(reactionMongo);

@@ -5,6 +5,12 @@ public class Result
     public bool IsSuccess { get; }
     public Error Error { get; }
 
+    /*protected internal Result()*/
+    /*{*/
+    /*    IsSuccess = false;*/
+    /*    Error = Error.Unknown;*/
+    /*}*/
+
     protected internal Result(bool isSuccess, Error error)
     {
         if (isSuccess && error != Error.None)
@@ -33,4 +39,3 @@ public class Result
     public static Result<TValue> Create<TValue>(TValue? value) =>
         value is not null ? Success<TValue>(value) : Failure<TValue>(Error.NullValue);
 }
-

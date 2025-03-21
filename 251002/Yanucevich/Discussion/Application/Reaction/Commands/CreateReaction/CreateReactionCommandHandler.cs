@@ -24,7 +24,12 @@ public class CreateReactionCommandHandler
     )
     {
         var resultReaction = await _reactionRepository.CreateReaction(
-            new ReactionModel { TweetId = request.tweetId, Content = request.content }
+            new ReactionModel
+            {
+                Id = -1,
+                TweetId = request.tweetId,
+                Content = request.content,
+            }
         );
 
         if (!resultReaction.IsSuccess)

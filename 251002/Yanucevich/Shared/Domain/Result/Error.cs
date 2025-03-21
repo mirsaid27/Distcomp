@@ -37,6 +37,8 @@ public class Error : IEquatable<Error>
     {
         get => _errorMessage;
     }
+    public int ErrorTarget => _errorTarget;
+    public int ErrorClass => _errorClass;
 
     public Error(int statusCode, int errorTarget, int errorClass, string message)
     {
