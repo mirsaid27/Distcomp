@@ -10,6 +10,8 @@ type Config struct {
 	Log     LogConfig
 	Core    CoreConfig
 	HTTP    HTTPServerConfig
+	API     APIConfig
+	Kafka   KafkaConfig
 	Storage StorageConfig
 }
 
@@ -18,7 +20,6 @@ type CoreConfig struct {
 }
 
 type StorageConfig struct {
-	Type     string
 	User     string
 	Password string
 	Host     string
@@ -27,15 +28,27 @@ type StorageConfig struct {
 	SSLMode  string
 }
 
+type APIConfig struct {
+	NoticeServiceAddr string
+}
+
 type LogConfig struct {
 	Level    string
 	Encoding string
 }
 
 type HTTPServerConfig struct {
+	Host        string
 	Port        string
 	Timeout     time.Duration
 	IdleTimeout time.Duration
+}
+
+type KafkaConfig struct {
+	Brokers  []string
+	Topic    string
+	User     string
+	Password string
 }
 
 func Load() Config {
@@ -48,7 +61,6 @@ func Load() Config {
 			ShutdownTimeout: viper.GetDuration("core.shutdown_timeout"),
 		},
 		Storage: StorageConfig{
-			Type:     viper.GetString("storage.type"),
 			User:     viper.GetString("storage.user"),
 			Password: viper.GetString("storage.password"),
 			Host:     viper.GetString("storage.host"),
@@ -57,9 +69,19 @@ func Load() Config {
 			SSLMode:  viper.GetString("storage.sslmode"),
 		},
 		HTTP: HTTPServerConfig{
+			Host:        viper.GetString("http.host"),
 			Port:        viper.GetString("http.port"),
 			Timeout:     viper.GetDuration("http.timeout"),
 			IdleTimeout: viper.GetDuration("http.idle_timeout"),
+		},
+		API: APIConfig{
+			NoticeServiceAddr: viper.GetString("notice_service_addr"),
+		},
+		Kafka: KafkaConfig{
+			Brokers:  viper.GetStringSlice("kafka.brokers"),
+			Topic:    viper.GetString("kafka.topic"),
+			User:     viper.GetString("kafka.user"),
+			Password: viper.GetString("kafka.password"),
 		},
 	}
 }
