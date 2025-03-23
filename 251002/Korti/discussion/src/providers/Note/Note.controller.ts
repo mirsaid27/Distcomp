@@ -23,16 +23,6 @@ export class NoteController {
   @HttpCode(200)
   async getAll() {
     return await this.noteService.getAllNotes();
-    // const res: NoteResponseTo[] = [];
-    // for (const note of notes) {
-    //   const dto = new NoteResponseTo();
-    //   dto.id = note.id;
-    //   dto.articleId = note.articleId;
-    //   dto.content = note.content;
-    //   dto.country = note.country;
-    //   res.push(dto);
-    // }
-    // return res;
   }
 
   @Get(':id')
