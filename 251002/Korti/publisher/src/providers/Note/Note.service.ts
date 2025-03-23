@@ -1,33 +1,29 @@
 import {
-  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Note } from '../../entities/Note';
 import { NoteResponseTo } from './Dto/NoteResponseTo';
-import { plainToInstance } from 'class-transformer';
 import { NoteRequestTo, UpdateNoteTo } from './Dto/NoteRequestTo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from '../../entities/Article';
 import { Repository } from 'typeorm';
+import axios from 'axios';
+
+const DISCUSSION_URL = 'http://localhost:24130/api/v1.0/notes';
 
 @Injectable()
 export class NoteService {
   constructor(
     @InjectRepository(Article)
     private readonly articleRepository: Repository<Article>,
-    @InjectRepository(Note)
-    private readonly noteRepository: Repository<Note>,
   ) {}
 
   async getAllNotes(): Promise<ReadonlyArray<NoteResponseTo>> {
-    const notes = await this.noteRepository.find();
-    return plainToInstance(NoteResponseTo, notes, {
-      excludeExtraneousValues: true,
-    });
+    const response = axios.get<ReadonlyArray<NoteResponseTo>>(DISCUSSION_URL);
+    return (await response).data;
   }
 
   async createNote(item: NoteRequestTo): Promise<NoteResponseTo> {
@@ -36,12 +32,9 @@ export class NoteService {
         where: { id: item.articleId },
       });
       if (!article) throw new NotFoundException();
-      const note = this.noteRepository.create(item);
-      return plainToInstance(
-        NoteResponseTo,
-        await this.noteRepository.save(note),
-        { excludeExtraneousValues: true },
-      );
+      item.id = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
+      const response = axios.post<NoteResponseTo>(DISCUSSION_URL, item);
+      return (await response).data;
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new HttpException(
@@ -51,48 +44,41 @@ export class NoteService {
           },
           HttpStatus.NOT_FOUND,
         );
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      } else if ((err.code as string) === '23505') {
-        throw new HttpException(
-          {
-            errorCode: 40005,
-            errorMessage: 'Note already exist.',
-          },
-          HttpStatus.FORBIDDEN,
-        );
       }
       throw new InternalServerErrorException();
     }
   }
 
   async getNoteById(id: number): Promise<NoteResponseTo> {
-    try {
-      const note = await this.noteRepository.findOne({ where: { id } });
-      if (!note) throw new ConflictException();
-      return plainToInstance(NoteResponseTo, note, {
-        excludeExtraneousValues: true,
-      });
-    } catch (err) {
-      if (err instanceof ConflictException) {
+    const response = await axios
+      .get<NoteResponseTo>(`${DISCUSSION_URL}/${id.toString()}`)
+      .catch((err) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (err.response?.status === 404) {
+          throw new HttpException(
+            {
+              errorCode: 40404,
+              errorMessage: 'Note does not exist.',
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        }
         throw new HttpException(
           {
-            errorCode: 40404,
-            errorMessage: 'Note does not exist.',
+            errorCode: 50000,
+            errorMessage: 'Internal server error.',
           },
-          HttpStatus.NOT_FOUND,
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
-      }
-      throw new InternalServerErrorException();
-    }
+      });
+    return response.data;
   }
 
   async deleteNote(id: number): Promise<void> {
-    try {
-      const note = await this.noteRepository.findOne({ where: { id } });
-      if (!note) throw new ConflictException();
-      await this.noteRepository.delete(note);
-    } catch (err) {
-      if (err instanceof ConflictException) {
+    await axios.delete(`${DISCUSSION_URL}/${id.toString()}`).catch((err) => {
+      console.log(err);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (err.response?.status === 404) {
         throw new HttpException(
           {
             errorCode: 40404,
@@ -101,8 +87,14 @@ export class NoteService {
           HttpStatus.NOT_FOUND,
         );
       }
-      throw new InternalServerErrorException();
-    }
+      throw new HttpException(
+        {
+          errorCode: 50000,
+          errorMessage: 'Internal server error.',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    });
   }
 
   async updateNote(body: UpdateNoteTo): Promise<NoteResponseTo> {
@@ -111,32 +103,10 @@ export class NoteService {
         where: { id: body.articleId },
       });
       if (!article) throw new NotFoundException();
-      const note = await this.noteRepository.findOne({
-        where: { id: body.id },
-      });
-      if (!note) throw new ConflictException();
-      await this.noteRepository.update(body.id, {
-        article: article,
-        articleId: body.articleId,
-        content: body.content,
-      });
-      const updNote = await this.noteRepository.findOne({
-        where: { id: body.id },
-      });
-      if (!updNote) throw new Error();
-      return plainToInstance(NoteResponseTo, updNote, {
-        excludeExtraneousValues: true,
-      });
+      const response = axios.put<NoteResponseTo>(DISCUSSION_URL, body);
+      return (await response).data;
     } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40404,
-            errorMessage: 'Note does not exist.',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      } else if (err instanceof NotFoundException) {
+      if (err instanceof NotFoundException) {
         throw new HttpException(
           {
             errorCode: 40403,
@@ -150,25 +120,25 @@ export class NoteService {
     }
   }
 
-  async getNotes(id: number): Promise<NoteResponseTo[]> {
-    try {
-      const article = await this.articleRepository.findOne({ where: { id } });
-      if (!article) throw new ConflictException();
-      const notes: Note[] = await this.noteRepository.find({
-        where: { articleId: id },
-      });
-      return notes;
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        throw new HttpException(
-          {
-            errorCode: 40403,
-            errorMessage: 'Article does not exist.',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      throw new InternalServerErrorException();
-    }
-  }
+  // async getNotes(id: number): Promise<NoteResponseTo[]> {
+  //   try {
+  //     const article = await this.articleRepository.findOne({ where: { id } });
+  //     if (!article) throw new ConflictException();
+  //     const notes: Note[] = await this.noteRepository.find({
+  //       where: { articleId: id },
+  //     });
+  //     return notes;
+  //   } catch (err) {
+  //     if (err instanceof ConflictException) {
+  //       throw new HttpException(
+  //         {
+  //           errorCode: 40403,
+  //           errorMessage: 'Article does not exist.',
+  //         },
+  //         HttpStatus.NOT_FOUND,
+  //       );
+  //     }
+  //     throw new InternalServerErrorException();
+  //   }
+  // }
 }

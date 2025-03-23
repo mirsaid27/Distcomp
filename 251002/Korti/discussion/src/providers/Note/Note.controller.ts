@@ -48,11 +48,4 @@ export class NoteController {
     const note = await this.noteService.updateNote(body);
     res.status(HttpStatus.OK).json(note);
   }
-
-  // @HttpCode(200)
-  // @Get('articles/:noteId')
-  // async getNotesByArticle(@Param('id', ParseIntPipe) id: number) {
-  //   const notes: NoteResponseTo[] = await this.noteService.getNotes(id);
-  //   return notes;
-  // }
 }
