@@ -11,6 +11,7 @@ type Config struct {
 	Core    CoreConfig
 	HTTP    HTTPServerConfig
 	API     APIConfig
+	Kafka   KafkaConfig
 	Storage StorageConfig
 }
 
@@ -43,6 +44,13 @@ type HTTPServerConfig struct {
 	IdleTimeout time.Duration
 }
 
+type KafkaConfig struct {
+	Brokers  []string
+	Topic    string
+	User     string
+	Password string
+}
+
 func Load() Config {
 	return Config{
 		Log: LogConfig{
@@ -68,6 +76,12 @@ func Load() Config {
 		},
 		API: APIConfig{
 			NoticeServiceAddr: viper.GetString("notice_service_addr"),
+		},
+		Kafka: KafkaConfig{
+			Brokers:  viper.GetStringSlice("kafka.brokers"),
+			Topic:    viper.GetString("kafka.topic"),
+			User:     viper.GetString("kafka.user"),
+			Password: viper.GetString("kafka.password"),
 		},
 	}
 }

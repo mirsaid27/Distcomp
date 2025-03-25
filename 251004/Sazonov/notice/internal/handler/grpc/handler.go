@@ -10,16 +10,16 @@ type grpcRegistrar interface {
 	Register(reg grpc.ServiceRegistrar)
 }
 
-type grpcHandler struct {
+type handler struct {
 	notice grpcRegistrar
 }
 
-func New(service service.Service) *grpcHandler {
-	return &grpcHandler{
+func New(service service.Service) *handler {
+	return &handler{
 		notice: notice.New(service),
 	}
 }
 
-func (h *grpcHandler) Register(reg grpc.ServiceRegistrar) {
+func (h *handler) Register(reg grpc.ServiceRegistrar) {
 	h.notice.Register(reg)
 }
