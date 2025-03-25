@@ -1,6 +1,8 @@
 ﻿using Application.DTO.Request;
 using Application.DTO.Response;
+using Application.Features.News.Queries;
 using External.Contracts.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -10,10 +12,12 @@ namespace API.Controllers;
 public class ExternalNoticeController : ControllerBase
 {
     private readonly INoticeExternalService<NoticeRequestTo, NoticeResponseTo> _externalService;
+    private readonly ISender _sender;
     
-    public ExternalNoticeController(INoticeExternalService<NoticeRequestTo, NoticeResponseTo> externalService)
+    public ExternalNoticeController(INoticeExternalService<NoticeRequestTo, NoticeResponseTo> externalService, ISender sender)
     {
         _externalService = externalService;
+        _sender = sender;
     }
 
     [HttpGet]
@@ -35,6 +39,8 @@ public class ExternalNoticeController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateNotice([FromBody] NoticeRequestTo noticeRequestTo, CancellationToken cancellationToken = default)
     {
+        var newsResponseTo = await _sender.Send(new ReadNewsQuery(noticeRequestTo.NewsId), cancellationToken);
+        
         var noticeResponseTo = await _externalService.CreateAsync(noticeRequestTo, cancellationToken);
 
         return CreatedAtRoute(nameof(GetNoticeById), new { id = noticeResponseTo.Id }, noticeResponseTo);
