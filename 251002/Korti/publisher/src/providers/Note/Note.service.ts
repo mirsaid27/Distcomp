@@ -4,26 +4,57 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { NoteResponseTo } from './Dto/NoteResponseTo';
 import { NoteRequestTo, UpdateNoteTo } from './Dto/NoteRequestTo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from '../../entities/Article';
 import { Repository } from 'typeorm';
-import axios from 'axios';
-
-const DISCUSSION_URL = 'http://localhost:24130/api/v1.0/notes';
+import { Client, ClientKafka, Transport } from '@nestjs/microservices';
+import {
+  ADD_NEW_NOTE,
+  DELETE_NOTE,
+  GET_ALL_NOTES,
+  GET_NOTE_BY_ID,
+  UPDATE_NOTE,
+} from 'src/constants/constants';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class NoteService {
+export class NoteService implements OnModuleInit {
   constructor(
     @InjectRepository(Article)
     private readonly articleRepository: Repository<Article>,
   ) {}
 
-  async getAllNotes(): Promise<ReadonlyArray<NoteResponseTo>> {
-    const response = axios.get<ReadonlyArray<NoteResponseTo>>(DISCUSSION_URL);
-    return (await response).data;
+  @Client({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        clientId: 'note',
+        brokers: ['localhost:9092'],
+      },
+      consumer: {
+        groupId: 'note-consumer',
+      },
+    },
+  })
+  private client: ClientKafka;
+
+  async onModuleInit() {
+    this.client.subscribeToResponseOf(ADD_NEW_NOTE);
+    this.client.subscribeToResponseOf(DELETE_NOTE);
+    this.client.subscribeToResponseOf(UPDATE_NOTE);
+    this.client.subscribeToResponseOf(GET_ALL_NOTES);
+    this.client.subscribeToResponseOf(GET_NOTE_BY_ID);
+
+    await this.client.connect();
+  }
+
+  async getAllNotes() {
+    const response = this.client.send<NoteResponseTo[], any>(GET_ALL_NOTES, '');
+    return response;
   }
 
   async createNote(item: NoteRequestTo): Promise<NoteResponseTo> {
@@ -33,8 +64,12 @@ export class NoteService {
       });
       if (!article) throw new NotFoundException();
       item.id = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
-      const response = axios.post<NoteResponseTo>(DISCUSSION_URL, item);
-      return (await response).data;
+      const response = await firstValueFrom(
+        this.client.send<NoteResponseTo, any>(ADD_NEW_NOTE, {
+          value: item,
+        }),
+      );
+      return response;
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new HttpException(
@@ -50,32 +85,34 @@ export class NoteService {
   }
 
   async getNoteById(id: number): Promise<NoteResponseTo> {
-    const response = await axios
-      .get<NoteResponseTo>(`${DISCUSSION_URL}/${id.toString()}`)
-      .catch((err) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (err.response?.status === 404) {
-          throw new HttpException(
-            {
-              errorCode: 40404,
-              errorMessage: 'Note does not exist.',
-            },
-            HttpStatus.NOT_FOUND,
-          );
-        }
+    const response = await firstValueFrom(
+      this.client.send<NoteResponseTo>(GET_NOTE_BY_ID, { noteId: id }),
+    ).catch((err) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (err.response?.status === 404) {
         throw new HttpException(
           {
-            errorCode: 50000,
-            errorMessage: 'Internal server error.',
+            errorCode: 40404,
+            errorMessage: 'Note does not exist.',
           },
-          HttpStatus.INTERNAL_SERVER_ERROR,
+          HttpStatus.NOT_FOUND,
         );
-      });
-    return response.data;
+      }
+      throw new HttpException(
+        {
+          errorCode: 50000,
+          errorMessage: 'Internal server error.',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    });
+    return response;
   }
 
   async deleteNote(id: number): Promise<void> {
-    await axios.delete(`${DISCUSSION_URL}/${id.toString()}`).catch((err) => {
+    await firstValueFrom(
+      this.client.send<void, any>(DELETE_NOTE, { noteId: id }),
+    ).catch((err) => {
       console.log(err);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (err.response?.status === 404) {
@@ -103,8 +140,10 @@ export class NoteService {
         where: { id: body.articleId },
       });
       if (!article) throw new NotFoundException();
-      const response = axios.put<NoteResponseTo>(DISCUSSION_URL, body);
-      return (await response).data;
+      const response = await firstValueFrom(
+        this.client.send<NoteResponseTo, UpdateNoteTo>(UPDATE_NOTE, body),
+      );
+      return response;
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new HttpException(
