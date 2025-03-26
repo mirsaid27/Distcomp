@@ -24,7 +24,7 @@ import { NoteResponseTo } from './Dto/NoteResponseTo';
 import { GetKafkaMessage } from './interfaces/get.kafka.message';
 import { DeleteKafkaInterface } from './interfaces/delete.kafka.message';
 import { UpdateKafkaMessage } from './interfaces/update.kafka.message';
-
+import { CreateKafkaMessage } from './interfaces/create.kafka.message';
 @Controller('api/v1.0/notes')
 export class NoteController {
   constructor(private readonly noteService: NoteService) {}
@@ -54,7 +54,7 @@ export class NoteController {
   }
 
   @MessagePattern(ADD_NEW_NOTE)
-  async createNote(@Payload() msg: NoteRequestTo) {
+  async createNote(@Payload() msg: CreateKafkaMessage) {
     return JSON.stringify(await this.noteService.createNote(msg));
   }
   @Post()

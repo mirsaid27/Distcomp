@@ -66,7 +66,7 @@ export class NoteService implements OnModuleInit {
       item.id = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
       const response = await firstValueFrom(
         this.client.send<NoteResponseTo, any>(ADD_NEW_NOTE, {
-          value: item,
+          value: JSON.stringify(item),
         }),
       );
       return response;
@@ -141,7 +141,9 @@ export class NoteService implements OnModuleInit {
       });
       if (!article) throw new NotFoundException();
       const response = await firstValueFrom(
-        this.client.send<NoteResponseTo, UpdateNoteTo>(UPDATE_NOTE, body),
+        this.client.send<NoteResponseTo, any>(UPDATE_NOTE, {
+          value: JSON.stringify(body),
+        }),
       );
       return response;
     } catch (err) {
