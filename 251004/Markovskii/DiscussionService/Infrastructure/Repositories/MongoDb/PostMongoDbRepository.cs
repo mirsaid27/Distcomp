@@ -33,8 +33,9 @@ public class PostMongoDbRepository : IPostRepository, IMongoDbRepository
     public async Task<Post?> AddPost(Post post)
     {
         var postMongo = new PostMongoDb(post);
-        var maxPost = await _posts.Find(_ => true).SortByDescending(p => p.Id).Limit(1).FirstOrDefaultAsync();
-        postMongo.Id = (maxPost?.Id ?? 0) + 1;
+        
+        //var maxPost = await _posts.Find(_ => true).SortByDescending(p => p.Id).Limit(1).FirstOrDefaultAsync();
+        //postMongo.Id = (maxPost?.Id ?? 0) + 1;
         
         var newMongoId = ObjectId.GenerateNewId().ToString();
         postMongo.MongoId = newMongoId;
@@ -46,7 +47,10 @@ public class PostMongoDbRepository : IPostRepository, IMongoDbRepository
 
     public async Task<Post?> GetPost(long postId)
     {
+        
         var result = await _posts.Find(x => x.Id == postId).FirstOrDefaultAsync();
+        if (result == null)
+            throw new NotFoundException("Id", postId.ToString());
         return result.ToPost();
     }
 
@@ -74,6 +78,8 @@ public class PostMongoDbRepository : IPostRepository, IMongoDbRepository
     public async Task<IEnumerable<Post?>?> GetAllPosts()
     {
         var posts = await _posts.Find(_ => true).ToListAsync();
+        if (posts == null)
+            return new List<Post?>();
         return posts.Select(a=> a.ToPost());
     }
 

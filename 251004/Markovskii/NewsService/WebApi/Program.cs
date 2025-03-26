@@ -1,5 +1,6 @@
 using Application;
 using Infrastructure;
+using WebApi.Extensions;
 using WebApi.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,8 +11,11 @@ builder.Services.AddHttpClient();
 
 
 builder.Services.AddRepositories();
+builder.Services.AddKafkaPublishers(builder.Configuration);
+builder.Services.AddKafkaConsumers(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
+
 builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen();

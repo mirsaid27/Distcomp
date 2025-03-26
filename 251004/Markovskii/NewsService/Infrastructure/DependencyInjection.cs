@@ -1,6 +1,10 @@
-﻿using Domain.Repository;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using Domain.Repository;
+using Infrastructure.Kafka;
 using Infrastructure.Repositories.InMemoryRepositories;
 using Infrastructure.Repositories.PostgersRepositories;
+using Infrastructure.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,6 +34,29 @@ public static class DependencyInjection
         Postgres.MapCompositeTypes();   
         Postgres.AddMigrations(services);
                 
+        return services;
+    }
+    
+    public static IServiceCollection AddKafkaPublishers(
+        this IServiceCollection services,
+        IConfigurationRoot config
+    )
+    {
+        services.AddSingleton<KafkaPublisher<long, PostRequest>>(sp =>
+        {
+            var bootstrapServers = config["Kafka:BootstrapServer"];
+            var topic = config["Kafka:PostEventsTopic"];
+
+            return new KafkaPublisher<long, PostRequest>(
+                bootstrapServers,
+                topic,
+                keySerializer: null, 
+                valueSerializer: new SystemTextJsonSerializer<PostRequest>(
+                    new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }
+                )
+            );
+        });
+
         return services;
     }
 }

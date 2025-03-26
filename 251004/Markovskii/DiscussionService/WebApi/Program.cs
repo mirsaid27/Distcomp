@@ -1,9 +1,12 @@
 using Application;
 using Infrastructure;
+using WebApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRepositories();
+builder.Services.AddKafkaPublishers(builder.Configuration);
+builder.Services.AddKafkaConsumers(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 builder.Services.AddControllers();
