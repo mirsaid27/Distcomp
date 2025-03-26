@@ -1,14 +1,18 @@
 ﻿using Application.DTO.Request.Mark;
 using Application.DTO.Response.Mark;
 using Application.Interfaces;
+using Infrastructure.Repositories.Redis;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers;
 
 [ApiController]
 [Route("/api/v1.0/marks")]
-public class MarkController  (IMarkService _markService) : ControllerBase
+public class MarkController  (IMarkService _markService, IRedisCacheService _redis) : ControllerBase
 {
+    private readonly string _cachePrefix = "mark";
+    private readonly TimeSpan _cacheExpiration = TimeSpan.FromSeconds(10);
+    
     [HttpGet]
     public async Task<IActionResult> GetAllMark()
     {
@@ -19,7 +23,22 @@ public class MarkController  (IMarkService _markService) : ControllerBase
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetMarkById(long id)
     {
+        var cachedResult = await _redis.GetCacheValueAsync<MarkResponseToGetById?>(
+            $"{_cachePrefix}:{id}"
+        );
+
+        if (cachedResult is not null)
+        {
+            return StatusCode(StatusCodes.Status200OK, cachedResult);
+        }
+        
         MarkResponseToGetById mark = await _markService.GetMarkById(new MarkRequestToGetById() {Id = id});
+        
+        await _redis.SetCacheValueAsync<MarkResponseToGetById>(
+            $"{_cachePrefix}:{id}",
+            mark,
+            _cacheExpiration
+        );
         return Ok(mark);
     }
 
@@ -34,6 +53,9 @@ public class MarkController  (IMarkService _markService) : ControllerBase
     public async Task<IActionResult> UpdateMark(MarkRequestToFullUpdate markModel)
     {
         var mark = await _markService.UpdateMark(markModel);
+        
+        var redisKey = $"{_cachePrefix}:{mark.Id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
         return Ok(mark);
     }
     
@@ -41,6 +63,9 @@ public class MarkController  (IMarkService _markService) : ControllerBase
     public async Task<IActionResult> DeleteMark(long id)
     {
         var mark = await _markService.DeleteMark(new MarkRequestToDeleteById(){Id = id});
+        
+        var redisKey = $"{_cachePrefix}:{mark.Id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
         return NoContent();
     }
 }

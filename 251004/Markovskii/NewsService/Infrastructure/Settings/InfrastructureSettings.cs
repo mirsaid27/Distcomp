@@ -1,6 +1,6 @@
 ﻿namespace Infrastructure;
 
-public class InfrastructureOptions
+public class InfrastructureSettings
 {
     public required string PostgresConnectionString { get; set; }
 }

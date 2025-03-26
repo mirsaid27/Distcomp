@@ -15,6 +15,7 @@ services:
       Kafka__PostEventsTopic: "InTopic"
       Kafka__PostResponsesTopic: "OutTopic"
       Kafka__GroupId: "publisher_response_group"
+      ConnectionStrings__redis: "rediska:6379"
 
     restart: unless-stopped
 
@@ -121,3 +122,10 @@ services:
       ZOOKEEPER_TICK_TIME: 2000 
     ports:
       - 2181:2181
+      
+  rediska:
+    image: redis
+    restart: always
+    container_name: rediska
+    ports:
+      - 6379:6379

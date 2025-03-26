@@ -10,7 +10,7 @@ namespace Infrastructure.Repositories.PostgersRepositories;
 
 public class PgNewsRepository : PgRepository,INewsRepository
 {
-    public PgNewsRepository(IOptions<InfrastructureOptions> settings) : base(settings.Value)
+    public PgNewsRepository(IOptions<InfrastructureSettings> settings) : base(settings.Value)
     {
     }
     public async Task<News?> AddNews(News news)

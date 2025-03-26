@@ -9,7 +9,7 @@ namespace Infrastructure.Repositories.PostgersRepositories;
 
 public class PgEditorRepository : PgRepository, IEditorRepository
 {
-    public PgEditorRepository(IOptions<InfrastructureOptions> settings) : base(settings.Value)
+    public PgEditorRepository(IOptions<InfrastructureSettings> settings) : base(settings.Value)
     {
 
     }

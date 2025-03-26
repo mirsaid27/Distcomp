@@ -4,6 +4,7 @@ using Domain.Repository;
 using Infrastructure.Kafka;
 using Infrastructure.Repositories.InMemoryRepositories;
 using Infrastructure.Repositories.PostgersRepositories;
+using Infrastructure.Repositories.Redis;
 using Infrastructure.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +28,7 @@ public static class DependencyInjection
         IConfigurationRoot config
     ){
         
-        services.Configure<InfrastructureOptions>(options => {
+        services.Configure<InfrastructureSettings>(options => {
             options.PostgresConnectionString = config.GetConnectionString("npg");
         });
             
@@ -57,6 +58,19 @@ public static class DependencyInjection
             );
         });
 
+        return services;
+    }
+    
+    public static IServiceCollection AddRedis(
+        this IServiceCollection services,
+        IConfigurationRoot config
+    )
+    {
+        services.Configure<RedisSettings>(options =>
+            options.ConnectionString = config.GetConnectionString("redis")
+        );
+
+        services.AddSingleton<IRedisCacheService, RedisCacheService>();
         return services;
     }
 }

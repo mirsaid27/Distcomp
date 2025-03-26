@@ -16,7 +16,7 @@ public class Postgres
             .AddSingleton(s => s.GetRequiredService<IOptionsSnapshot<ProcessorOptions>>().Value)
             .ConfigureRunner(rb => rb.AddPostgres()
                 .WithGlobalConnectionString(s => {
-                    var config = s.GetRequiredService<IOptions<InfrastructureOptions>>();
+                    var config = s.GetRequiredService<IOptions<InfrastructureSettings>>();
                     return config.Value.PostgresConnectionString;
                 })  
                 .ScanIn(typeof(Postgres).Assembly).For.Migrations())

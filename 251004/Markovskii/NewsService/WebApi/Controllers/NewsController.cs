@@ -7,14 +7,19 @@ using Application.DTO.Response.Editor;
 using Application.DTO.Response.Mark;
 using Application.DTO.Response.News;
 using Application.Interfaces;
+using Infrastructure.Repositories.Redis;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers;
 
 [ApiController]
 [Route("/api/v1.0/news")]
-public class NewsController (INewsService _newsService, IEditorService _editorService, IMarkService _markService) : ControllerBase
+public class NewsController (INewsService _newsService, IEditorService _editorService,
+    IMarkService _markService, IRedisCacheService _redis) : ControllerBase
 {
+    private readonly string _cachePrefix = "news";
+    private readonly TimeSpan _cacheExpiration = TimeSpan.FromSeconds(10);
+    
     [HttpGet]
     public async Task<IActionResult> GetAllNews()
     {
@@ -28,6 +33,7 @@ public class NewsController (INewsService _newsService, IEditorService _editorSe
         {
             EditorResponseToGetById editor =
                 await _editorService.GetEditorByNewsId(new EditorRequestToGetByNewsId() { NewsId = id });
+            
             return Ok(editor);
         }
         
@@ -41,7 +47,22 @@ public class NewsController (INewsService _newsService, IEditorService _editorSe
         [HttpGet("{id:long}")]
         public async Task<IActionResult> GetNewsById(long id)
         {
+            var cachedResult = await _redis.GetCacheValueAsync<NewsResponseToGetById?>(
+                $"{_cachePrefix}:{id}"
+            );
+
+            if (cachedResult is not null)
+            {
+                return StatusCode(StatusCodes.Status200OK, cachedResult);
+            }
+            
             NewsResponseToGetById news = await _newsService.GetNewsById(new NewsRequestToGetById() {Id = id});
+            
+            await _redis.SetCacheValueAsync<NewsResponseToGetById>(
+                $"{_cachePrefix}:{id}",
+                news,
+                _cacheExpiration
+            );
             return Ok(news);
         }
 
@@ -61,6 +82,10 @@ public class NewsController (INewsService _newsService, IEditorService _editorSe
     public async Task<IActionResult> UpdateNews(NewsRequestToFullUpdate newsModel)
     {
         var news = await _newsService.UpdateNews(newsModel);
+        
+        var redisKey = $"{_cachePrefix}:{news.Id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
+        
         return Ok(news);
     }
     
@@ -68,6 +93,9 @@ public class NewsController (INewsService _newsService, IEditorService _editorSe
     public async Task<IActionResult> DeleteNews(long id)
     {
         var news = await _newsService.DeleteNews(new NewsRequestToDeleteById(){Id = id});
+        
+        var redisKey = $"{_cachePrefix}:{news.Id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
         return NoContent();
     }
 }

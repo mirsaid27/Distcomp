@@ -5,6 +5,7 @@ using Application.DTO.Response.Post;
 using Confluent.Kafka;
 using Domain.Exceptions;
 using Infrastructure.Kafka;
+using Infrastructure.Repositories.Redis;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using WebApi.Settings;
@@ -15,9 +16,13 @@ namespace WebApi.Controllers;
 [Route("/api/v1.0/posts")]
 public class PostController : ControllerBase
 {
+    private readonly IRedisCacheService _redis;
     private readonly KafkaPublisher<long, PostRequest> _kafkaPublisher;
     private readonly KafkaResponseDispatcher<PostResponse> _dispatcher;
 
+    private readonly string _cachePrefix = "post";
+    private readonly TimeSpan _cacheExpiration = TimeSpan.FromSeconds(10);
+    
     private long _id = 1;
 
     private long getNextId()
@@ -27,11 +32,13 @@ public class PostController : ControllerBase
     
     public PostController(
         KafkaPublisher<long, PostRequest> kafkaPublisher,
-        KafkaResponseDispatcher<PostResponse> dispatcher
+        KafkaResponseDispatcher<PostResponse> dispatcher,
+        IRedisCacheService redis
     )
     {
         _kafkaPublisher = kafkaPublisher;
         _dispatcher = dispatcher;
+        _redis = redis;
     }
 
     [HttpPost]
@@ -113,6 +120,15 @@ public class PostController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPostByIdQuery(long id)
     {
+        var cachedResult = await _redis.GetCacheValueAsync<PostResponseToGetById?>(
+            $"{_cachePrefix}:{id}"
+        );
+
+        if (cachedResult is not null)
+        {
+            return StatusCode(StatusCodes.Status200OK, cachedResult);
+        }
+        
         var correlationId = Guid.NewGuid().ToString();
         var message = new Message<long, PostRequest>
         {
@@ -146,6 +162,13 @@ public class PostController : ControllerBase
         {
             PostResponseToGetById responseResult = ((JsonElement)response.Result)
                 .Deserialize<PostResponseToGetById>();
+            
+            await _redis.SetCacheValueAsync<PostResponseToGetById>(
+                $"{_cachePrefix}:{id}",
+                responseResult,
+                _cacheExpiration
+            );
+            
             return StatusCode(StatusCodes.Status200OK, responseResult);
         }
         catch
@@ -202,6 +225,9 @@ public class PostController : ControllerBase
         PostResponseToGetById responseResult = ((JsonElement)response.Result)
             .Deserialize<PostResponseToGetById>();
         
+        var redisKey = $"{_cachePrefix}:{responseResult.Id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
+        
         return StatusCode(StatusCodes.Status200OK, responseResult);
     }
 
@@ -240,6 +266,8 @@ public class PostController : ControllerBase
         try
         {
             var responseResult = ((JsonElement)response.Result).Deserialize<PostResponseToGetById>();
+            var redisKey = $"{_cachePrefix}:{id}";
+            await _redis.RemoveCacheValueAsync(redisKey);
             return StatusCode(StatusCodes.Status204NoContent);
         }
         catch

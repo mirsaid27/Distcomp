@@ -9,7 +9,7 @@ namespace Infrastructure.Repositories.PostgersRepositories;
 
 public class PgMarkRepository : PgRepository,IMarkRepository
 {
-    public PgMarkRepository(IOptions<InfrastructureOptions> settings) : base(settings.Value)
+    public PgMarkRepository(IOptions<InfrastructureSettings> settings) : base(settings.Value)
     {
 
     }

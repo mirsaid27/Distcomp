@@ -13,6 +13,13 @@ builder.Services.AddHttpClient();
 builder.Services.AddRepositories();
 builder.Services.AddKafkaPublishers(builder.Configuration);
 builder.Services.AddKafkaConsumers(builder.Configuration);
+builder.Services.AddRedis(builder.Configuration);
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("redis");
+});
+
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
