@@ -6,6 +6,7 @@ services:
       - 24110:24110
     environment:
       ConnectionStrings__npg: "User ID=postgres;Host=db;Password=postgres;Port=5432;Database=distcomp;Pooling=true;"
+      ConnectionStrings__redis: "readthis:6379"
       DiscussionSettings__DiscussionUrl: "http://social-net-discussion:24130"
       ASPNETCORE_URLS: "http://0.0.0.0:24110"
       Kafka__BootstrapServer: "kafka:9092"
@@ -129,3 +130,10 @@ services:
       ZOOKEEPER_TICK_TIME: 2000 
     ports:
       - 2181:2181
+
+  readthis:
+    image: redis
+    restart: always
+    container_name: readthis
+    ports:
+      - 6379:6379

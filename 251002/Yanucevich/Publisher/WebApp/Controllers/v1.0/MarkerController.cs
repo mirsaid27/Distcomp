@@ -1,6 +1,7 @@
 using Application.Features.Marker.Commands;
 using Application.Features.Marker.Queries;
 using Asp.Versioning;
+using Domain.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -16,10 +17,19 @@ public class MarkerController : MediatrController
 {
     private readonly ILogger<MarkerController> _logger;
 
-    public MarkerController(IMediator mediator, ILogger<MarkerController> logger)
+    private readonly IRedisCacheService _redis;
+    private readonly string _cache_key_prefix = "marker";
+    private readonly TimeSpan _cache_expiration = TimeSpan.FromSeconds(10);
+
+    public MarkerController(
+        IMediator mediator,
+        ILogger<MarkerController> logger,
+        IRedisCacheService redis
+    )
         : base(mediator)
     {
         _logger = logger;
+        _redis = redis;
     }
 
     [HttpPost]
@@ -51,12 +61,27 @@ public class MarkerController : MediatrController
     [HttpGet("{id}")]
     public async Task<IActionResult> GetMarkerById(long id)
     {
+        var cached_result = await _redis.GetCacheValueAsync<MarkerProjection>(
+            $"{_cache_key_prefix}:{id}"
+        );
+
+        if (cached_result is not null)
+        {
+            return StatusCode(StatusCodes.Status200OK, cached_result);
+        }
+
         var result = await _mediator.Send(new GetMarkerByIdQuery(id));
 
         if (!result.IsSuccess)
         {
             return HandleFailure(result);
         }
+
+        await _redis.SetCacheValueAsync<MarkerProjection>(
+            $"{_cache_key_prefix}:{id}",
+            result.Value,
+            _cache_expiration
+        );
 
         return StatusCode(StatusCodes.Status200OK, result.Value);
     }
@@ -70,6 +95,10 @@ public class MarkerController : MediatrController
         {
             return HandleFailure(result);
         }
+
+        var redisKey = $"{_cache_key_prefix}:{result.Value.Id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
+
         return StatusCode(StatusCodes.Status200OK, result.Value);
     }
 
@@ -82,6 +111,9 @@ public class MarkerController : MediatrController
         {
             return HandleFailure(result);
         }
+
+        var redisKey = $"{_cache_key_prefix}:{id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
 
         return StatusCode(StatusCodes.Status204NoContent);
     }

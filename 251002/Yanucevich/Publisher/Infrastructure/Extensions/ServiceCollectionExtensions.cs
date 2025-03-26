@@ -66,4 +66,17 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    public static IServiceCollection AddRedis(
+        this IServiceCollection services,
+        IConfigurationRoot config
+    )
+    {
+        services.Configure<RedisOptions>(options =>
+            options.ConnectionString = config.GetConnectionString("redis")
+        );
+
+        services.AddSingleton<IRedisCacheService, RedisCacheService>();
+        return services;
+    }
 }

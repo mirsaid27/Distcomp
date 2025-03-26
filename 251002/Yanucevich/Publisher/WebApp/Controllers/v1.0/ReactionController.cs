@@ -24,6 +24,10 @@ public class ReactionController : MediatrController
     private readonly KafkaPublisher<long, ReactionRequest> _kafkaPublisher;
     private readonly KafkaResponseDispatcher<ReactionResponse> _dispatcher;
 
+    private readonly IRedisCacheService _redis;
+    private readonly string _cache_key_prefix = "reaction";
+    private readonly TimeSpan _cache_expiration = TimeSpan.FromSeconds(10);
+
     private long _id = 1;
 
     private long getNextId()
@@ -34,12 +38,14 @@ public class ReactionController : MediatrController
     public ReactionController(
         KafkaPublisher<long, ReactionRequest> kafkaPublisher,
         KafkaResponseDispatcher<ReactionResponse> dispatcher,
-        IMediator mediator
+        IMediator mediator,
+        IRedisCacheService redis
     )
         : base(mediator)
     {
         _kafkaPublisher = kafkaPublisher;
         _dispatcher = dispatcher;
+        _redis = redis;
     }
 
     [HttpPost]
@@ -139,6 +145,15 @@ public class ReactionController : MediatrController
     [HttpGet("{id}")]
     public async Task<IActionResult> GetReactionByIdQuery(long id)
     {
+        var cached_result = await _redis.GetCacheValueAsync<ReactionProjection>(
+            $"{_cache_key_prefix}:{id}"
+        );
+
+        if (cached_result is not null)
+        {
+            return StatusCode(StatusCodes.Status200OK, cached_result);
+        }
+
         var correlationId = Guid.NewGuid().ToString();
         var message = new Message<long, ReactionRequest>
         {
@@ -176,6 +191,12 @@ public class ReactionController : MediatrController
         {
             return HandleFailure(responseResult);
         }
+
+        await _redis.SetCacheValueAsync<ReactionProjection>(
+            $"{_cache_key_prefix}:{id}",
+            responseResult.Value,
+            _cache_expiration
+        );
 
         return StatusCode(StatusCodes.Status200OK, responseResult.Value);
     }
@@ -227,6 +248,9 @@ public class ReactionController : MediatrController
             return HandleFailure(responseResult);
         }
 
+        var redisKey = $"{_cache_key_prefix}:{responseResult.Value.Id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
+
         return StatusCode(StatusCodes.Status200OK, responseResult.Value);
     }
 
@@ -268,6 +292,9 @@ public class ReactionController : MediatrController
         {
             return HandleFailure(responseResult);
         }
+
+        var redisKey = $"{_cache_key_prefix}:{id}";
+        await _redis.RemoveCacheValueAsync(redisKey);
 
         return StatusCode(StatusCodes.Status204NoContent);
     }

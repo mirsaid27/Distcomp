@@ -2,6 +2,7 @@ using Application.Extensions;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Infrastructure.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Settings;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +19,13 @@ builder
     .AddPostgresInfrastructure(builder.Configuration)
     .AddRepositories()
     .AddKafkaPublishers(builder.Configuration)
-    .AddKafkaConsumers(builder.Configuration);
+    .AddKafkaConsumers(builder.Configuration)
+    .AddRedis(builder.Configuration);
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("redis");
+});
 
 builder.Services.AddControllers();
 
