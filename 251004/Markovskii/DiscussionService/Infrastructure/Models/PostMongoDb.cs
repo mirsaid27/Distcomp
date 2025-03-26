@@ -20,4 +20,21 @@ public class PostMongoDb
         
     [BsonElement("content")]
     public string Content { get; set; } = string.Empty;
+
+    public PostMongoDb(Post post)
+    {
+        Id = post.Id;
+        Content = post.Content;
+        NewsId = post.NewsId;
+    }
+
+    public Post ToPost()
+    {
+        return new Post()
+        {
+            Id = this.Id,
+            Content = this.Content,
+            NewsId = this.NewsId
+        };
+    }
 }

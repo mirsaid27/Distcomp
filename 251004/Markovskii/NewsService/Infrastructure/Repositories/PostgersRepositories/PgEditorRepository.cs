@@ -119,6 +119,10 @@ public class PgEditorRepository : PgRepository, IEditorRepository
         int result;
         result = await cmd.ExecuteNonQueryAsync();
 
+        if (result == 0)
+        {
+            throw new NotFoundException("Id",editorId.ToString());
+        }
         return new Editor();
     }
     

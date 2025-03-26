@@ -9,8 +9,8 @@ public class GeneralProfile : Profile
 {
     public GeneralProfile()
     {
-        CreateMap<PostRequestToCreate, PostMongoDb>();
-        CreateMap<PostRequestToFullUpdate, PostMongoDb>();
-        CreateMap<PostMongoDb, PostResponseToGetById>();
+        CreateMap<PostRequestToCreate, Post>();
+        CreateMap<PostRequestToFullUpdate, Post>();
+        CreateMap<Post, PostResponseToGetById>();
     }
 }

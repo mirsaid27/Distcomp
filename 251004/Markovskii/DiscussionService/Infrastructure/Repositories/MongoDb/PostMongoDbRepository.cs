@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Exceptions;
 using Domain.Repositories;
 using Infrastructure.Settings;
 using Microsoft.Extensions.Logging;
@@ -29,52 +30,56 @@ public class PostMongoDbRepository : IPostRepository, IMongoDbRepository
         _posts.Indexes.CreateOne(indexModel);   
     }
     
-    public async Task<PostMongoDb?> AddPost(PostMongoDb post)
+    public async Task<Post?> AddPost(Post post)
     {
+        var postMongo = new PostMongoDb(post);
         var maxPost = await _posts.Find(_ => true).SortByDescending(p => p.Id).Limit(1).FirstOrDefaultAsync();
-        post.Id = (maxPost?.Id ?? 0) + 1;
+        postMongo.Id = (maxPost?.Id ?? 0) + 1;
         
         var newMongoId = ObjectId.GenerateNewId().ToString();
-        post.MongoId = newMongoId;
+        postMongo.MongoId = newMongoId;
 
-        await _posts.InsertOneAsync(post);
+        await _posts.InsertOneAsync(postMongo);
         
-        return post;
+        return postMongo.ToPost();
     }
 
-    public async Task<PostMongoDb?> GetPost(long postId)
+    public async Task<Post?> GetPost(long postId)
     {
         var result = await _posts.Find(x => x.Id == postId).FirstOrDefaultAsync();
-        return result;
+        return result.ToPost();
     }
 
-    public async Task<PostMongoDb?> RemovePost(long postId)
+    public async Task<Post?> RemovePost(long postId)
     {
         var post = await _posts.FindOneAndDeleteAsync(p => p.Id == postId);
-        return post;
+        if (post == null)
+            throw new NotFoundException("Id", postId.ToString());
+        return post.ToPost();
     }
 
-    public async Task<PostMongoDb?> UpdatePost(PostMongoDb post)
+    public async Task<Post?> UpdatePost(Post post)
     {
-        var postInDb = await _posts.Find(x => x.Id == post.Id).FirstOrDefaultAsync();
+        var postMongo = new PostMongoDb(post);
+        var postInDb = await _posts.Find(x => x.Id ==  postMongo.Id).FirstOrDefaultAsync();
         if (postInDb == null)
         {
             return null;
         }
-        post.MongoId = postInDb.MongoId;
-        var result = await _posts.ReplaceOneAsync(p => p.Id == post.Id, post);
-        return result.IsAcknowledged && result.ModifiedCount > 0 ? post : null;
+        postMongo.MongoId = postInDb.MongoId;
+        var result = await _posts.ReplaceOneAsync(p => p.Id == post.Id,  postMongo);
+        return result.IsAcknowledged && result.ModifiedCount > 0 ?  postMongo.ToPost() : null;
     }
 
-    public async Task<IEnumerable<PostMongoDb?>?> GetAllPosts()
+    public async Task<IEnumerable<Post?>?> GetAllPosts()
     {
         var posts = await _posts.Find(_ => true).ToListAsync();
-        return posts;
+        return posts.Select(a=> a.ToPost());
     }
 
-    public async Task<IEnumerable<PostMongoDb?>?> GetPostsByNewsId(long newsId)
+    public async Task<IEnumerable<Post?>?> GetPostsByNewsId(long newsId)
     {
         var posts = await _posts.Find(p => p.NewsId == newsId).ToListAsync();
-        return posts;
+        return posts.Select(a=> a.ToPost());
     }
 }

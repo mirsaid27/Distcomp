@@ -12,7 +12,7 @@ public class PostService(IPostRepository _postRepository,IMapper _mapper) : IPos
 {
     public async Task<PostResponseToGetById?> CreatePost(PostRequestToCreate model)
     {
-        PostMongoDb post = _mapper.Map<PostMongoDb>(model);
+        Post post = _mapper.Map<Post>(model);
         Validate(post);
         post = await _postRepository.AddPost(post);
         return _mapper.Map<PostResponseToGetById>(post);
@@ -38,7 +38,7 @@ public class PostService(IPostRepository _postRepository,IMapper _mapper) : IPos
 
     public async Task<PostResponseToGetById?> UpdatePost(PostRequestToFullUpdate model)
     {
-        var post = _mapper.Map<PostMongoDb>(model);
+        var post = _mapper.Map<Post>(model);
         Validate(post);
         post = await _postRepository.UpdatePost(post);
         return _mapper.Map<PostResponseToGetById>(post);
@@ -50,7 +50,7 @@ public class PostService(IPostRepository _postRepository,IMapper _mapper) : IPos
         return _mapper.Map<PostResponseToGetById>(post);
     }
     
-    private bool Validate(PostMongoDb post)
+    private bool Validate(Post post)
     {
         var errors = new Dictionary<string, string[]>();
         if (post.Content.Length < 2 || post.Content.Length > 2048)
