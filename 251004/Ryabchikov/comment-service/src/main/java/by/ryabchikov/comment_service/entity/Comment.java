@@ -1,5 +1,8 @@
 package by.ryabchikov.comment_service.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
@@ -8,8 +11,11 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.core.mapping.Table;
 
 @Setter
+@Getter
 @ToString
-@Table
+@NoArgsConstructor
+@AllArgsConstructor
+@Table("tbl_comment")
 public class Comment {
 
     @PrimaryKeyColumn(name = "country", ordinal = 0, type = PrimaryKeyType.PARTITIONED)

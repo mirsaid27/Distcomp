@@ -4,6 +4,7 @@ import by.ryabchikov.comment_service.dto.CommentRequestTo;
 import by.ryabchikov.comment_service.dto.CommentResponseTo;
 import by.ryabchikov.comment_service.entity.Comment;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface CommentMapper {

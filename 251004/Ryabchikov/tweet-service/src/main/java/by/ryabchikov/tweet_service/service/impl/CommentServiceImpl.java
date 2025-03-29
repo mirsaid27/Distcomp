@@ -19,7 +19,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentResponseTo create(CommentRequestTo commentRequestTo) {
-        return commentClient.create(commentRequestTo);
+        System.out.println("Comment service, comment request: " + commentRequestTo);
+        CommentResponseTo commentResponseTo = commentClient.create(commentRequestTo);
+        System.out.println("Comment service, comment response: " + commentResponseTo);
+        return commentResponseTo;
     }
 
     @Override

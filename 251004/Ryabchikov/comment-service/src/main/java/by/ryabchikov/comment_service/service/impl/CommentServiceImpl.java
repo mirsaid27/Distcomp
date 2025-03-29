@@ -1,16 +1,17 @@
 package by.ryabchikov.comment_service.service.impl;
 
+import by.ryabchikov.comment_service.client.TweetClient;
 import by.ryabchikov.comment_service.dto.CommentRequestTo;
 import by.ryabchikov.comment_service.dto.CommentResponseTo;
 import by.ryabchikov.comment_service.dto.CommentUpdateRequestTo;
 import by.ryabchikov.comment_service.entity.Comment;
+import by.ryabchikov.comment_service.exception.CommentNotCreatedException;
 import by.ryabchikov.comment_service.exception.CommentNotFoundException;
 import by.ryabchikov.comment_service.mapper.CommentMapper;
 import by.ryabchikov.comment_service.repository.CommentRepository;
 import by.ryabchikov.comment_service.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,24 +20,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
-    //private final TweetRepository tweetRepository;
     private final CommentMapper commentMapper;
+    private final TweetClient tweetClient;
 
     @Override
-//    @Transactional
     public CommentResponseTo create(CommentRequestTo commentRequestTo) {
-        System.out.println("Comment micro + service: request : " + commentRequestTo);
+        if(tweetClient.readById(commentRequestTo.tweetId()) == null) {
+            throw CommentNotCreatedException.byInvalidTweetId(commentRequestTo.tweetId());
+        }
+
         Comment comment = commentMapper.toComment(commentRequestTo);
         comment.setCountry("Default");
         comment.setId((long) (Math.random() * 10000000));
-        System.out.println(comment);
+
         return commentMapper.toCommentResponseTo(
                 commentRepository.save(comment)
         );
     }
 
     @Override
-    //@Transactional
     public List<CommentResponseTo> readAll() {
         ArrayList<CommentResponseTo> commentResponseTos = new ArrayList<>();
         commentRepository.findAll().forEach(comment -> {
@@ -47,7 +49,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    //@Transactional
     public CommentResponseTo readById(Long id) {
         return commentMapper.toCommentResponseTo(
                 commentRepository.findById(id).orElseThrow(() -> CommentNotFoundException.byId(id))
@@ -55,28 +56,25 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    //@Transactional
     public CommentResponseTo update(CommentUpdateRequestTo commentUpdateRequestTo) {
         long commentId = commentUpdateRequestTo.id();
         Comment comment =
                 commentRepository.findById(commentId).orElseThrow(() -> CommentNotFoundException.byId(commentId));
 
-        long tweetId = commentUpdateRequestTo.tweetId();
-        //Tweet tweet = new Tweet();
-                //not tweetRepository.findById(commentId).orElseThrow(() -> CommentNotFoundException.byId(tweetId));
-//        tweet.setId(tweetId);
+        if(tweetClient.readById(commentUpdateRequestTo.tweetId()) == null) {
+            throw CommentNotCreatedException.byInvalidTweetId(commentUpdateRequestTo.tweetId());
+        }
 
         comment.setTweetId(commentUpdateRequestTo.tweetId());
         comment.setContent(commentUpdateRequestTo.content());
+        commentRepository.save(comment);
 
         return commentMapper.toCommentResponseTo(comment);
     }
 
     @Override
-    //@Transactional
     public void deleteById(Long id) {
-        commentRepository.findById(id).orElseThrow(() -> CommentNotFoundException.byId(id));
-
-        commentRepository.deleteById(id);
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> CommentNotFoundException.byId(id));
+        commentRepository.delete(comment);
     }
 }

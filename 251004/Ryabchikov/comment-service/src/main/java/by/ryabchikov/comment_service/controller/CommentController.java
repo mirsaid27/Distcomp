@@ -45,9 +45,10 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<CommentResponseTo> create(@Valid @RequestBody CommentRequestTo commentRequestTo) {
+        CommentResponseTo body = commentService.create(commentRequestTo);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(commentService.create(commentRequestTo));
+                .body(body);
     }
 
     @PutMapping
