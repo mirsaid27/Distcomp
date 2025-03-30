@@ -23,9 +23,7 @@ func reverseProxy(target string) echo.HandlerFunc {
 		log.Fatalf("Invalid proxy target URL: %v", err)
 	}
 
-
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
-
 
 	return func(c echo.Context) error {
 		c.Request().URL.Host = targetURL.Host
@@ -42,7 +40,7 @@ func main() {
 	// noteRepo := storage.NewInMemStorage[model.Note]()
 	// markRepo := storage.NewInMemStorage[model.Mark]()
 
-	db, err := sqlx.Connect("postgres", "user=postgres dbname=distcomp sslmode=disable")
+	db, err := sqlx.Connect("postgres", "postgresql://postgres:postgres@localhost:5432/distcomp?sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -29,12 +29,16 @@ func (cc *CreatorController) Create(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
 
+	fmt.Println("bbbbb: ", dto)
+
 	if err := validateCreator(dto); err != nil {
+		fmt.Println(err)
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
 
 	entity, err := cc.service.Create(dto)
 	if err != nil {
+		fmt.Println(err)
 		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 	return c.JSON(http.StatusCreated, entity)

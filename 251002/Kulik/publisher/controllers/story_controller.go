@@ -1,13 +1,14 @@
 package controllers
 
 import (
-
-	"github.com/labstack/echo/v4"
 	"distributedcomputing/model"
 	"distributedcomputing/service"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
-	"errors"
+
+	"github.com/labstack/echo/v4"
 )
 
 type StoryController struct {
@@ -57,11 +58,14 @@ func (sc *StoryController) Update(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
 
+	fmt.Println("lalalal: ", dto);
 	if err := validateStory(dto); err != nil {
+		fmt.Println(err)
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
 
 	if err := sc.service.Update(dto); err != nil {
+		fmt.Println(err)
 		return c.JSON(http.StatusInternalServerError, WrapErr(err))
 	}
 

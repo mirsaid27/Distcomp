@@ -4,6 +4,7 @@ import (
 	"context"
 	"distributedcomputing/model"
 	"errors"
+	"fmt"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -34,7 +35,9 @@ func (s *NoteStorage) Create(note model.Note) (int64, error) {
 	id := s.idCounter
 	note.Id = id // Assign numeric ID to the note
 	result, err := s.collection.InsertOne(context.TODO(), note)
+	
 	if err != nil {
+		fmt.Println("laladlvnfjk: ", err)
 		return 0, err
 	}
 
