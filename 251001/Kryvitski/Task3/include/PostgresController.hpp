@@ -8,10 +8,10 @@
 
 using namespace std::string_literals;
 
-class PostgresController final {
+class PostgresController {
 public:
     PostgresController() noexcept = default;
-    ~PostgresController();
+    virtual ~PostgresController();
 
     PostgresController(const PostgresController&) = delete;
     PostgresController(PostgresController&&) = delete;
