@@ -3,9 +3,9 @@ package com.example.rest.dto.requestDto;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+
 @Data
 public class UserRequestTo {
-    private Long id;
 
     @Size(min = 2, max = 64)
     private String login;

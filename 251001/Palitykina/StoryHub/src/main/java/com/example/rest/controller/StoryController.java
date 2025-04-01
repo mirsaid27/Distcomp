@@ -2,6 +2,7 @@ package com.example.rest.controller;
 
 import com.example.rest.dto.requestDto.StoryRequestTo;
 import com.example.rest.dto.responseDto.StoryResponseTo;
+import com.example.rest.dto.updateDto.StoryUpdateTo;
 import com.example.rest.service.StoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.Collection;
 import java.util.NoSuchElementException;
 
 @RestController
-@RequestMapping("/api/v1.0/storys")
+@RequestMapping("/api/v1.0/stories")
 @RequiredArgsConstructor
 public class StoryController {
 
@@ -28,7 +29,7 @@ public class StoryController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public StoryResponseTo update(@RequestBody @Valid StoryRequestTo input) {
+    public StoryResponseTo update(@RequestBody @Valid StoryUpdateTo input) {
         try{ return storyService.update(input); }
         catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);

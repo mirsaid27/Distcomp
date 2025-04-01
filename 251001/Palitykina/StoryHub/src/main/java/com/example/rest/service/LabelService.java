@@ -2,6 +2,7 @@ package com.example.rest.service;
 
 import com.example.rest.dto.requestDto.LabelRequestTo;
 import com.example.rest.dto.responseDto.LabelResponseTo;
+import com.example.rest.dto.updateDto.LabelUpdateTo;
 import com.example.rest.mapper.LabelMapper;
 import com.example.rest.repository.LabelRepo;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class LabelService {
+
     private final LabelRepo labelRepo;
     private final LabelMapper labelMapper;
 
@@ -33,7 +35,7 @@ public class LabelService {
                 .map(labelMapper::ToLabelResponseTo)
                 .orElseThrow();
     }
-    public LabelResponseTo update(LabelRequestTo input) {
+    public LabelResponseTo update(LabelUpdateTo input) {
         return labelRepo
                 .update(labelMapper.ToLabel(input))
                 .map(labelMapper::ToLabelResponseTo)

@@ -1,10 +1,21 @@
 package com.example.rest.entity;
 
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Entity
+@Getter
+@Setter
+@RequiredArgsConstructor
+@Table(name = "tbl_message")
 public class Message {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private long storyId;
+    @ManyToOne
+    @JoinColumn(name = "story_id", nullable = false)
+    private Story story;
     private String content;
 }

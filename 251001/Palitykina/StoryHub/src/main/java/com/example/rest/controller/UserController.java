@@ -2,6 +2,7 @@ package com.example.rest.controller;
 
 import com.example.rest.dto.requestDto.UserRequestTo;
 import com.example.rest.dto.responseDto.UserResponseTo;
+import com.example.rest.dto.updateDto.UserUpdateTo;
 import com.example.rest.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class    UserController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public UserResponseTo update(@RequestBody @Valid UserRequestTo input) {
+    public UserResponseTo update(@RequestBody @Valid UserUpdateTo input) {
         try{ return userService.update(input); }
         catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);

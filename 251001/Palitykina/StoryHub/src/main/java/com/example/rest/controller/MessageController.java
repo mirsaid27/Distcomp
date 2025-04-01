@@ -2,6 +2,7 @@ package com.example.rest.controller;
 
 import com.example.rest.dto.requestDto.MessageRequestTo;
 import com.example.rest.dto.responseDto.MessageResponseTo;
+import com.example.rest.dto.updateDto.MessageUpdateTo;
 import com.example.rest.service.MessageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class MessageController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public MessageResponseTo update(@RequestBody @Valid MessageRequestTo input) {
+    public MessageResponseTo update(@RequestBody @Valid MessageUpdateTo input) {
         try{ return messageService.update(input); }
         catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class MessageRequestTo {
-    private long id;
+
     private long storyId;
 
     @Size(min = 2, max = 2048)

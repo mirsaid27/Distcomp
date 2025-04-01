@@ -2,6 +2,7 @@ package com.example.rest.controller;
 
 import com.example.rest.dto.requestDto.LabelRequestTo;
 import com.example.rest.dto.responseDto.LabelResponseTo;
+import com.example.rest.dto.updateDto.LabelUpdateTo;
 import com.example.rest.service.LabelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class LabelController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public LabelResponseTo update(@RequestBody @Valid LabelRequestTo input) {
+    public LabelResponseTo update(@RequestBody @Valid LabelUpdateTo input) {
         try{ return labelService.update(input); }
         catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
