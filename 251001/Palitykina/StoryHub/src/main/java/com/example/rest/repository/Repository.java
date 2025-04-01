@@ -10,16 +10,16 @@ import java.util.stream.Stream;
 public interface Repository<T> extends JpaRepository<T, Long> {
     default Stream<T> getAll(){
         return findAll().stream();
-    };
+    }
     default Optional<T> get(long id){
         return findById(id);
-    };
+    }
     default Optional<T> create(T input){
         return Optional.of(save(input));
-    };
+    }
     default Optional<T> update(T input){
         return Optional.of(save(input));
-    };
+    }
     default boolean delete(long id){
         if(existsById(id)){
             deleteById(id);
@@ -27,5 +27,5 @@ public interface Repository<T> extends JpaRepository<T, Long> {
         }else {
             return false;
         }
-    };
+    }
 }
