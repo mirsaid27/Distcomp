@@ -11,6 +11,7 @@ class ExampleRecipe(ConanFile):
         self.requires("nlohmann_json/3.11.3")
         self.requires("libpqxx/7.10.0")
         self.requires("cassandra-cpp-driver/2.17.1")
+        self.requires("librdkafka/2.8.0")
 
     def layout(self):
         cmake_layout(self)

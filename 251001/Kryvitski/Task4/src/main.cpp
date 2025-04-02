@@ -10,12 +10,10 @@ int main() {
     PublisherServer<Editor, Article, Label> publisher;
     DiscussionServer<Comment> discussion;
 
-    auto discussion_thread = std::thread([&](){
+    auto discussion_thread = std::jthread([&](){
         discussion.start_server();
     });
-    
-    publisher.redirect("comments", 24130);
+    publisher.redirect_to_kafka("comments");  // TODO: variadic template
     publisher.start_server();
-    discussion_thread.join();
     return 0;
 }

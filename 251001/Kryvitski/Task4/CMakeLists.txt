@@ -8,6 +8,7 @@ find_package(httplib REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(libpqxx REQUIRED)
 find_package(cassandra-cpp-driver REQUIRED)
+find_package(RdKafka REQUIRED)
 
 add_executable(
     ${PROJECT_NAME}
@@ -15,6 +16,8 @@ add_executable(
     src/Entity.cpp
     src/PostgresController.cpp
     src/CassandraController.cpp
+    src/KafkaProducer.cpp
+    src/KafkaConsumer.cpp
 )
 
 target_include_directories( ${PROJECT_NAME} PRIVATE include)
@@ -25,4 +28,5 @@ target_link_libraries(
     nlohmann_json::nlohmann_json
     libpqxx::pqxx
     cassandra-cpp-driver::cassandra-cpp-driver
+    RdKafka::rdkafka++
 )

@@ -104,7 +104,7 @@ std::optional<T> CassandraController::get_by_id(const std::string& id) {
     const CassResult* result = cass_future_get_result(future);
     const CassRow* row = cass_result_first_row(result);
 
-    std::optional<T> entity;
+    std::optional<T> entity{std::nullopt};
     if (row) {
         entity = T::from_row(row);
     }
