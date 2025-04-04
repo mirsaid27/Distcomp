@@ -25,13 +25,12 @@ public class MessageService {
                 .toList();
     }
 
-    public MessageResponseTo get(long id) {
+    public MessageResponseTo getById( long id) {
         return messageRepo
-                .get(id)
+                .findByCountryAndId("US", id)
                 .map(messageMapper::ToMessageResponseTo)
                 .orElse(null);
     }
-
     public MessageResponseTo create(MessageRequestTo input) {
         Message message = messageMapper.ToMessage(input);
 
@@ -50,6 +49,6 @@ public class MessageService {
     }
 
     public boolean delete(long id) {
-        return messageRepo.delete(id);
+        return messageRepo.deleteByCountryAndId("US", id);
     }
 }

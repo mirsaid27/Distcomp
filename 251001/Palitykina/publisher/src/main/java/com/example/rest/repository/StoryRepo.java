@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface StoryRepo extends Repository<Story> {
     @EntityGraph(attributePaths = {"labels"})
     Optional<Story> findById(long i);
+    Story findByMessagesContaining(Long messageId);
 }

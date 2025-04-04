@@ -14,8 +14,6 @@ public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @ManyToOne
-    @JoinColumn(name = "story_id", nullable = false)
-    private Story story;
+    private long storyId;
     private String content;
 }

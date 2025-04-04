@@ -29,8 +29,13 @@ public class Story {
     private OffsetDateTime created;
     private OffsetDateTime modified;
 
-    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Message> messages = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(
+            name = "story_message",
+            joinColumns = @JoinColumn(name = "story_id")
+    )
+    @Column(name = "message_id")
+    private List<Long> messages = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(

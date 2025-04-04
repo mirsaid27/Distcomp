@@ -9,25 +9,18 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 @Repository
-public interface MessageRepo extends CassandraRepository<Message, Long> {
+public interface MessageRepo extends CassandraRepository<Message, String> {
     default Stream<Message> getAll(){
         return findAll().stream();
     }
-    default Optional<Message> get(long id){
-        return findById(id);
-    }
+    Optional<Message> findByCountryAndStoryIdAndId(String country, long storyId, long id);
+    Optional<Message> findByCountryAndId(String country, long id);
+
     default Optional<Message> create(Message input){
         return Optional.of(save(input));
     }
     default Optional<Message> update(Message input){
         return Optional.of(save(input));
     }
-    default boolean delete(long id){
-        if(existsById(id)){
-            deleteById(id);
-            return true;
-        }else {
-            return false;
-        }
-    }
+    boolean deleteByCountryAndId(String country, long id);
 }

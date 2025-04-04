@@ -69,16 +69,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.ing.data</groupId>
-            <artifactId>cassandra-jdbc-wrapper</artifactId>
-            <version>4.13.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase.ext</groupId>
-            <artifactId>liquibase-cassandra</artifactId>
-            <version>4.29.1</version>
-        </dependency>
-        <dependency>
             <groupId>com.datastax.oss</groupId>
             <artifactId>java-driver-core</artifactId>
             <version>4.15.0</version>

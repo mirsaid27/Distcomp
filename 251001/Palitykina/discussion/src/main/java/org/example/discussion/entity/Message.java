@@ -16,10 +16,10 @@ public class Message {
     @PrimaryKeyColumn(name = "country", type = PrimaryKeyType.PARTITIONED, ordinal =0)
     private String country;
 
-    @PrimaryKeyColumn(name = "id", type = PrimaryKeyType.CLUSTERED, ordinal = 2)
+    @PrimaryKeyColumn(name = "id", type = PrimaryKeyType.CLUSTERED, ordinal = 1)
     private long id = System.currentTimeMillis() << 10 | (ThreadLocalRandom.current().nextInt(1024) & 0x3FF);
 
-    @PrimaryKeyColumn(name = "storyid",  type = PrimaryKeyType.CLUSTERED, ordinal = 1, ordering = Ordering.ASCENDING)
+    @PrimaryKeyColumn(name = "storyid",  type = PrimaryKeyType.CLUSTERED, ordinal = 2, ordering = Ordering.ASCENDING)
     private long storyId;
 
     @Column

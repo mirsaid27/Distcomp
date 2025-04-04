@@ -44,9 +44,9 @@ public class MessageController {
     }
 
     @GetMapping("/{id}")
-    public MessageResponseTo get(@PathVariable long id) {
+    public MessageResponseTo getById(@PathVariable long id) {
         try {
-            return messageService.get(id);
+            return messageService.getById(id);
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
@@ -54,8 +54,7 @@ public class MessageController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable long id) {
-        boolean deleted = messageService.delete(id);
-        if (!deleted) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    public boolean delete(@PathVariable long id) {
+        return messageService.delete(id);
     }
 }

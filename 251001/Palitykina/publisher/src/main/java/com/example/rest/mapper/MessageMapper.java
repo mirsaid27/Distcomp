@@ -8,7 +8,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface MessageMapper {
-    @Mapping(source = "story.id", target = "storyId")
     MessageResponseTo ToMessageResponseTo(Message Message);
     Message ToMessage(MessageRequestTo MessageRequestTo);
     Message ToMessage(MessageUpdateTo MessageUpdateTo);
