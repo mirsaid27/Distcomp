@@ -1,30 +1,28 @@
 package org.example.discussion.entity;
-
+import lombok.Generated;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.cassandra.core.cql.Ordering;
+import org.springframework.data.cassandra.core.mapping.*;
+import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import lombok.Data;
-import org.springframework.data.cassandra.core.mapping.PrimaryKey;
-import org.springframework.data.cassandra.core.mapping.Table;
 
-//@Data
-//@Table(name = "tbl_message")
-//public class Message {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private long id;
-//    @ManyToOne
-//    @JoinColumn(name = "story_id", nullable = false)
-//    private Story story;
-//    private String content;
-//}
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Table("tbl_message")
 @Data
 public class Message {
 
-    @PrimaryKey
-    private UUID id;
-
+    @PrimaryKeyColumn(name = "country", type = PrimaryKeyType.PARTITIONED, ordinal =0)
     private String country;
-    private Long storyId;
+
+    @PrimaryKeyColumn(name = "id", type = PrimaryKeyType.CLUSTERED, ordinal = 2)
+    private long id = System.currentTimeMillis() << 10 | (ThreadLocalRandom.current().nextInt(1024) & 0x3FF);
+
+    @PrimaryKeyColumn(name = "storyid",  type = PrimaryKeyType.CLUSTERED, ordinal = 1, ordering = Ordering.ASCENDING)
+    private long storyId;
+
+    @Column
     private String content;
+
 }

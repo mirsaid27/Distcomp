@@ -10,4 +10,5 @@ public class MessageRequestTo {
 
     @Size(min = 2, max = 2048)
     private String content;
+    private String country;
 }

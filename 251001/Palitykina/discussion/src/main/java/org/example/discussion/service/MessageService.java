@@ -25,7 +25,7 @@ public class MessageService {
                 .toList();
     }
 
-    public MessageResponseTo get(UUID id) {
+    public MessageResponseTo get(long id) {
         return messageRepo
                 .get(id)
                 .map(messageMapper::ToMessageResponseTo)
@@ -34,6 +34,7 @@ public class MessageService {
 
     public MessageResponseTo create(MessageRequestTo input) {
         Message message = messageMapper.ToMessage(input);
+
         return messageRepo
                 .create(message)
                 .map(messageMapper::ToMessageResponseTo)
@@ -48,7 +49,7 @@ public class MessageService {
                 .orElseThrow();
     }
 
-    public boolean delete(UUID id) {
+    public boolean delete(long id) {
         return messageRepo.delete(id);
     }
 }

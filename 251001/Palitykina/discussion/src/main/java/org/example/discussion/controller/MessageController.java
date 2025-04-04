@@ -44,7 +44,7 @@ public class MessageController {
     }
 
     @GetMapping("/{id}")
-    public MessageResponseTo get(@PathVariable UUID id) {
+    public MessageResponseTo get(@PathVariable long id) {
         try {
             return messageService.get(id);
         } catch (NoSuchElementException e) {
@@ -54,7 +54,7 @@ public class MessageController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable long id) {
         boolean deleted = messageService.delete(id);
         if (!deleted) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }

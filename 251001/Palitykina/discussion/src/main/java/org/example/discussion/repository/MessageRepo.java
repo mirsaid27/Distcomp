@@ -9,11 +9,11 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 @Repository
-public interface MessageRepo extends CassandraRepository<Message, UUID> {
+public interface MessageRepo extends CassandraRepository<Message, Long> {
     default Stream<Message> getAll(){
         return findAll().stream();
     }
-    default Optional<Message> get(UUID id){
+    default Optional<Message> get(long id){
         return findById(id);
     }
     default Optional<Message> create(Message input){
@@ -22,7 +22,7 @@ public interface MessageRepo extends CassandraRepository<Message, UUID> {
     default Optional<Message> update(Message input){
         return Optional.of(save(input));
     }
-    default boolean delete(UUID id){
+    default boolean delete(long id){
         if(existsById(id)){
             deleteById(id);
             return true;
