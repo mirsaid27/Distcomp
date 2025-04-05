@@ -5,6 +5,7 @@ import by.bsuir.distcomp.dto.request.AuthorRequestTo;
 import by.bsuir.distcomp.dto.response.AuthorResponseTo;
 import by.bsuir.distcomp.repository.AuthorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -33,15 +34,18 @@ public class AuthorService {
                 .orElseThrow(() -> new NoSuchElementException("Author with id: " + id + " not found"));
     }
 
+    @Transactional
     public AuthorResponseTo createAuthor(AuthorRequestTo authorRequestTo) {
-        return authorMapper.toDto(authorRepository.create(authorMapper.toEntity(authorRequestTo)));
+        return authorMapper.toDto(authorRepository.save(authorMapper.toEntity(authorRequestTo)));
     }
 
+    @Transactional
     public AuthorResponseTo updateAuthor(AuthorRequestTo authorRequestTo) {
         getAuthorById(authorRequestTo.getId());
-        return authorMapper.toDto(authorRepository.update(authorMapper.toEntity(authorRequestTo)));
+        return authorMapper.toDto(authorRepository.save(authorMapper.toEntity(authorRequestTo)));
     }
 
+    @Transactional
     public void deleteAuthor(Long id) {
         getAuthorById(id);
         authorRepository.deleteById(id);

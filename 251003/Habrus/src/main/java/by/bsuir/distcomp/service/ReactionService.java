@@ -5,6 +5,7 @@ import by.bsuir.distcomp.dto.request.ReactionRequestTo;
 import by.bsuir.distcomp.dto.response.ReactionResponseTo;
 import by.bsuir.distcomp.repository.ReactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -30,15 +31,18 @@ public class ReactionService {
                 .orElseThrow(() -> new NoSuchElementException("Reaction with id: " + id + " not found"));
     }
 
+    @Transactional
     public ReactionResponseTo createReaction(ReactionRequestTo reactionRequestTo) {
-        return reactionMapper.toDto(reactionRepository.create(reactionMapper.toEntity(reactionRequestTo)));
+        return reactionMapper.toDto(reactionRepository.save(reactionMapper.toEntity(reactionRequestTo)));
     }
 
+    @Transactional
     public ReactionResponseTo updateReaction(ReactionRequestTo reactionRequestTo) {
         getReactionById(reactionRequestTo.getId());
-        return reactionMapper.toDto(reactionRepository.update(reactionMapper.toEntity(reactionRequestTo)));
+        return reactionMapper.toDto(reactionRepository.save(reactionMapper.toEntity(reactionRequestTo)));
     }
 
+    @Transactional
     public void deleteReaction(Long id) {
         getReactionById(id);
         reactionRepository.deleteById(id);

@@ -6,7 +6,7 @@ import by.bsuir.distcomp.entity.Marker;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface MarkerMapper {
-    MarkerResponseTo toDto(Marker marker);
-    Marker toEntity(MarkerRequestTo markerDTO);
+public abstract class MarkerMapper {
+    public abstract MarkerResponseTo toDto(Marker marker);
+    public abstract Marker toEntity(MarkerRequestTo markerDTO);
 }

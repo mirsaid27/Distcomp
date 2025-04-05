@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,5 +21,7 @@ public class ArticleRequestTo {
 
     @Size(min = 4, max = 2048)
     private String content;
+
+    private List<String> markers = new ArrayList<>();
 
 }

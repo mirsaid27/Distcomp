@@ -5,6 +5,7 @@ import by.bsuir.distcomp.dto.request.MarkerRequestTo;
 import by.bsuir.distcomp.dto.response.MarkerResponseTo;
 import by.bsuir.distcomp.repository.MarkerRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -30,15 +31,18 @@ public class MarkerService {
                 .orElseThrow(() -> new NoSuchElementException("Marker with id: " + id + " not found"));
     }
 
+    @Transactional
     public MarkerResponseTo createMarker(MarkerRequestTo markerRequestTo) {
-        return markerMapper.toDto(markerRepository.create(markerMapper.toEntity(markerRequestTo)));
+        return markerMapper.toDto(markerRepository.save(markerMapper.toEntity(markerRequestTo)));
     }
 
+    @Transactional
     public MarkerResponseTo updateMarker(MarkerRequestTo markerRequestTo) {
         getMarkerById(markerRequestTo.getId());
-        return markerMapper.toDto(markerRepository.update(markerMapper.toEntity(markerRequestTo)));
+        return markerMapper.toDto(markerRepository.save(markerMapper.toEntity(markerRequestTo)));
     }
 
+    @Transactional
     public void deleteMarker(Long id) {
         getMarkerById(id);
         markerRepository.deleteById(id);

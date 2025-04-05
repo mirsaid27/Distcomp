@@ -30,17 +30,17 @@ public class MarkerController {
     }
 
     @PostMapping
-    public ResponseEntity<MarkerResponseTo> createAuthor(@RequestBody @Valid MarkerRequestTo markerRequestTo) {
+    public ResponseEntity<MarkerResponseTo> createMarker(@RequestBody @Valid MarkerRequestTo markerRequestTo) {
         return new ResponseEntity<>(markerService.createMarker(markerRequestTo), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<MarkerResponseTo> updateAuthor(@RequestBody @Valid MarkerRequestTo markerRequestTo) {
+    public ResponseEntity<MarkerResponseTo> updateMarker(@RequestBody @Valid MarkerRequestTo markerRequestTo) {
         return new ResponseEntity<>(markerService.updateMarker(markerRequestTo), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{id:\\d+}")
-    public ResponseEntity<MarkerResponseTo> deleteAuthor(@PathVariable Long id) {
+    public ResponseEntity<MarkerResponseTo> deleteMarker(@PathVariable Long id) {
         markerService.deleteMarker(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

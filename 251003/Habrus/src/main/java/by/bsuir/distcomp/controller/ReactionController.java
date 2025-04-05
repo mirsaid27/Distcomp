@@ -30,17 +30,17 @@ public class ReactionController {
     }
 
     @PostMapping
-    public ResponseEntity<ReactionResponseTo> createAuthor(@RequestBody @Valid ReactionRequestTo reactionRequestTo) {
+    public ResponseEntity<ReactionResponseTo> createReaction(@RequestBody @Valid ReactionRequestTo reactionRequestTo) {
         return new ResponseEntity<>(reactionService.createReaction(reactionRequestTo), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<ReactionResponseTo> updateAuthor(@RequestBody @Valid ReactionRequestTo reactionRequestTo) {
+    public ResponseEntity<ReactionResponseTo> updateReaction(@RequestBody @Valid ReactionRequestTo reactionRequestTo) {
         return new ResponseEntity<>(reactionService.updateReaction(reactionRequestTo), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{id:\\d+}")
-    public ResponseEntity<ReactionResponseTo> deleteAuthor(@PathVariable Long id) {
+    public ResponseEntity<ReactionResponseTo> deleteReaction(@PathVariable Long id) {
         reactionService.deleteReaction(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

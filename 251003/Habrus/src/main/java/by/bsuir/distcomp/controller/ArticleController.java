@@ -30,17 +30,17 @@ public class ArticleController {
     }
 
     @PostMapping
-    public ResponseEntity<ArticleResponseTo> createAuthor(@RequestBody @Valid ArticleRequestTo articleRequestTo) {
+    public ResponseEntity<ArticleResponseTo> createArticle(@RequestBody @Valid ArticleRequestTo articleRequestTo) {
         return new ResponseEntity<>(articleService.createArticle(articleRequestTo), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<ArticleResponseTo> updateAuthor(@RequestBody @Valid ArticleRequestTo articleRequestTo) {
+    public ResponseEntity<ArticleResponseTo> updateArticle(@RequestBody @Valid ArticleRequestTo articleRequestTo) {
         return new ResponseEntity<>(articleService.updateArticle(articleRequestTo), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{id:\\d+}")
-    public ResponseEntity<ArticleResponseTo> deleteAuthor(@PathVariable Long id) {
+    public ResponseEntity<ArticleResponseTo> deleteArticle(@PathVariable Long id) {
         articleService.deleteArticle(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
