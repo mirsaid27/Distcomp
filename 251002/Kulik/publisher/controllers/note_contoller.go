@@ -174,7 +174,7 @@ func NewNoteController(e *echo.Echo) {
 		if err != nil {
 			return c.JSON(504, map[string]string{"error": err.Error()})
 		}
-		return c.JSON(200, json.RawMessage(res))
+		return c.JSON(204, json.RawMessage(res))
 	})
 
 	e.GET("/api/v1.0/notes", func(c echo.Context) error {
