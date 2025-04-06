@@ -10,9 +10,10 @@ import (
 	"log"
 	"sync"
 	"time"
-
+	"errors"
 	"github.com/labstack/echo/v4"
 	"github.com/segmentio/kafka-go"
+	"github.com/go-redis/redis/v8"
 
 	"distributedcomputing/model"
 )
@@ -23,6 +24,7 @@ const (
 	outTopic        = "OutTopic"
 	kafkaTimeoutSec = 5
 )
+
 
 type NoteMessage struct {
 	Action string `json:"action"`
@@ -129,11 +131,41 @@ func awaitKafkaResponse(id string) (string, error) {
 	}
 }
 
-func NewNoteController(e *echo.Echo) {
+func NewNoteController(e *echo.Echo, redisClient *redis.Client) {
 	ctx := context.Background()
 	go startKafkaResponseConsumer(ctx)
 	kafkaProducer := NewKafkaProducer()
 
+	// Middleware to check cache before calling Kafka for GET requests
+	e.GET("/api/v1.0/notes", func(c echo.Context) error {
+		reqID := fmt.Sprint(time.Now().UnixNano())
+
+		// Check Redis first for cached notes
+		cachedNotes, err := redisClient.Get(ctx, reqID).Result()
+		if err == nil {
+			// If found in cache, return cached result
+			var notes []model.NoteResponseTo
+			if err := json.Unmarshal([]byte(cachedNotes), &notes); err == nil {
+				return c.JSON(200, notes)
+			}
+		}
+
+		// If not found in cache, send Kafka request
+		if err := kafkaProducer.SendNoteMessage(ctx, "get_all", reqID, nil); err != nil {
+			return c.JSON(500, map[string]string{"error": err.Error()})
+		}
+
+		res, err := awaitKafkaResponse(reqID)
+		if err != nil {
+			return c.JSON(504, map[string]string{"error": err.Error()})
+		}
+
+		// Cache the response in Redis
+		redisClient.Set(ctx, reqID, res, 0)
+		return c.JSON(200, json.RawMessage(res))
+	})
+
+	// Other endpoints (create, update, delete) would be similar but with Redis cache updates
 	e.POST("/api/v1.0/notes", func(c echo.Context) error {
 		randomID, _ := generateRandomUint64()
 		var req model.NoteRequestTo
@@ -145,6 +177,11 @@ func NewNoteController(e *echo.Echo) {
 		if err := kafkaProducer.SendNoteMessage(ctx, "create", fmt.Sprint(randomID), req); err != nil {
 			return c.JSON(500, map[string]string{"error": err.Error()})
 		}
+
+		// Cache the created note in Redis
+		reqData, _ := json.Marshal(req)
+		redisClient.Set(ctx, fmt.Sprint(req.Id), string(reqData), 0)
+
 		return c.JSON(201, req)
 	})
 
@@ -158,6 +195,11 @@ func NewNoteController(e *echo.Echo) {
 		if err := kafkaProducer.SendNoteMessage(ctx, "update", id, req); err != nil {
 			return c.JSON(500, map[string]string{"error": err.Error()})
 		}
+
+		// Cache the updated note in Redis
+		reqData, _ := json.Marshal(req)
+		redisClient.Set(ctx, id, string(reqData), 0)
+
 		res, err := awaitKafkaResponse(id)
 		if err != nil {
 			return c.JSON(504, map[string]string{"error": err.Error()})
@@ -170,6 +212,10 @@ func NewNoteController(e *echo.Echo) {
 		if err := kafkaProducer.SendNoteMessage(ctx, "delete", id, nil); err != nil {
 			return c.JSON(500, map[string]string{"error": err.Error()})
 		}
+
+		// Remove the deleted note from Redis
+		redisClient.Del(ctx, id)
+
 		res, err := awaitKafkaResponse(id)
 		if err != nil {
 			return c.JSON(504, map[string]string{"error": err.Error()})
@@ -177,30 +223,35 @@ func NewNoteController(e *echo.Echo) {
 		return c.JSON(204, json.RawMessage(res))
 	})
 
-	e.GET("/api/v1.0/notes", func(c echo.Context) error {
-		fmt.Println("0---------0");
-		reqID := fmt.Sprint(time.Now().UnixNano())
-		if err := kafkaProducer.SendNoteMessage(ctx, "get_all", reqID, nil); err != nil {
-			return c.JSON(500, map[string]string{"error": err.Error()})
-		}
-		fmt.Println("0---------0");
-		res, err := awaitKafkaResponse(reqID)
-		if err != nil {
-			return c.JSON(504, map[string]string{"error": err.Error()})
-		}
-		fmt.Println("0---------0");
-		return c.JSON(200, json.RawMessage(res))
-	})
-
 	e.GET("/api/v1.0/notes/:id", func(c echo.Context) error {
 		id := c.Param("id")
+
+		// Check Redis first
+		cachedNote, err := redisClient.Get(ctx, id).Result()
+		if err == nil {
+			// If found in cache, return cached result
+			return c.JSON(200, json.RawMessage(cachedNote))
+		}
+
+		// If not found in cache, send Kafka request
 		if err := kafkaProducer.SendNoteMessage(ctx, "get", id, nil); err != nil {
 			return c.JSON(500, map[string]string{"error": err.Error()})
 		}
+
 		res, err := awaitKafkaResponse(id)
 		if err != nil {
 			return c.JSON(504, map[string]string{"error": err.Error()})
 		}
+
+		// Cache the response in Redis
+		redisClient.Set(ctx, id, res, 0)
 		return c.JSON(200, json.RawMessage(res))
 	})
+}
+
+func validateNote(dto model.NoteRequestTo) error {
+	if len(dto.Content) < 2 || len(dto.Content) > 2048 {
+		return errors.New("note content must be between 2 and 2048 characters")
+	}
+	return nil
 }

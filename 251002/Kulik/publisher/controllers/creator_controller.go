@@ -1,15 +1,19 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"distributedcomputing/model"
 	"distributedcomputing/service"
+	"github.com/go-redis/redis/v8"
 	"net/http"
 	"strconv"
 	"errors"
+	"encoding/json"
 )
 
+var ctx = context.Background()
 
 func WrapErr(err error) map[string]string {
 	return map[string]string{"error": err.Error()}
@@ -17,10 +21,11 @@ func WrapErr(err error) map[string]string {
 
 type CreatorController struct {
 	service *service.CreatorService
+	redisClient *redis.Client
 }
 
-func NewCreatorController(service *service.CreatorService) *CreatorController {
-	return &CreatorController{service: service}
+func NewCreatorController(service *service.CreatorService, redisClient *redis.Client) *CreatorController {
+	return &CreatorController{service: service, redisClient: redisClient}
 }
 
 func (cc *CreatorController) Create(c echo.Context) error {
@@ -29,18 +34,18 @@ func (cc *CreatorController) Create(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
 
-	fmt.Println("bbbbb: ", dto)
-
 	if err := validateCreator(dto); err != nil {
-		fmt.Println(err)
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
 
 	entity, err := cc.service.Create(dto)
 	if err != nil {
-		fmt.Println(err)
 		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
+
+	entityJSON, _ := json.Marshal(entity)
+	cc.redisClient.Set(ctx, fmt.Sprintf("creator:%d", entity.Id), entityJSON, 0)
+
 	return c.JSON(http.StatusCreated, entity)
 }
 
@@ -51,9 +56,29 @@ func (cc *CreatorController) Get(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid ID format")
 	}
 
-	creator, err := cc.service.Get(id)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, WrapErr(err))
+	// Check Redis first
+	creatorData, err := cc.redisClient.Get(ctx, fmt.Sprintf("creator:%d", id)).Result()
+	fmt.Println("\n\n\n---------\n", creatorData, err)
+	if err == redis.Nil {
+		// If not found in Redis, fetch from service
+		creator, err := cc.service.Get(id)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, WrapErr(err))
+		}
+
+		// Add to Redis
+		creatorJSON, _ := json.Marshal(creator)
+		cc.redisClient.Set(ctx, fmt.Sprintf("creator:%d", id), creatorJSON, 0)
+
+		return c.JSON(http.StatusOK, creator)
+	} else if err != nil {
+		return c.JSON(http.StatusInternalServerError, WrapErr(err))
+	}
+
+	// If found in Redis, return cached data
+	var creator model.CreatorResponseTo
+	if err := json.Unmarshal([]byte(creatorData), &creator); err != nil {
+		return c.JSON(http.StatusInternalServerError, WrapErr(err))
 	}
 
 	return c.JSON(http.StatusOK, creator)
@@ -67,7 +92,6 @@ func (cc *CreatorController) GetAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, creators)
 }
 
-
 func (cc *CreatorController) Update(c echo.Context) error {
 	var dto model.CreatorRequestTo
 	if err := c.Bind(&dto); err != nil {
@@ -78,11 +102,15 @@ func (cc *CreatorController) Update(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
 
+	// Update the entity in the service
 	if err := cc.service.Update(dto); err != nil {
-		fmt.Println(err)
 		return c.JSON(http.StatusInternalServerError, WrapErr(err))
 	}
-	
+
+	// Optionally, update the entity in Redis
+	entityJSON, _ := json.Marshal(dto)
+	cc.redisClient.Set(ctx, fmt.Sprintf("creator:%d", dto.Id), entityJSON, 0)
+
 	return c.JSON(http.StatusOK, dto)
 }
 
@@ -93,9 +121,13 @@ func (cc *CreatorController) Delete(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid ID format")
 	}
 
+	// Delete the entity from service
 	if err := cc.service.Delete(id); err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
+
+	// Remove the entity from Redis
+	cc.redisClient.Del(ctx, fmt.Sprintf("creator:%d", id))
 
 	return c.NoContent(http.StatusNoContent)
 }
