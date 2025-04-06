@@ -39,6 +39,9 @@ func NewKafkaProducer() *KafkaProducer {
 		Addr:     kafka.TCP(kafkaBroker),
 		Topic:    inTopic,
 		Balancer: &kafka.LeastBytes{},
+		BatchSize:    1,                   
+    	BatchTimeout: 1 * time.Millisecond,
+		Async: false,
 	}
 	return &KafkaProducer{writer: writer}
 }
@@ -67,23 +70,25 @@ func (kp *KafkaProducer) SendNoteMessage(ctx context.Context, action, id string,
 }
 
 func generateRandomUint64() (uint64, error) {
-	var b [8]byte
+	var b [4]byte
 	_, err := rand.Read(b[:])
 	if err != nil {
 		return 0, err
 	}
-	return binary.LittleEndian.Uint64(b[:]), nil
+	return uint64(binary.LittleEndian.Uint32(b[:])), nil
 }
 
 var responseChannels sync.Map // map[string]chan string
 
 func startKafkaResponseConsumer(ctx context.Context) {
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   []string{kafkaBroker},
-		Topic:     outTopic,
-		Partition: 0,
-		MinBytes:  10e3, // 10KB
-		MaxBytes:  10e6, // 10MB
+		Brokers:        []string{kafkaBroker},
+		Topic:          outTopic,
+		GroupID:        "note-client-group",  
+		MinBytes:       1,                   
+		MaxBytes:       10e6,                 
+		MaxWait:        10 * time.Millisecond,
+		ReadLagInterval: -1,                  
 	})
 	defer reader.Close()
 
@@ -173,14 +178,17 @@ func NewNoteController(e *echo.Echo) {
 	})
 
 	e.GET("/api/v1.0/notes", func(c echo.Context) error {
+		fmt.Println("0---------0");
 		reqID := fmt.Sprint(time.Now().UnixNano())
 		if err := kafkaProducer.SendNoteMessage(ctx, "get_all", reqID, nil); err != nil {
 			return c.JSON(500, map[string]string{"error": err.Error()})
 		}
+		fmt.Println("0---------0");
 		res, err := awaitKafkaResponse(reqID)
 		if err != nil {
 			return c.JSON(504, map[string]string{"error": err.Error()})
 		}
+		fmt.Println("0---------0");
 		return c.JSON(200, json.RawMessage(res))
 	})
 

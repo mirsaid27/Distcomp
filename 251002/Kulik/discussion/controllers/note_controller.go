@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"math/rand"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"distributedcomputing/model"
@@ -28,8 +29,7 @@ func (nc *NoteController) Create(c echo.Context) error {
 	if err := c.Bind(&dto); err != nil {
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
-
-
+	dto.Id = rand.Uint64()
 	if err := validateNote(dto); err != nil {
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}

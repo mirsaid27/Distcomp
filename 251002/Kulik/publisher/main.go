@@ -31,8 +31,8 @@ func main() {
 	creatorController := controllers.NewCreatorController(creatorService)
 	storyController := controllers.NewStoryController(storyService)
 	markController := controllers.NewMarkController(markService)
-	controllers.NoteControllerS(e, db);
-	// controllers.NewNoteController(e);
+	// controllers.NoteControllerS(e, db);
+	controllers.NewNoteController(e);
 
 	e.POST("/api/v1.0/creators", creatorController.Create)
 	e.GET("/api/v1.0/creators", creatorController.GetAll)
