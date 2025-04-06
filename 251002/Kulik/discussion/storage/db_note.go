@@ -32,8 +32,7 @@ func (s *NoteStorage) Create(note model.Note) (int64, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	id := s.idCounter
-	note.Id = id // Assign numeric ID to the note
+	id := note.Id
 	result, err := s.collection.InsertOne(context.TODO(), note)
 	
 	if err != nil {
@@ -46,8 +45,7 @@ func (s *NoteStorage) Create(note model.Note) (int64, error) {
 		return 0, errors.New("failed to convert InsertedID to ObjectID")
 	}
 
-	s.idMap[id] = oid
-	s.idCounter++
+	s.idMap[id] = oid	
 	return id, nil
 }
 

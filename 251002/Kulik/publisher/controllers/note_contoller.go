@@ -1,102 +1,198 @@
 package controllers
 
 import (
+	"bytes"
+	"context"
+	"crypto/rand"
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	"log"
+	"sync"
+	"time"
+
 	"github.com/labstack/echo/v4"
+	"github.com/segmentio/kafka-go"
+
 	"distributedcomputing/model"
-	"distributedcomputing/service"
-	"net/http"
-	"strconv"
-	"errors"
 )
 
-type NoteController struct {
-	service *service.NoteService
+const (
+	kafkaBroker     = "localhost:9094"
+	inTopic         = "InTopic"
+	outTopic        = "OutTopic"
+	kafkaTimeoutSec = 5
+)
+
+type NoteMessage struct {
+	Action string `json:"action"`
+	ID     string `json:"id,omitempty"`
+	Data   string `json:"data,omitempty"`
 }
 
-func NewNoteController(service *service.NoteService) *NoteController {
-	return &NoteController{service: service}
+type KafkaProducer struct {
+	writer *kafka.Writer
 }
 
-func (nc *NoteController) Create(c echo.Context) error {
-	var dto model.NoteRequestTo
-	if err := c.Bind(&dto); err != nil {
-		return c.JSON(http.StatusBadRequest, WrapErr(err))
+func NewKafkaProducer() *KafkaProducer {
+	writer := &kafka.Writer{
+		Addr:     kafka.TCP(kafkaBroker),
+		Topic:    inTopic,
+		Balancer: &kafka.LeastBytes{},
+	}
+	return &KafkaProducer{writer: writer}
+}
+
+func (kp *KafkaProducer) SendNoteMessage(ctx context.Context, action, id string, data any) error {
+	var dataStr string
+	if data != nil {
+		b, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		dataStr = string(b)
 	}
 
-	if err := validateNote(dto); err != nil {
-		return c.JSON(http.StatusBadRequest, WrapErr(err))
-	}
-
-	note, err := nc.service.Create(dto)
+	msg := NoteMessage{Action: action, ID: id, Data: dataStr}
+	b, err := json.Marshal(msg)
 	if err != nil {
-		return c.JSON(http.StatusForbidden, WrapErr(err))
+		return err
 	}
-	return c.JSON(http.StatusCreated, note)
+
+	kafkaMsg := kafka.Message{
+		Key:   []byte(id),
+		Value: b,
+	}
+	return kp.writer.WriteMessages(ctx, kafkaMsg)
 }
 
-func (nc *NoteController) Get(c echo.Context) error {
-	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+func generateRandomUint64() (uint64, error) {
+	var b [8]byte
+	_, err := rand.Read(b[:])
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid ID format")
+		return 0, err
 	}
-
-	note, err := nc.service.Get(id)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, WrapErr(err))
-	}
-
-	return c.JSON(http.StatusOK, note)
+	return binary.LittleEndian.Uint64(b[:]), nil
 }
 
-func (nc *NoteController) GetAll(c echo.Context) error {
-	notes, err := nc.service.GetAll()
-	if err != nil {
-		return c.JSON(http.StatusNotFound, WrapErr(err))
+var responseChannels sync.Map // map[string]chan string
+
+func startKafkaResponseConsumer(ctx context.Context) {
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:   []string{kafkaBroker},
+		Topic:     outTopic,
+		Partition: 0,
+		MinBytes:  10e3, // 10KB
+		MaxBytes:  10e6, // 10MB
+	})
+	defer reader.Close()
+
+	for {
+		m, err := reader.ReadMessage(ctx)
+		if err != nil {
+			log.Printf("Error reading message: %v", err)
+			continue
+		}
+
+		var response NoteMessage
+		decoder := json.NewDecoder(bytes.NewReader(m.Value))
+		if err := decoder.Decode(&response); err != nil {
+			log.Printf("Failed to unmarshal response: %v", err)
+			continue
+		}
+
+		if chVal, ok := responseChannels.Load(response.ID); ok {
+			if ch, ok := chVal.(chan string); ok {
+				ch <- response.Data
+				close(ch)
+				responseChannels.Delete(response.ID)
+			}
+		}
 	}
-	return c.JSON(http.StatusOK, notes)
 }
 
-func (nc *NoteController) Update(c echo.Context) error {
-	var dto model.NoteRequestTo
-	if err := c.Bind(&dto); err != nil {
-		return c.JSON(http.StatusBadRequest, WrapErr(err))
-	}
+func awaitKafkaResponse(id string) (string, error) {
+	ch := make(chan string, 1)
+	responseChannels.Store(id, ch)
+	defer responseChannels.Delete(id)
 
-	if err := validateNote(dto); err != nil {
-		return c.JSON(http.StatusBadRequest, WrapErr(err))
+	select {
+	case res := <-ch:
+		return res, nil
+	case <-time.After(kafkaTimeoutSec * time.Second):
+		return "", fmt.Errorf("timeout waiting for response")
 	}
-
-	if err := nc.service.Update(dto); err != nil {
-		fmt.Println(err)
-		return c.JSON(http.StatusForbidden, WrapErr(err))
-	}
-
-	return c.JSON(http.StatusOK, dto)
 }
 
-func (nc *NoteController) Delete(c echo.Context) error {
-	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid ID format")
-	}
+func NewNoteController(e *echo.Echo) {
+	ctx := context.Background()
+	go startKafkaResponseConsumer(ctx)
+	kafkaProducer := NewKafkaProducer()
 
-	if err := nc.service.Delete(id); err != nil {
-		return c.NoContent(http.StatusNotFound)
-	}
+	e.POST("/api/v1.0/notes", func(c echo.Context) error {
+		randomID, _ := generateRandomUint64()
+		var req model.NoteRequestTo
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(400, map[string]string{"error": "Invalid request"})
+		}
+		req.Id = int64(randomID)
 
-	return c.NoContent(http.StatusNoContent)
+		if err := kafkaProducer.SendNoteMessage(ctx, "create", fmt.Sprint(randomID), req); err != nil {
+			return c.JSON(500, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(201, req)
+	})
+
+	e.PUT("/api/v1.0/notes", func(c echo.Context) error {
+		var req model.NoteRequestTo
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(400, map[string]string{"error": "Invalid request"})
+		}
+		id := fmt.Sprint(req.Id)
+
+		if err := kafkaProducer.SendNoteMessage(ctx, "update", id, req); err != nil {
+			return c.JSON(500, map[string]string{"error": err.Error()})
+		}
+		res, err := awaitKafkaResponse(id)
+		if err != nil {
+			return c.JSON(504, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(200, json.RawMessage(res))
+	})
+
+	e.DELETE("/api/v1.0/notes/:id", func(c echo.Context) error {
+		id := c.Param("id")
+		if err := kafkaProducer.SendNoteMessage(ctx, "delete", id, nil); err != nil {
+			return c.JSON(500, map[string]string{"error": err.Error()})
+		}
+		res, err := awaitKafkaResponse(id)
+		if err != nil {
+			return c.JSON(504, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(200, json.RawMessage(res))
+	})
+
+	e.GET("/api/v1.0/notes", func(c echo.Context) error {
+		reqID := fmt.Sprint(time.Now().UnixNano())
+		if err := kafkaProducer.SendNoteMessage(ctx, "get_all", reqID, nil); err != nil {
+			return c.JSON(500, map[string]string{"error": err.Error()})
+		}
+		res, err := awaitKafkaResponse(reqID)
+		if err != nil {
+			return c.JSON(504, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(200, json.RawMessage(res))
+	})
+
+	e.GET("/api/v1.0/notes/:id", func(c echo.Context) error {
+		id := c.Param("id")
+		if err := kafkaProducer.SendNoteMessage(ctx, "get", id, nil); err != nil {
+			return c.JSON(500, map[string]string{"error": err.Error()})
+		}
+		res, err := awaitKafkaResponse(id)
+		if err != nil {
+			return c.JSON(504, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(200, json.RawMessage(res))
+	})
 }
-
-
-
-
-func validateNote(dto model.NoteRequestTo) error {
-	if len(dto.Content) < 2 || len(dto.Content) > 2048 {
-		return errors.New("note content must be between 2 and 2048 characters")
-	}
-	return nil
-}
-

@@ -3,6 +3,7 @@ package service
 import (
 	"distributedcomputing/model"
 	"distributedcomputing/storage"
+	"fmt"
 )
 
 type NoteService struct {
@@ -15,7 +16,9 @@ func NewNoteService(store storage.IStorage[model.Note]) *NoteService {
 
 func (s *NoteService) Create(dto model.NoteRequestTo) (model.NoteResponseTo, error) {
 	note := model.NoteToModel(dto)
+	fmt.Println("create", note)
 	id, err := s.store.Create(note)
+	fmt.Println("created", note)
 	note.Id = id
 	if err != nil {
 		return model.NoteResponseTo{}, err

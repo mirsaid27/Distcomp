@@ -116,4 +116,3 @@ func validateNote(dto model.NoteRequestTo) error {
 	}
 	return nil
 }
-
