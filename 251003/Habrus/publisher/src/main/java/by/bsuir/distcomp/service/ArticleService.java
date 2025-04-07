@@ -10,10 +10,8 @@ import by.bsuir.distcomp.repository.MarkerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 @Service
 public class ArticleService {
@@ -44,22 +42,6 @@ public class ArticleService {
         Article article = articleMapper.toEntity(articleRequestTo);
 
         List<Marker> markers = markerRepository.saveAll(article.getMarkers());
-
-//        Marker markerRed = new Marker(null, "red" + article.getAuthor().getId());
-//        Marker markerGreen = new Marker(null, "green" + article.getAuthor().getId());
-//        Marker markerBlue =new Marker(null, "blue" + article.getAuthor().getId());
-//
-//        Marker savedMarkerRed = markerRepository.save(markerRed);
-//        Marker savedMarkerGreen = markerRepository.save(markerGreen);
-//        Marker savedMarkerBlue = markerRepository.save(markerBlue);
-//
-//        article.getMarkers().add(savedMarkerRed);
-//        article.getMarkers().add(savedMarkerGreen);
-//        article.getMarkers().add(savedMarkerBlue);
-
-//        markerRed.getArticles().add(article);
-//        markerGreen.getArticles().add(article);
-//        markerBlue.getArticles().add(article);
 
         return articleMapper.toDto(articleRepository.save(article));
     }
