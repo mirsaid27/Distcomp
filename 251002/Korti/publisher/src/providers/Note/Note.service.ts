@@ -1,6 +1,7 @@
 import {
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -20,12 +21,15 @@ import {
   UPDATE_NOTE,
 } from 'src/constants/constants';
 import { firstValueFrom } from 'rxjs';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class NoteService implements OnModuleInit {
   constructor(
     @InjectRepository(Article)
     private readonly articleRepository: Repository<Article>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Client({
@@ -53,7 +57,12 @@ export class NoteService implements OnModuleInit {
   }
 
   async getAllNotes() {
+    const cachedNotes = await this.cacheManager.get('notes');
+    if (cachedNotes) {
+      return cachedNotes;
+    }
     const response = this.client.send<NoteResponseTo[], any>(GET_ALL_NOTES, '');
+    await this.cacheManager.set('notes', response);
     return response;
   }
 
@@ -85,6 +94,10 @@ export class NoteService implements OnModuleInit {
   }
 
   async getNoteById(id: number): Promise<NoteResponseTo> {
+    const cachedNote = await this.cacheManager.get(`note-${id}`);
+    if (cachedNote) {
+      return cachedNote as NoteResponseTo;
+    }
     const response = await firstValueFrom(
       this.client.send<NoteResponseTo>(GET_NOTE_BY_ID, { noteId: id }),
     ).catch((err) => {
@@ -106,6 +119,7 @@ export class NoteService implements OnModuleInit {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     });
+    await this.cacheManager.set(`note-${id}`, response);
     return response;
   }
 
@@ -136,6 +150,10 @@ export class NoteService implements OnModuleInit {
 
   async updateNote(body: UpdateNoteTo): Promise<NoteResponseTo> {
     try {
+      const cachedNote = await this.cacheManager.get(`note-${body.id}`);
+      if (cachedNote) {
+        await this.cacheManager.del(`note-${body.id}`);
+      }
       const article = await this.articleRepository.findOne({
         where: { id: body.articleId },
       });
@@ -145,6 +163,7 @@ export class NoteService implements OnModuleInit {
           value: JSON.stringify(body),
         }),
       );
+      await this.cacheManager.set(`note-${body.id}`, response);
       return response;
     } catch (err) {
       if (err instanceof NotFoundException) {
