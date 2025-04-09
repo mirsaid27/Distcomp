@@ -58,6 +58,7 @@ public class ArticleService : IArticleService
         var articleToUpdate = _mapper.Map<Article>(article);
         
         articleToUpdate.Modified = DateTime.UtcNow;
+        articleToUpdate.Created = DateTime.UtcNow;
         
         var updatedArticle = await _articleRepository.UpdateAsync(articleToUpdate)
                            ?? throw new NotFoundException(ErrorCodes.ArticleNotFound, ErrorMessages.ArticleNotFoundMessage(article.Id));

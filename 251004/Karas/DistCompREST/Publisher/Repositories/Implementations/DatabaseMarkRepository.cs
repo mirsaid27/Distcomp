@@ -4,9 +4,9 @@ using Publisher.Repositories.Interfaces;
 
 namespace Publisher.Repositories.Implementations;
 
-public class MarkRepository : BaseRepository<Mark>, IMarkRepository
+public class DatabaseMarkRepository : BaseDatabaseRepository<Mark>, IMarkRepository
 {
-    public MarkRepository(AppDbContext context) : base(context)
+    public DatabaseMarkRepository(AppDbContext context) : base(context)
     {
     }
 }

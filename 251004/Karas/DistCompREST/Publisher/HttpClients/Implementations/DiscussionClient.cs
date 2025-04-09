@@ -25,8 +25,6 @@ public class DiscussionClient : IDiscussionClient
         var httpClient = _factory.CreateClient(nameof(DiscussionClient));
         var uri = new Uri("posts", UriKind.Relative);
         var response = await httpClient.GetAsync(uri);
-        var responseContent = await response.Content.ReadAsStringAsync();
-        Console.WriteLine(responseContent); 
         response.EnsureSuccessStatusCode();
 
         var responseJson = await response.Content.ReadAsStringAsync();
@@ -41,7 +39,6 @@ public class DiscussionClient : IDiscussionClient
 
         var responseJson = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<PostResponseDTO>(responseJson, JsonSerializerOptions);
-
     }
 
     public async Task<PostResponseDTO?> CreatePostAsync(PostRequestDTO post)

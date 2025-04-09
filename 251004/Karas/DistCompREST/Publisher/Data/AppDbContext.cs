@@ -29,9 +29,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Article>()
             .ToTable("tbl_article");
         
-        modelBuilder.Entity<Post>()
-            .ToTable("tbl_post");
-        
         modelBuilder.Entity<Article>()
             .HasIndex(s => s.Title)
             .IsUnique();

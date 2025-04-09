@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Publisher.Data;
@@ -11,9 +12,11 @@ using Publisher.Data;
 namespace Publisher.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250208165044_rename_tables")]
+    partial class rename_tables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,27 +25,34 @@ namespace Publisher.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ArticleMark", b =>
+            modelBuilder.Entity("Publisher.Models.Post", b =>
                 {
-                    b.Property<long>("MarksId")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    b.Property<long>("StoriesId")
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("text");
+
+                    b.Property<long>("ArticleId")
                         .HasColumnType("bigint");
 
-                    b.HasKey("MarksId", "StoriesId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("StoriesId");
+                    b.HasIndex("ArticleId");
 
-                    b.ToTable("ArticleMark");
+                    b.ToTable("tbl_post", (string)null);
                 });
 
             modelBuilder.Entity("Publisher.Models.Article", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
@@ -54,10 +64,6 @@ namespace Publisher.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("EditorId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("editor_id");
-
                     b.Property<DateTime>("Modified")
                         .HasColumnType("timestamp with time zone");
 
@@ -66,22 +72,45 @@ namespace Publisher.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.Property<long>("EditorId")
+                        .HasColumnType("bigint");
 
-                    b.HasIndex("EditorId");
+                    b.HasKey("Id");
 
                     b.HasIndex("Title")
                         .IsUnique();
 
+                    b.HasIndex("EditorId");
+
                     b.ToTable("tbl_article", (string)null);
+                });
+
+            modelBuilder.Entity("Publisher.Models.Mark", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("tbl_mark", (string)null);
                 });
 
             modelBuilder.Entity("Publisher.Models.Editor", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
@@ -113,42 +142,30 @@ namespace Publisher.Migrations
                     b.ToTable("tbl_editor", (string)null);
                 });
 
-            modelBuilder.Entity("Publisher.Models.Mark", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("tbl_mark", (string)null);
-                });
-
             modelBuilder.Entity("ArticleMark", b =>
                 {
-                    b.HasOne("Publisher.Models.Mark", null)
-                        .WithMany()
-                        .HasForeignKey("MarksId")
+                    b.Property<long>("StoriesId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("MarksId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("StoriesId", "MarksId");
+
+                    b.HasIndex("MarksId");
+
+                    b.ToTable("ArticleMark");
+                });
+
+            modelBuilder.Entity("Publisher.Models.Post", b =>
+                {
+                    b.HasOne("Publisher.Models.Article", "Article")
+                        .WithMany("Posts")
+                        .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Publisher.Models.Article", null)
-                        .WithMany()
-                        .HasForeignKey("StoriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Article");
                 });
 
             modelBuilder.Entity("Publisher.Models.Article", b =>
@@ -160,6 +177,26 @@ namespace Publisher.Migrations
                         .IsRequired();
 
                     b.Navigation("Editor");
+                });
+
+            modelBuilder.Entity("ArticleMark", b =>
+                {
+                    b.HasOne("Publisher.Models.Article", null)
+                        .WithMany()
+                        .HasForeignKey("StoriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Publisher.Models.Mark", null)
+                        .WithMany()
+                        .HasForeignKey("MarksId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Publisher.Models.Article", b =>
+                {
+                    b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("Publisher.Models.Editor", b =>

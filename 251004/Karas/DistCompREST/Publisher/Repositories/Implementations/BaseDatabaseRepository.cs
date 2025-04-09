@@ -5,13 +5,13 @@ using Publisher.Repositories.Interfaces;
 
 namespace Publisher.Repositories.Implementations;
 
-public abstract class BaseRepository<TEntity> : IRepository<TEntity>
+public abstract class BaseDatabaseRepository<TEntity> : IRepository<TEntity>
     where TEntity : BaseModel
 {
     protected readonly AppDbContext _context;
     protected readonly DbSet<TEntity> _dbSet;
 
-    public BaseRepository(AppDbContext context)
+    public BaseDatabaseRepository(AppDbContext context)
     {
         _context = context;
         _dbSet = context.Set<TEntity>();
