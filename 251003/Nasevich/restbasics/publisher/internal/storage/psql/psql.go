@@ -6,7 +6,6 @@ import (
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/storage/psql/creator"
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/storage/psql/issue"
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/storage/psql/mark"
-	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/storage/psql/message"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -17,7 +16,6 @@ type PSQL struct {
 
 	CreatorInst creator.Creator
 	IssueInst   issue.Issue
-	MessageInst message.Message
 	MarkInst    mark.Mark
 }
 
@@ -36,7 +34,6 @@ func New() (*PSQL, error) {
 
 		CreatorInst: creator.New(db),
 		IssueInst:   issue.New(db),
-		MessageInst: message.New(db),
 		MarkInst:    mark.New(db),
 	}, nil
 }

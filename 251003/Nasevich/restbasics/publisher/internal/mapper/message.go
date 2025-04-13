@@ -1,22 +1,21 @@
 package mapper
 
 import (
-	message "github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/model"
-	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/storage/model"
+	messageModel "github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/model"
 )
 
-func MapMessageToModel(i message.Message) model.Message {
-	return model.Message{
-		ID:      int64(i.ID),
-		IssueID: int64(i.IssueID),
-		Content: i.Content,
+func MapHTTPMessageToModel(msg messageModel.Message) messageModel.Message {
+	return messageModel.Message{
+		ID:      msg.ID,
+		IssueID: msg.IssueID,
+		Content: msg.Content,
 	}
 }
 
-func MapModelToMessage(i model.Message) message.Message {
-	return message.Message{
-		ID:      int(i.ID),
-		IssueID: int(i.IssueID),
-		Content: i.Content,
+func MapModelToHTTPMessage(msg messageModel.Message) messageModel.Message {
+	return messageModel.Message{
+		ID:      msg.ID,
+		IssueID: msg.IssueID,
+		Content: msg.Content,
 	}
 }

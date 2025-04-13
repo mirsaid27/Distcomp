@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/api/discussion"
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/service/creator"
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/service/issue"
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/service/mark"
@@ -13,8 +14,8 @@ type Service struct {
 
 	Creator CreatorService
 	Issue   IssueService
-	Message MessageService
 	Mark    MarkService
+	Message MessageService
 }
 
 func New(db storage.Storage) Service {
@@ -23,7 +24,7 @@ func New(db storage.Storage) Service {
 
 		Creator: creator.New(db.DB.CreatorInst),
 		Issue:   issue.New(db.DB.IssueInst),
-		Message: message.New(db.DB.MessageInst),
 		Mark:    mark.New(db.DB.MarkInst),
+		Message: message.New(discussion.NewClient()),
 	}
 }
