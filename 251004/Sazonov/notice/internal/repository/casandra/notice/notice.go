@@ -67,7 +67,9 @@ func (n *NoticeRepo) CreateNotice(ctx context.Context, args model.Notice) (model
 		Content: args.Content,
 	}
 
-	err := n.session.Query(query, notice.ID, notice.NewsID, notice.Content).WithContext(ctx).Exec()
+	err := n.session.Query(query, notice.ID, notice.NewsID, notice.Content).
+		WithContext(ctx).
+		Exec()
 	if err != nil {
 		return model.Notice{}, err
 	}
