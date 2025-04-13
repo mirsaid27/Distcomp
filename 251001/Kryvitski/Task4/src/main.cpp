@@ -13,7 +13,7 @@ int main() {
     auto discussion_thread = std::jthread([&](){
         discussion.start_server();
     });
-    publisher.redirect_to_kafka("comments"); 
+    publisher.redirect_to_discussion<Comment>(); 
     publisher.start_server();
     return 0;
 }

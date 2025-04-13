@@ -8,7 +8,7 @@
 #include <thread>
 #include <tuple>
 
-template<CassandraEntity ... Ts>
+template<CassandraEntity ... Ps>
 class DiscussionServer final {
 public:
     DiscussionServer() noexcept;
@@ -35,29 +35,29 @@ private:
     KafkaProducer m_producer;
     KafkaConsumer m_consumer;
     std::shared_ptr<CassandraController> m_controller;
-    std::tuple<std::shared_ptr<DiscussionHandler<Ts>>...> m_handlers;
+    std::tuple<std::shared_ptr<DiscussionHandler<Ps>>...> m_handlers;
     std::atomic<bool> m_running{false};
     std::thread m_kafka_thread;
 };
 
 
-template<CassandraEntity ... Ts>
-DiscussionServer<Ts...>::DiscussionServer() noexcept {
+template<CassandraEntity ... Ps>
+DiscussionServer<Ps...>::DiscussionServer() noexcept {
     m_controller = std::make_shared<CassandraController>();
     m_controller->initialize();
     m_producer.initialize(KAFKA_ADDRESS, "out");
     m_consumer.initialize(KAFKA_ADDRESS, "in");
-    (register_entity<Ts>(), ...);
+    (register_entity<Ps>(), ...);
 }
 
-template<CassandraEntity ... Ts>
-DiscussionServer<Ts...>::~DiscussionServer() {
+template<CassandraEntity ... Ps>
+DiscussionServer<Ps...>::~DiscussionServer() {
     stop_server();
 }
 
-template<CassandraEntity ... Ts>
+template<CassandraEntity ... Ps>
 template<CassandraEntity T>
-void DiscussionServer<Ts...>::register_entity() {
+void DiscussionServer<Ps...>::register_entity() {
     auto handler = std::make_shared<DiscussionHandler<T>>(m_controller);
     handler->initialize();
     std::get<std::shared_ptr<DiscussionHandler<T>>>(m_handlers) = handler;
@@ -132,8 +132,8 @@ void DiscussionServer<Ts...>::register_entity() {
     });
 }
 
-template<CassandraEntity ... Ts>
-void DiscussionServer<Ts...>::start_server() {
+template<CassandraEntity ... Ps>
+void DiscussionServer<Ps...>::start_server() {
     m_running = true;
     m_kafka_thread = std::thread([this]() {
         kafka_poll();
@@ -142,13 +142,13 @@ void DiscussionServer<Ts...>::start_server() {
     m_server.listen(SERVER_ADDRESS, SERVER_PORT);
 }
 
-template<CassandraEntity ... Ts>
-std::shared_ptr<DiscussionHandlerBase> DiscussionServer<Ts...>::get_handler_by_entity(const std::string& entity) {
+template<CassandraEntity ... Ps>
+std::shared_ptr<DiscussionHandlerBase> DiscussionServer<Ps...>::get_handler_by_entity(const std::string& entity) {
     std::shared_ptr<DiscussionHandlerBase> result = nullptr;
     (
         [&] {
-            if (Ts::entity_name == entity) {
-                result = std::get<std::shared_ptr<DiscussionHandler<Ts>>>(m_handlers);
+            if (Ps::entity_name == entity) {
+                result = std::get<std::shared_ptr<DiscussionHandler<Ps>>>(m_handlers);
             }
         }(),
         ...
@@ -156,10 +156,10 @@ std::shared_ptr<DiscussionHandlerBase> DiscussionServer<Ts...>::get_handler_by_e
     return result;
 }
 
-template<CassandraEntity ... Ts>
-void DiscussionServer<Ts...>::kafka_poll() {
+template<CassandraEntity ... Ps>
+void DiscussionServer<Ps...>::kafka_poll() {
     while (m_running) {
-        auto msg = m_consumer.consume(100);
+        auto msg = m_consumer.consume(10);
         if (msg.has_value()) {
             auto json = msg.value();
             std::string correlation_id = json["correlation_id"];
@@ -167,15 +167,9 @@ void DiscussionServer<Ts...>::kafka_poll() {
             std::string entity = json["entity"];
 
             auto handler = get_handler_by_entity(entity);
-            if (!handler) {
-                send_kafka_response(correlation_id, {{"status", 404}, {"error", "Entity not found"}});
-                continue;
-            }
-
             nlohmann::json response;
             try {
                 if (method == "POST") {
-                    std::cout << "DISCUSSION POST METHOD" << std::endl;
                     response = handler->handle_post(json["body"]);
                 } else if (method == "GET") {
                     if (json.contains("path_id")) {
@@ -185,12 +179,9 @@ void DiscussionServer<Ts...>::kafka_poll() {
                         response = handler->handle_get_all();
                     }
                 } else if (method == "PUT") {
-                    std::cout << "[PUT BODY]" << std::endl;
-                    std::cout << json["body"].dump(4) << std::endl;
                     response = handler->handle_put(json["body"]);
                 } else if (method == "DELETE") {
                     uint64_t id = json["path_id"];
-                    std::cout << "DELETE ID = " << id << std::endl;
                     response = handler->handle_delete(id);
                 } else {
                     response = {{"status", 405}, {"error", "Method not allowed"}};
@@ -206,8 +197,8 @@ void DiscussionServer<Ts...>::kafka_poll() {
     }
 }
 
-template<CassandraEntity ... Ts>
-void DiscussionServer<Ts...>::stop_server() {
+template<CassandraEntity ... Ps>
+void DiscussionServer<Ps...>::stop_server() {
     m_running = false;
     if (m_kafka_thread.joinable()) {
         m_kafka_thread.join();
@@ -215,8 +206,8 @@ void DiscussionServer<Ts...>::stop_server() {
     m_server.stop();
 }
 
-template<CassandraEntity ... Ts>
-void DiscussionServer<Ts...>::send_kafka_response(
+template<CassandraEntity ... Ps>
+void DiscussionServer<Ps...>::send_kafka_response(
     const std::string& correlation_id,
     const nlohmann::json& response)
 {

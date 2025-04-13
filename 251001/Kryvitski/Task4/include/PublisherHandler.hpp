@@ -84,12 +84,7 @@ void PublisherHandler<T>::handle_get_one(const httplib::Request& req, httplib::R
 
 template<PostgresEntity T>
 void PublisherHandler<T>::handle_delete(const httplib::Request& req, httplib::Response& res, uint64_t id) {
-    if (m_controller->delete_by_id<T>(id)){
-        res.status = 204;
-    }
-    else{
-        res.status = 404;
-    }
+    res.status = m_controller->delete_by_id<T>(id) ? 204 : 404;
 }
 
 template<PostgresEntity T>

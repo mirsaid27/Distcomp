@@ -8,19 +8,23 @@
 
 using namespace std::chrono_literals;
 
-template<PostgresEntity ... Ts>
+template<PostgresEntity ... Ps>
 class PublisherServer final{
 public:
     PublisherServer();
 
-    void redirect_to_kafka(const std::string& path);
+    template<CassandraEntity ... Cs>
+    void redirect_to_discussion();
     void start_server();
 
 private:
     template<PostgresEntity T>
     void register_entity();
 
-    bool wait_for_kafka_response(const std::string& correlation_id, nlohmann::json& response);
+    template<CassandraEntity C>
+    void register_discussion_entity();
+
+    std::optional<nlohmann::json> get_kafka_response(const std::string& correlation_id);
 
 private:
     constexpr static auto KAFKA_ADDRESS = "127.0.0.1:9092";
@@ -34,18 +38,18 @@ private:
 };
 
 
-template<PostgresEntity ... Ts>
-PublisherServer<Ts...>::PublisherServer() {
+template<PostgresEntity ... Ps>
+PublisherServer<Ps...>::PublisherServer() {
     m_controller = std::make_shared<PostgresController>();
     m_controller->initialize();
     m_producer.initialize(KAFKA_ADDRESS, "in");
     m_consumer.initialize(KAFKA_ADDRESS, "out");
-    (register_entity<Ts>(), ...);
+    (register_entity<Ps>(), ...);
 }
 
-template<PostgresEntity ... Ts>
+template<PostgresEntity ... Ps>
 template<PostgresEntity T>
-void PublisherServer<Ts...>::register_entity() {
+void PublisherServer<Ps...>::register_entity() {
     auto handler = std::make_shared<PublisherHandler<T>>(m_controller);
     handler->initialize();
     std::string entity_name = T::entity_name;
@@ -74,8 +78,16 @@ void PublisherServer<Ts...>::register_entity() {
     });
 }
 
-template<PostgresEntity ... Ts>
-void PublisherServer<Ts...>::redirect_to_kafka(const std::string& path) { 
+template<PostgresEntity ... Ps>
+template<CassandraEntity ... Cs>
+void PublisherServer<Ps...>::redirect_to_discussion() { 
+    (register_discussion_entity<Cs>(), ...);
+}
+
+template<PostgresEntity ... Ps>
+template<CassandraEntity C>
+void PublisherServer<Ps...>::register_discussion_entity(){
+    const std::string path = C::entity_name;
     const std::string full_path = "/api/v1.0/" + path;
     
     auto create_handler = [this, &path](const std::string& method, bool has_id = false) {
@@ -89,7 +101,6 @@ void PublisherServer<Ts...>::redirect_to_kafka(const std::string& path) {
             message["correlation_id"] = correlation_id;
             
             if (method == "POST" || method == "PUT") {
-                std::cout << json::parse(req.body).dump(4) << std::endl;
                 message["body"] = json::parse(req.body);
             }
             
@@ -97,20 +108,18 @@ void PublisherServer<Ts...>::redirect_to_kafka(const std::string& path) {
                 message["path_id"] = std::stoull(req.matches[1]);
             }
             
-            std::cout << "[SEND MESSAGE]:" << std::endl;
-            std::cout << message.dump(4) << std::endl;
-
             if (!m_producer.sendMessage(message)) {
                 res.status = 500;
                 res.set_content("Failed to send to Kafka", "text/plain");
                 return;
             }
             
-            nlohmann::json response;
-            if (wait_for_kafka_response(correlation_id, response)) {
-                res.status = response["status"];
-                if (response.contains("data")) {
-                    res.set_content(response["data"].dump(), "application/json");
+            auto response = get_kafka_response(correlation_id);
+            if (response.has_value()) {
+                auto json = response.value();
+                res.status = json["status"];
+                if (json.contains("data")) {
+                    res.set_content(json["data"].dump(), "application/json");
                 }
             } else {
                 res.status = 404;
@@ -126,48 +135,32 @@ void PublisherServer<Ts...>::redirect_to_kafka(const std::string& path) {
     m_server.Put(full_path, create_handler("PUT"));
 }
 
-template<PostgresEntity ... Ts>
-bool PublisherServer<Ts...>::wait_for_kafka_response(
-    const std::string& correlation_id, 
-    nlohmann::json& response) 
+template<PostgresEntity ... Ps>
+std::optional<nlohmann::json> PublisherServer<Ps...>::get_kafka_response(
+    const std::string& correlation_id) 
 {
     auto start = std::chrono::steady_clock::now();
     constexpr auto timeout = 1s;
     static int message_counter = 0;
 
     while (std::chrono::steady_clock::now() - start < timeout) {
-        auto msg = m_consumer.consume(100); 
-        if (!msg.has_value()) {
-            continue;
-        }
-
-        try {
+        auto msg = m_consumer.consume(10); 
+        if (msg.has_value()) {
             auto json = msg.value();
-            std::cout << "[PUBLISHER RECEIVED] " << ++message_counter << "\n";
-            std::cout << json.dump(4) << std::endl;
-            
-            std::string received_correlation = json["correlation_id"];
-            std::cout << "Expected correlation: " << correlation_id << "\n"
-                      << "Received correlation: " << received_correlation << std::endl;
-
-            if (received_correlation == correlation_id) {
-                std::cout << "CORRELATION ID MATCHED" << std::endl;
-                response = json["response"];
-                return true;
+            try {
+                std::string correlation = json["correlation_id"];
+                if (correlation == correlation_id) {
+                    return json["response"];
+                }
+            } catch (const std::exception& e) {
+                std::cout << "Error processing message: " << e.what() << std::endl;
             }
-        } catch (const std::exception& e) {
-            std::cout << "Error processing message: " << e.what() << std::endl;
-        } catch (...) {
-            std::cout << "Unknown error processing message" << std::endl;
         }
     }
-
-    std::cout << "Timeout reached waiting for response with correlation_id: " 
-              << correlation_id << std::endl;
-    return false;
+    return std::nullopt;
 }
 
-template<PostgresEntity ... Ts>
-void PublisherServer<Ts...>::start_server() {
+template<PostgresEntity ... Ps>
+void PublisherServer<Ps...>::start_server() {
     m_server.listen(SERVER_ADDRESS, SERVER_PORT);
 }
