@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/discussion/internal/handler"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/discussion/internal/service"
 
 	"time"
 )
@@ -19,11 +20,11 @@ type server struct {
 	srv *http.Server
 }
 
-func New() HttpServer {
+func New(service service.MessageService) HttpServer {
 	return &server{
 		srv: &http.Server{
 			Addr:    fmt.Sprintf(":%s", "24130"),
-			Handler: handler.New().HTTP,
+			Handler: handler.New(service),
 		},
 	}
 }

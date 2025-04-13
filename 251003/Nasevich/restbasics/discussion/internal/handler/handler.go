@@ -1,17 +1,20 @@
 package handler
 
 import (
-	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/discussion/internal/handler/http"
+	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/discussion/internal/handler/http/message"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/discussion/internal/service"
+	"github.com/gin-gonic/gin"
 )
 
-type Handler struct {
-	HTTP *mux.Router
-}
+func New(svc service.Service) http.Handler {
+	engine := gin.Default()
 
-func New() Handler {
-	return Handler{
-		HTTP: http.New(),
+	router := engine.Group("/api")
+	{
+		message.New(svc).InitRoutes(router)
 	}
+
+	return engine
 }
