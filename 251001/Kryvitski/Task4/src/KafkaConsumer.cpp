@@ -70,8 +70,6 @@ std::optional<nlohmann::json> KafkaConsumer::consume(int timeout_ms) {
         }
 
         auto json = nlohmann::json::parse(payload_str);
-        std::cout << "RECEIVED: " << json.dump(4) << std::endl;
-
         rd_kafka_message_destroy(msg);
         return json;
         

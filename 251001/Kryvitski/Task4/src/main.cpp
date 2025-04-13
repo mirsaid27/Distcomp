@@ -13,7 +13,7 @@ int main() {
     auto discussion_thread = std::jthread([&](){
         discussion.start_server();
     });
-    publisher.redirect_to_kafka("comments");  // TODO: variadic template
+    publisher.redirect_to_kafka("comments"); 
     publisher.start_server();
     return 0;
 }

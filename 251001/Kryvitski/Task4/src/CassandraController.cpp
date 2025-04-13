@@ -10,7 +10,7 @@ CassandraController::~CassandraController() {
     if (m_cluster) cass_cluster_free(m_cluster);
 }
 
-bool CassandraController::initialize() {
+bool CassandraController::initialize() noexcept {
     m_cluster = cass_cluster_new();
     m_session = cass_session_new();
 
@@ -63,7 +63,7 @@ bool CassandraController::execute(const std::string& query) noexcept {
     return success;
 }
 
-CassStatement* CassandraController::execute_query(const std::string& query) {
+CassStatement* CassandraController::execute_query(const std::string& query) noexcept {
     CassStatement* statement = cass_statement_new(query.c_str(), 0);
     CassFuture* future = cass_session_execute(m_session, statement);
     

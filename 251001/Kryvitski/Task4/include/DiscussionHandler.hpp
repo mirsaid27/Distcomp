@@ -1,44 +1,67 @@
 #pragma once
 #include <concepts>
+#include <memory>
+#include <vector>
 #include "Entities/Entity.hpp"
 #include "CassandraController.hpp"
 #include <nlohmann/json.hpp>
 
-template<CassandraEntity T>
-class DiscussionHandler {
+class DiscussionHandlerBase {
 public:
-    explicit DiscussionHandler(std::shared_ptr<CassandraController> controller) noexcept;
-    virtual ~DiscussionHandler() = default;
+    explicit DiscussionHandlerBase(std::shared_ptr<CassandraController> controller) noexcept;
+    virtual ~DiscussionHandlerBase() = default;
 
-    void initialize();
-    
-    nlohmann::json handle_post(const nlohmann::json& payload);
-    nlohmann::json handle_get_all(const nlohmann::json& payload);
-    nlohmann::json handle_get_one(const std::string& id, const nlohmann::json& payload);
-    nlohmann::json handle_delete(const std::string& id, const nlohmann::json& payload);
-    nlohmann::json handle_put(const nlohmann::json& payload);
+    virtual void initialize() = 0;
+    virtual nlohmann::json handle_post(const nlohmann::json& payload) = 0;
+    virtual nlohmann::json handle_get_all() = 0;
+    virtual nlohmann::json handle_get_one(uint64_t id) = 0;
+    virtual nlohmann::json handle_delete(uint64_t id) = 0;
+    virtual nlohmann::json handle_put(const nlohmann::json& payload) = 0;
 
-private:
+    const std::string& entity_name() const { return m_entity_name; }
+
+protected:
     std::shared_ptr<CassandraController> m_controller;
+    std::string m_entity_name;
 };
 
+template<CassandraEntity T>
+class DiscussionHandler : public DiscussionHandlerBase {
+public:
+    explicit DiscussionHandler(std::shared_ptr<CassandraController> controller) noexcept;
+    
+    void initialize() override;
+    
+    nlohmann::json handle_post(const nlohmann::json& payload) override;
+    nlohmann::json handle_get_all() override;
+    nlohmann::json handle_get_one(uint64_t id) override;
+    nlohmann::json handle_delete(uint64_t id) override;
+    nlohmann::json handle_put(const nlohmann::json& payload) override;
+};
+
+inline DiscussionHandlerBase::DiscussionHandlerBase(std::shared_ptr<CassandraController> controller) noexcept
+    : m_controller(controller) 
+{}
+
 template <CassandraEntity T>
-inline DiscussionHandler<T>::DiscussionHandler(std::shared_ptr<CassandraController> controller) noexcept
-    : m_controller(controller)
+DiscussionHandler<T>::DiscussionHandler(std::shared_ptr<CassandraController> controller) noexcept
+    : DiscussionHandlerBase(controller) 
 {
+    m_entity_name = T::entity_name;
 }
 
 template <CassandraEntity T>
-void DiscussionHandler<T>::initialize()
-{
+void DiscussionHandler<T>::initialize() {
     auto result = m_controller->create_table<T>();
 }
 
 template<CassandraEntity T>
 nlohmann::json DiscussionHandler<T>::handle_post(const nlohmann::json& payload) {
     try {
-        T entity = T::from_json(payload);
-        
+        std::cout << "POST INNER FUNCtiON" << std::endl;
+        std::cout << payload.dump(4) << std::endl;
+        T entity = T::from_json(payload.dump());
+        std::cout << "PARSE ENDED SUCCESSFULLY" << std::endl;
         if (m_controller->insert(entity)) {
             return {
                 {"status", 201},
@@ -53,14 +76,14 @@ nlohmann::json DiscussionHandler<T>::handle_post(const nlohmann::json& payload) 
     }
     catch (...) {
         return {
-            {"status", 400},
+            {"status", 429},
             {"error", "Invalid JSON format"}
         };
     }
 }
 
 template<CassandraEntity T>
-nlohmann::json DiscussionHandler<T>::handle_get_all(const nlohmann::json& payload) {
+nlohmann::json DiscussionHandler<T>::handle_get_all() {
     try {
         std::vector<T> entities = m_controller->get_all<T>();
         nlohmann::json entities_json = nlohmann::json::array();
@@ -73,16 +96,16 @@ nlohmann::json DiscussionHandler<T>::handle_get_all(const nlohmann::json& payloa
             {"status", 200},
             {"data", entities_json}
         };
-    } catch (...) {
+    } catch (const std::exception& e) {
         return {
             {"status", 500},
-            {"error", "Internal server error"}
+            {"error", e.what()}
         };
     }
 }
 
 template<CassandraEntity T>
-nlohmann::json DiscussionHandler<T>::handle_get_one(const std::string& id, const nlohmann::json& payload) {
+nlohmann::json DiscussionHandler<T>::handle_get_one(uint64_t id) {
     try {
         std::optional<T> entity = m_controller->get_by_id<T>(id);
         
@@ -94,7 +117,7 @@ nlohmann::json DiscussionHandler<T>::handle_get_one(const std::string& id, const
         }
         return {
             {"status", 404},
-            {"error", "Id not found: " + id}
+            {"error", "Id not found: " + std::to_string(id)}
         };
     } catch (...) {
         return {
@@ -105,21 +128,22 @@ nlohmann::json DiscussionHandler<T>::handle_get_one(const std::string& id, const
 }
 
 template<CassandraEntity T>
-nlohmann::json DiscussionHandler<T>::handle_delete(const std::string& id, const nlohmann::json& payload) {
+nlohmann::json DiscussionHandler<T>::handle_delete(uint64_t id) {
     try {
         if (m_controller->delete_by_id<T>(id)) {
             return {
                 {"status", 204}
             };
+        } else {
+            return {
+                {"status", 404},
+                {"error", "Delete failed, id not found"}
+            };
         }
-        return {
-            {"status", 404},
-            {"error", "Delete failed, id not found"}
-        };
     } catch (...) {
         return {
             {"status", 500},
-            {"error", "Internal server error"}
+            {"error", "Internal server error delit mat tvoyu"}
         };
     }
 }
@@ -127,7 +151,9 @@ nlohmann::json DiscussionHandler<T>::handle_delete(const std::string& id, const 
 template<CassandraEntity T>
 nlohmann::json DiscussionHandler<T>::handle_put(const nlohmann::json& payload) {
     try {
-        T entity = T::from_json(payload);
+        std::cout << "Put INNER" << std::endl;
+        std::cout << payload.dump(4) << std::endl;
+        T entity = T::from_json(payload.dump());
         m_controller->update_by_id(entity);
         
         return {

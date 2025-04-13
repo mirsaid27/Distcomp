@@ -3,7 +3,10 @@
 #include "KafkaProducer.hpp"
 #include "KafkaConsumer.hpp"
 #include <memory>
+#include <chrono>
 #include <nlohmann/json.hpp>
+
+using namespace std::chrono_literals;
 
 template<PostgresEntity ... Ts>
 class PublisherServer final{
@@ -21,9 +24,8 @@ private:
 
 private:
     constexpr static auto KAFKA_ADDRESS = "127.0.0.1:9092";
-    constexpr static auto SERVER_ADDRESS = "0.0.0.0";
+    constexpr static auto SERVER_ADDRESS = "127.0.0.1";
     constexpr static uint16_t SERVER_PORT = 24110;
-    constexpr static int KAFKA_TIMEOUT_MS = 1000;
 
     httplib::Server m_server;
     KafkaProducer m_producer;
@@ -47,32 +49,33 @@ void PublisherServer<Ts...>::register_entity() {
     auto handler = std::make_shared<PublisherHandler<T>>(m_controller);
     handler->initialize();
     std::string entity_name = T::entity_name;
+    std::string path = "/api/v1.0/" + entity_name;
 
-    m_server.Post("/api/v1.0/" + entity_name, [handler](const auto& req, auto& res) {
+    m_server.Post(path, [handler](const auto& req, auto& res) {
         handler->handle_post(req, res);
     });
 
-    m_server.Get("/api/v1.0/" + entity_name, [handler](const auto& req, auto& res) {
+    m_server.Get(path, [handler](const auto& req, auto& res) {
         handler->handle_get_all(req, res);
     });
 
-    m_server.Get("/api/v1.0/" + entity_name + "/(\\d+)", [handler](const auto& req, auto& res) {
+    m_server.Get(path + "/(\\d+)", [handler](const auto& req, auto& res) {
         uint64_t id = std::stoull(req.matches[1]);
         handler->handle_get_one(req, res, id);
     });
 
-    m_server.Delete("/api/v1.0/" + entity_name + "/(\\d+)", [handler](const auto& req, auto& res) {
+    m_server.Delete(path + "/(\\d+)", [handler](const auto& req, auto& res) {
         uint64_t id = std::stoull(req.matches[1]);
         handler->handle_delete(req, res, id);
     });
 
-    m_server.Put("/api/v1.0/" + entity_name, [handler](const auto& req, auto& res) {
+    m_server.Put(path, [handler](const auto& req, auto& res) {
         handler->handle_put(req, res);
     });
 }
 
 template<PostgresEntity ... Ts>
-void PublisherServer<Ts...>::redirect_to_kafka(const std::string& path) {   // TODO: double variadic template
+void PublisherServer<Ts...>::redirect_to_kafka(const std::string& path) { 
     const std::string full_path = "/api/v1.0/" + path;
     
     auto create_handler = [this, &path](const std::string& method, bool has_id = false) {
@@ -86,13 +89,17 @@ void PublisherServer<Ts...>::redirect_to_kafka(const std::string& path) {   // T
             message["correlation_id"] = correlation_id;
             
             if (method == "POST" || method == "PUT") {
-                message["body"] = req.body;
+                std::cout << json::parse(req.body).dump(4) << std::endl;
+                message["body"] = json::parse(req.body);
             }
             
             if (has_id) {
-                message["id"] = req.matches[1];
+                message["path_id"] = std::stoull(req.matches[1]);
             }
             
+            std::cout << "[SEND MESSAGE]:" << std::endl;
+            std::cout << message.dump(4) << std::endl;
+
             if (!m_producer.sendMessage(message)) {
                 res.status = 500;
                 res.set_content("Failed to send to Kafka", "text/plain");
@@ -104,8 +111,6 @@ void PublisherServer<Ts...>::redirect_to_kafka(const std::string& path) {   // T
                 res.status = response["status"];
                 if (response.contains("data")) {
                     res.set_content(response["data"].dump(), "application/json");
-                } else {
-                    res.set_content(response["error"], "text/plain");
                 }
             } else {
                 res.status = 404;
@@ -126,18 +131,39 @@ bool PublisherServer<Ts...>::wait_for_kafka_response(
     const std::string& correlation_id, 
     nlohmann::json& response) 
 {
-    auto msg = m_consumer.consume(1000);
-    if (msg.has_value()) {
+    auto start = std::chrono::steady_clock::now();
+    constexpr auto timeout = 1s;
+    static int message_counter = 0;
+
+    while (std::chrono::steady_clock::now() - start < timeout) {
+        auto msg = m_consumer.consume(100); 
+        if (!msg.has_value()) {
+            continue;
+        }
+
         try {
             auto json = msg.value();
-            if (json["correlation_id"] == correlation_id) {
+            std::cout << "[PUBLISHER RECEIVED] " << ++message_counter << "\n";
+            std::cout << json.dump(4) << std::endl;
+            
+            std::string received_correlation = json["correlation_id"];
+            std::cout << "Expected correlation: " << correlation_id << "\n"
+                      << "Received correlation: " << received_correlation << std::endl;
+
+            if (received_correlation == correlation_id) {
+                std::cout << "CORRELATION ID MATCHED" << std::endl;
                 response = json["response"];
                 return true;
             }
+        } catch (const std::exception& e) {
+            std::cout << "Error processing message: " << e.what() << std::endl;
         } catch (...) {
-            std::cout << "Error receiving response" << std::endl;
+            std::cout << "Unknown error processing message" << std::endl;
         }
     }
+
+    std::cout << "Timeout reached waiting for response with correlation_id: " 
+              << correlation_id << std::endl;
     return false;
 }
 
