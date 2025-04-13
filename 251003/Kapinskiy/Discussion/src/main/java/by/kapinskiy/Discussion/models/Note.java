@@ -1,6 +1,7 @@
 package by.kapinskiy.Discussion.models;
 
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.mapping.*;
@@ -14,7 +15,7 @@ public class Note implements Serializable {
     @PrimaryKeyClass
     public static class NoteKey implements Serializable {
         @PrimaryKeyColumn(name = "country", type = PrimaryKeyType.PARTITIONED)
-        private String country = "UAE";
+        private String country;
 
         @PrimaryKeyColumn(name = "id", ordinal = 0, type = PrimaryKeyType.CLUSTERED)
         private Long id;
@@ -33,6 +34,11 @@ public class Note implements Serializable {
         }
 
         public NoteKey(Long issueId) {
+            this.issueId = issueId;
+        }
+
+        public NoteKey(String country, Long issueId) {
+            this.country = country;
             this.issueId = issueId;
         }
 

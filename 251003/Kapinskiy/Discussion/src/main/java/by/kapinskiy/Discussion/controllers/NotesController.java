@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -28,7 +26,7 @@ public class NotesController {
     @ResponseStatus(HttpStatus.CREATED)
     public NoteResponseDTO createNote(@RequestBody @Valid NoteRequestDTO noteRequestDTO) {
         return notesService.save(noteRequestDTO);
-      }
+    }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -44,14 +42,14 @@ public class NotesController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteNote(@PathVariable long id){
+    public void deleteNote(@PathVariable long id) {
         notesService.deleteById(id);
     }
 
     // Non REST version for tests compliance
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public NoteResponseDTO updateNote(@RequestBody @Valid NoteRequestDTO noteRequestDTO){
+    public NoteResponseDTO updateNote(@RequestBody @Valid NoteRequestDTO noteRequestDTO) {
         return notesService.update(noteRequestDTO);
     }
 

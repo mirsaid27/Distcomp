@@ -14,11 +14,6 @@ import java.util.List;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface NotesMapper {
 
-/*
-    @Value("${note.country}")
-    String DEFAULT_COUNTRY;
-*/
-
     @Mapping(target = "id", expression = "java(note.getKey().getId())")
     @Mapping(target = "issueId", expression = "java(note.getKey().getIssueId())")
     NoteResponseDTO toNoteResponse(Note note);

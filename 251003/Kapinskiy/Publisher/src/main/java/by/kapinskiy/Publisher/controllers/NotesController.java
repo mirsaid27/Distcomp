@@ -2,12 +2,21 @@ package by.kapinskiy.Publisher.controllers;
 
 import by.kapinskiy.Publisher.DTOs.Requests.NoteRequestDTO;
 import by.kapinskiy.Publisher.DTOs.Responses.NoteResponseDTO;
+import by.kapinskiy.Publisher.utils.NoteValidator;
+import by.kapinskiy.Publisher.utils.exceptions.CustomInformativeException;
+import by.kapinskiy.Publisher.utils.exceptions.NotFoundException;
+import by.kapinskiy.Publisher.utils.exceptions.ValidationException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -16,16 +25,23 @@ import java.util.List;
 public class NotesController {
 
     private final RestClient restClient;
-
+    private final NoteValidator notesValidator;
     @Autowired
-    public NotesController(RestClient restClient) {
+    public NotesController(RestClient restClient, NoteValidator notesValidator) {
         this.restClient = restClient;
+        this.notesValidator = notesValidator;
     }
 
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public NoteResponseDTO createNote(@RequestBody @Valid NoteRequestDTO noteRequestDTO) {
+    public NoteResponseDTO createNote(@RequestBody @Valid NoteRequestDTO noteRequestDTO, BindingResult bindingResult) {
+        if (!bindingResult.hasFieldErrors()){
+            notesValidator.validate(noteRequestDTO, bindingResult);
+        }
+        if (bindingResult.hasFieldErrors())
+            throw new ValidationException(bindingResult);
+
         return restClient.post()
                 .uri("/notes")
                 .body(noteRequestDTO)
@@ -51,14 +67,20 @@ public class NotesController {
                 .body(NoteResponseDTO.class);
     }
 
+
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteNote(@PathVariable long id) {
-        restClient.delete()
-                .uri("/notes/{id}", id)
-                .retrieve()
-                .toBodilessEntity();
+    @ResponseStatus
+    public ResponseEntity<Void> deleteNote(@PathVariable long id) {
+        try {
+            return restClient.delete()
+                    .uri("/notes/{id}", id)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException ex) {
+            throw new NotFoundException("Note not found");
+        }
     }
+
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)

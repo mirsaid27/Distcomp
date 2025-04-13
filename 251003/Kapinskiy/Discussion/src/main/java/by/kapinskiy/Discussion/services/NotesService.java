@@ -8,9 +8,10 @@ import by.kapinskiy.Discussion.repositories.NotesRepository;
 import by.kapinskiy.Discussion.utils.mappers.NotesMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,7 @@ public class NotesService {
     public NoteResponseDTO save(NoteRequestDTO noteRequestDTO) {
         Note note = notesMapper.toNote(noteRequestDTO);
         note.getKey().setId(Math.abs(UUID.randomUUID().getMostSignificantBits()));
+        note.getKey().setCountry(country);
         return notesMapper.toNoteResponse(notesRepository.save(note));
     }
 
@@ -44,13 +46,16 @@ public class NotesService {
         );
     }
 
-    public void deleteById(long id) {
+    public void deleteById(long id)  {
+        notesRepository.findByCountryAndId(country, id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
+
         notesRepository.deleteByCountryAndId(country, id);
     }
 
     public NoteResponseDTO update(NoteRequestDTO noteRequestDTO) {
         Note note = notesMapper.toNote(noteRequestDTO);
         note.getKey().setId(noteRequestDTO.getId());
+        note.getKey().setCountry(country);
         return notesMapper.toNoteResponse(notesRepository.save(note));
     }
 

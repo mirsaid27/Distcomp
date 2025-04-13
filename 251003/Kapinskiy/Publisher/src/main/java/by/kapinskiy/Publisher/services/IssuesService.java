@@ -114,4 +114,8 @@ public class IssuesService {
     public boolean existsByTitle(String title){
         return issuesRepository.existsByTitle(title);
     }
+
+    public boolean existsById(Long id){
+        return issuesRepository.existsById(id);
+    }
 }
