@@ -1,7 +1,6 @@
 #pragma once
 #include "Entity.hpp"
 
-
 struct Article {
     uint64_t id{};
     std::string title{};
@@ -24,8 +23,12 @@ struct Article {
         };
     }
 
-    static Article from_json(const std::string& data_str){
-        auto data = json::parse(data_str);
+    static Article from_json(const std::string& data){
+        auto json = nlohmann::json::parse(data);
+        return from_json(json);
+    }
+
+    static Article from_json(const nlohmann::json& data){
         std::tm now = {};
         std::time_t t = std::time(nullptr);
         gmtime_r(&t, &now);

@@ -58,10 +58,7 @@ void DiscussionHandler<T>::initialize() {
 template<CassandraEntity T>
 nlohmann::json DiscussionHandler<T>::handle_post(const nlohmann::json& payload) {
     try {
-        std::cout << "POST INNER FUNCtiON" << std::endl;
-        std::cout << payload.dump(4) << std::endl;
-        T entity = T::from_json(payload.dump());
-        std::cout << "PARSE ENDED SUCCESSFULLY" << std::endl;
+        T entity = T::from_json(payload);
         if (m_controller->insert(entity)) {
             return {
                 {"status", 201},
@@ -70,14 +67,14 @@ nlohmann::json DiscussionHandler<T>::handle_post(const nlohmann::json& payload) 
         } else {
             return {
                 {"status", 403},
-                {"error", "Insert failure"}
+                {"error", "POST error"}
             };
         }
     }
-    catch (...) {
+    catch (const std::exception& e) {
         return {
-            {"status", 429},
-            {"error", "Invalid JSON format"}
+            {"status", 500},
+            {"error", e.what()}
         };
     }
 }
@@ -108,7 +105,6 @@ template<CassandraEntity T>
 nlohmann::json DiscussionHandler<T>::handle_get_one(uint64_t id) {
     try {
         std::optional<T> entity = m_controller->get_by_id<T>(id);
-        
         if (entity.has_value()) {
             return {
                 {"status", 200},
@@ -117,12 +113,12 @@ nlohmann::json DiscussionHandler<T>::handle_get_one(uint64_t id) {
         }
         return {
             {"status", 404},
-            {"error", "Id not found: " + std::to_string(id)}
+            {"error", std::format("GET error: id = {} not found)", id)}
         };
-    } catch (...) {
+    } catch (const std::exception& e) {
         return {
             {"status", 500},
-            {"error", "Internal server error"}
+            {"error", e.what()}
         };
     }
 }
@@ -137,13 +133,13 @@ nlohmann::json DiscussionHandler<T>::handle_delete(uint64_t id) {
         } else {
             return {
                 {"status", 404},
-                {"error", "Delete failed, id not found"}
+                {"error", std::format("DELETE error: id = {} not found", id)}
             };
         }
-    } catch (...) {
+    } catch (const std::exception& e) {
         return {
             {"status", 500},
-            {"error", "Internal server error delit mat tvoyu"}
+            {"error", e.what()}
         };
     }
 }
@@ -151,19 +147,16 @@ nlohmann::json DiscussionHandler<T>::handle_delete(uint64_t id) {
 template<CassandraEntity T>
 nlohmann::json DiscussionHandler<T>::handle_put(const nlohmann::json& payload) {
     try {
-        std::cout << "Put INNER" << std::endl;
-        std::cout << payload.dump(4) << std::endl;
-        T entity = T::from_json(payload.dump());
+        T entity = T::from_json(payload);
         m_controller->update_by_id(entity);
-        
         return {
             {"status", 200},
             {"data", entity.to_json()}
         };
-    } catch (...) {
+    } catch (const std::exception& e) {
         return {
-            {"status", 400},
-            {"error", "Invalid JSON format"}
+            {"status", 500},
+            {"error", e.what()}
         };
     }
 }

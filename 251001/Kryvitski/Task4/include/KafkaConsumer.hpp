@@ -9,7 +9,7 @@ public:
     KafkaConsumer() noexcept = default;
     virtual ~KafkaConsumer();
     
-    [[nodiscard]] bool initialize(const std::string& address, const std::string& topic);
+    bool initialize(const std::string& address, const std::string& topic);
     std::optional<nlohmann::json> consume(int timeout_ms);
 
 private:

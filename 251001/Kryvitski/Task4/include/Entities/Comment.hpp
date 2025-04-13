@@ -19,8 +19,12 @@ struct Comment {
         };
     }
 
-    static Comment from_json(const std::string& data_str) {
-        auto data = json::parse(data_str);
+    static Comment from_json(const std::string& data){
+        auto json = nlohmann::json::parse(data);
+        return from_json(json);
+    }
+
+    static Comment from_json(const nlohmann::json& data) {
         return {
             data.value("country", "belarus"),
             data.value("articleId", 0),

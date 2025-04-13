@@ -15,9 +15,12 @@ struct Label{
         };
     }
 
-    static Label from_json(const std::string& data_str) {
-        auto data = json::parse(data_str);
+    static Label from_json(const std::string& data){
+        auto json = nlohmann::json::parse(data);
+        return from_json(json);
+    }
 
+    static Label from_json(const nlohmann::json& data) {
         uint64_t id = data.contains("id") 
                 ? static_cast<uint64_t>(data["id"]) 
                 : 0;

@@ -13,6 +13,7 @@ concept Entity =
     requires (T p) {
         { p.to_json()} -> std::same_as<json>;
         { T::from_json(std::declval<const std::string&>()) } -> std::same_as<T>;
+        { T::from_json(std::declval<const nlohmann::json&>()) } -> std::same_as<T>;
         { T::entity_name } -> std::convertible_to<std::string>;
         { T::table_name } -> std::convertible_to<std::string>;
         { p.generate_insert_query() } -> std::same_as<std::string>;
