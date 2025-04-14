@@ -8,7 +8,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -21,13 +23,6 @@ public class NotesController {
         this.notesService = notesService;
     }
 
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public NoteResponseDTO createNote(@RequestBody @Valid NoteRequestDTO noteRequestDTO) {
-        return notesService.save(noteRequestDTO);
-    }
-
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<NoteResponseDTO> getAllNotes() {
@@ -35,33 +30,12 @@ public class NotesController {
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public NoteResponseDTO getNoteById(@PathVariable Long id) {
-        return notesService.findById(id);
+        try {
+            return notesService.findById(id);
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+        }
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteNote(@PathVariable long id) {
-        notesService.deleteById(id);
-    }
-
-    // Non REST version for tests compliance
-    @PutMapping
-    @ResponseStatus(HttpStatus.OK)
-    public NoteResponseDTO updateNote(@RequestBody @Valid NoteRequestDTO noteRequestDTO) {
-        return notesService.update(noteRequestDTO);
-    }
-
-/*    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<NoteResponseDTO> getAllNotes() {
-        return Collections.emptyList();
-    }
-
-    @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public NoteResponseDTO getNoteById(@PathVariable Long id) {
-        return new NoteResponseDTO();
-    }*/
 }

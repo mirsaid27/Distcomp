@@ -11,3 +11,5 @@ spring.cassandra.connection.connect-timeout=10s
 spring.cassandra.connection.init-query-timeout=10s
 
 note.country=
+
+spring.kafka.bootstrap-servers=

@@ -6,8 +6,6 @@ import jakarta.validation.constraints.Size;
 
 
 public class NoteRequestDTO {
-
-
     private Long id;
 
     @NotNull(message = "Issue id can't be null")
@@ -36,8 +34,14 @@ public class NoteRequestDTO {
     public String getContent() {
         return content;
     }
-
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public NoteRequestDTO(Long id) {
+        this.id = id;
+    }
+
+    public NoteRequestDTO() {
     }
 }
