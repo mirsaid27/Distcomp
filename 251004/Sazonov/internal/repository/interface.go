@@ -6,6 +6,15 @@ import (
 	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/model"
 )
 
+type Repository interface {
+	WriterRepo
+	NewsRepo
+	NoticeRepo
+	LabelRepo
+
+	Close()
+}
+
 type WriterRepo interface {
 	GetWriter(ctx context.Context, id int64) (model.Writer, error)
 	ListWriters(ctx context.Context) ([]model.Writer, error)
