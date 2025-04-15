@@ -1,40 +1,39 @@
 #pragma once
 #include <httplib.h>
 #include <concepts>
-#include "Entity.hpp"
-#include "CassandraController.hpp"
+#include "PostgresController.hpp"
     
-template<CassandraEntity T>
-class DiscussionHandler {
+template<PostgresEntity T>
+class PublisherHandler {
 public:
-    explicit DiscussionHandler(std::shared_ptr<CassandraController> controller) noexcept;
-    virtual ~DiscussionHandler() = default;
+    explicit PublisherHandler(std::shared_ptr<PostgresController> controller) noexcept;
+    virtual ~PublisherHandler() = default;
 
     void initialize();
     void handle_post(const httplib::Request& req, httplib::Response& res);
     void handle_get_all(const httplib::Request& req, httplib::Response& res);
-    void handle_get_one(const httplib::Request& req, httplib::Response& res, const std::string& id);
-    void handle_delete(const httplib::Request& req, httplib::Response& res, const std::string& id);
+    void handle_get_one(const httplib::Request& req, httplib::Response& res, uint64_t id);
+    void handle_delete(const httplib::Request& req, httplib::Response& res, uint64_t id);
     void handle_put(const httplib::Request& req, httplib::Response& res);
 
 private:
-    std::shared_ptr<CassandraController> m_controller;
+    std::shared_ptr<PostgresController> m_controller;
 };
 
-template <CassandraEntity T>
-inline DiscussionHandler<T>::DiscussionHandler(std::shared_ptr<CassandraController> controller) noexcept
+template <PostgresEntity T>
+inline PublisherHandler<T>::PublisherHandler(std::shared_ptr<PostgresController> controller) noexcept
 {
     m_controller = controller;
 }
 
-template <CassandraEntity T>
-void DiscussionHandler<T>::initialize()
+template <PostgresEntity T>
+void PublisherHandler<T>::initialize()
 {
     auto result = m_controller->create_table<T>();
 }
 
-template<CassandraEntity T>
-void DiscussionHandler<T>::handle_post(const httplib::Request& req, httplib::Response& res) {
+template<PostgresEntity T>
+void PublisherHandler<T>::handle_post(const httplib::Request& req, httplib::Response& res) {
     T entity{};
     try {
         entity = T::from_json(req.body);
@@ -54,8 +53,8 @@ void DiscussionHandler<T>::handle_post(const httplib::Request& req, httplib::Res
     }
 }
 
-template<CassandraEntity T>
-void DiscussionHandler<T>::handle_get_all(const httplib::Request& req, httplib::Response& res) {
+template<PostgresEntity T>
+void PublisherHandler<T>::handle_get_all(const httplib::Request& req, httplib::Response& res) {
     std::vector<T> entities = m_controller->get_all<T>();
 
     json entities_json = json::array();
@@ -69,8 +68,8 @@ void DiscussionHandler<T>::handle_get_all(const httplib::Request& req, httplib::
     res.set_content(entities_json.dump(), "application/json");
 }
 
-template<CassandraEntity T>
-void DiscussionHandler<T>::handle_get_one(const httplib::Request& req, httplib::Response& res, const std::string& id) {
+template<PostgresEntity T>
+void PublisherHandler<T>::handle_get_one(const httplib::Request& req, httplib::Response& res, uint64_t id) {
     std::optional<T> entity = m_controller->get_by_id<T>(id);
 
     if (entity.has_value()) {
@@ -83,18 +82,13 @@ void DiscussionHandler<T>::handle_get_one(const httplib::Request& req, httplib::
     }
 }
 
-template<CassandraEntity T>
-void DiscussionHandler<T>::handle_delete(const httplib::Request& req, httplib::Response& res, const std::string& id) {
-    if (m_controller->delete_by_id<T>(id)){
-        res.status = 204;
-    }
-    else{
-        res.status = 404;
-    }
+template<PostgresEntity T>
+void PublisherHandler<T>::handle_delete(const httplib::Request& req, httplib::Response& res, uint64_t id) {
+    res.status = m_controller->delete_by_id<T>(id) ? 204 : 404;
 }
 
-template<CassandraEntity T>
-void DiscussionHandler<T>::handle_put(const httplib::Request& req, httplib::Response& res) {
+template<PostgresEntity T>
+void PublisherHandler<T>::handle_put(const httplib::Request& req, httplib::Response& res) {
     T entity = T::from_json(req.body);
     m_controller->update_by_id(entity);
     res.status = 200;

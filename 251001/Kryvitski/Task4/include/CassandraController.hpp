@@ -1,5 +1,5 @@
 #pragma once
-#include "Entity.hpp"
+#include "Entities/Entity.hpp"
 #include <cassandra.h>
 #include <cstdint>
 #include <memory>
@@ -18,29 +18,29 @@ public:
     CassandraController& operator=(const CassandraController&) = delete;
     CassandraController& operator=(CassandraController&&) = delete;
 
-    bool initialize();
+    bool initialize() noexcept;
 
     template<CassandraEntity T>
-    [[nodiscard]] bool create_table();
+    [[nodiscard]] bool create_table() noexcept;
                     
     template<CassandraEntity T>
-    [[nodiscard]] bool insert(const T& entity);
+    [[nodiscard]] bool insert(const T& entity) noexcept;
 
     template<CassandraEntity T>
-    std::vector<T> get_all();
+    std::vector<T> get_all() noexcept;
 
     template<CassandraEntity T>
-    std::optional<T> get_by_id(const std::string& id);
+    std::optional<T> get_by_id(uint64_t id) noexcept;
 
     template<CassandraEntity T>
-    bool update_by_id(const T& entity);
+    bool update_by_id(const T& entity) noexcept;
 
     template<CassandraEntity T>
-    [[nodiscard]] bool delete_by_id(const std::string& id);
+    [[nodiscard]] bool delete_by_id(uint64_t id) noexcept;
     
 private:
     [[nodiscard]] bool execute(const std::string& query) noexcept;
-    [[nodiscard]] CassStatement* execute_query(const std::string& query);
+    [[nodiscard]] CassStatement* execute_query(const std::string& query) noexcept;
 
 private:
     constexpr static auto HOST = "127.0.0.1";
@@ -53,7 +53,7 @@ private:
 
 
 template<CassandraEntity T>
-bool CassandraController::create_table() {
+bool CassandraController::create_table() noexcept {
     std::string drop_query = std::format(
         "DROP TABLE IF EXISTS {};", 
         T::table_name
@@ -65,13 +65,13 @@ bool CassandraController::create_table() {
 }
 
 template<CassandraEntity T>
-bool CassandraController::insert(const T& entity) {
+bool CassandraController::insert(const T& entity) noexcept {
     std::string insert_query = entity.generate_insert_query();
     return execute(insert_query);
 }
 
 template<CassandraEntity T>
-std::vector<T> CassandraController::get_all() {
+std::vector<T> CassandraController::get_all() noexcept {
     std::string query = std::format("SELECT * FROM {};", T::table_name);
     CassStatement* statement = execute_query(query);
     if (!statement) return {};
@@ -93,9 +93,9 @@ std::vector<T> CassandraController::get_all() {
 }
 
 template<CassandraEntity T>
-std::optional<T> CassandraController::get_by_id(const std::string& id) {
+std::optional<T> CassandraController::get_by_id(uint64_t id) noexcept {
     std::string query = std::format("SELECT * FROM {} WHERE id = {} ALLOW FILTERING;", 
-        T::table_name, std::stoull(id));
+        T::table_name, id);
 
     CassStatement* statement = execute_query(query);
     if (!statement) return {};
@@ -104,7 +104,7 @@ std::optional<T> CassandraController::get_by_id(const std::string& id) {
     const CassResult* result = cass_future_get_result(future);
     const CassRow* row = cass_result_first_row(result);
 
-    std::optional<T> entity;
+    std::optional<T> entity{std::nullopt};
     if (row) {
         entity = T::from_row(row);
     }
@@ -115,16 +115,16 @@ std::optional<T> CassandraController::get_by_id(const std::string& id) {
 }
 
 template<CassandraEntity T>
-bool CassandraController::update_by_id(const T& entity) {
+bool CassandraController::update_by_id(const T& entity) noexcept {
     std::string update_query = entity.generate_update_query();
     return execute(update_query);
 }
 
 template<CassandraEntity T>
-bool CassandraController::delete_by_id(const std::string& id) {
+bool CassandraController::delete_by_id(uint64_t id) noexcept {
     std::string query = std::format("DELETE FROM {} WHERE country = 'belarus' "
         "AND id = {};", 
-        T::table_name, std::stoull(id));
+        T::table_name, id);
     return execute(query);
 }
 

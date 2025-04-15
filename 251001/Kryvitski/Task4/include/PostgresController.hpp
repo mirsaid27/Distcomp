@@ -1,5 +1,5 @@
 #pragma once
-#include "Entity.hpp"
+#include "Entities/Entity.hpp"
 #include <pqxx/pqxx>
 #include <cstdint>
 #include <memory>
