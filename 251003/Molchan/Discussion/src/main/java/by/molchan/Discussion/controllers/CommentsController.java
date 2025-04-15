@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -23,11 +24,6 @@ public class CommentsController {
     }
 
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public CommentResponseDTO createComment(@RequestBody @Valid CommentRequestDTO commentRequestDTO, BindingResult bindin) {
-        return commentsService.save(commentRequestDTO);
-      }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -36,33 +32,12 @@ public class CommentsController {
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public CommentResponseDTO getCommentById(@PathVariable Long id) {
-        return commentsService.findById(id);
+        try {
+            return commentsService.findById(id);
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+        }
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteComment(@PathVariable long id){
-        commentsService.deleteById(id);
-    }
-
-    // Non REST version for tests compliance
-    @PutMapping
-    @ResponseStatus(HttpStatus.OK)
-    public CommentResponseDTO updateComment(@RequestBody @Valid CommentRequestDTO commentRequestDTO){
-        return commentsService.update(commentRequestDTO);
-    }
-
-/*    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<CommentResponseDTO> getAllComments() {
-        return Collections.emptyList();
-    }
-
-    @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public CommentResponseDTO getCommentById(@PathVariable Long id) {
-        return new CommentResponseDTO();
-    }*/
 }

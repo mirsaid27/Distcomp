@@ -40,4 +40,10 @@ public class CommentRequestDTO {
     public void setContent(String content) {
         this.content = content;
     }
+    public CommentRequestDTO(Long id) {
+        this.id = id;
+    }
+
+    public CommentRequestDTO() {
+    }
 }
