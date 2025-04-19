@@ -38,7 +38,6 @@ func (sc *StoryController) Create(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 
-	// Cache the created entity in Redis
 	entityJSON, _ := json.Marshal(entity)
 	sc.redisClient.Set(ctx, fmt.Sprintf("story:%d", entity.Id), entityJSON, 0)
 
@@ -52,16 +51,13 @@ func (sc *StoryController) Get(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid ID format")
 	}
 
-	// Check Redis first
 	storyData, err := sc.redisClient.Get(ctx, fmt.Sprintf("story:%d", id)).Result()
 	if err == redis.Nil {
-		// If not found in Redis, fetch from service
 		story, err := sc.service.Get(id)
 		if err != nil {
 			return c.JSON(http.StatusNotFound, WrapErr(err))
 		}
 
-		// Add to Redis
 		storyJSON, _ := json.Marshal(story)
 		sc.redisClient.Set(ctx, fmt.Sprintf("story:%d", id), storyJSON, 0)
 
@@ -70,7 +66,6 @@ func (sc *StoryController) Get(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, WrapErr(err))
 	}
 
-	// If found in Redis, return cached data
 	var story model.StoryResponseTo
 	if err := json.Unmarshal([]byte(storyData), &story); err != nil {
 		return c.JSON(http.StatusInternalServerError, WrapErr(err))
@@ -101,7 +96,6 @@ func (sc *StoryController) Update(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, WrapErr(err))
 	}
 
-	// Optionally, update the entity in Redis
 	storyJSON, _ := json.Marshal(dto)
 	sc.redisClient.Set(ctx, fmt.Sprintf("story:%d", dto.Id), storyJSON, 0)
 
@@ -119,7 +113,6 @@ func (sc *StoryController) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	// Remove the entity from Redis
 	sc.redisClient.Del(ctx, fmt.Sprintf("story:%d", id))
 
 	return c.NoContent(http.StatusNoContent)

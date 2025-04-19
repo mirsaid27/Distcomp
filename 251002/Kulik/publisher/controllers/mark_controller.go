@@ -37,7 +37,6 @@ func (mc *MarkController) Create(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 
-	// Cache the created mark in Redis
 	markJSON, _ := json.Marshal(mark)
 	mc.redisClient.Set(ctx, fmt.Sprintf("mark:%d", mark.Id), markJSON, 0)
 
@@ -51,16 +50,14 @@ func (mc *MarkController) Get(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid ID format")
 	}
 
-	// Check Redis first
 	markData, err := mc.redisClient.Get(ctx, fmt.Sprintf("mark:%d", id)).Result()
 	if err == redis.Nil {
-		// If not found in Redis, fetch from service
+
 		mark, err := mc.service.Get(id)
 		if err != nil {
 			return c.JSON(http.StatusNotFound, WrapErr(err))
 		}
 
-		// Add to Redis
 		markJSON, _ := json.Marshal(mark)
 		mc.redisClient.Set(ctx, fmt.Sprintf("mark:%d", id), markJSON, 0)
 
@@ -69,7 +66,6 @@ func (mc *MarkController) Get(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, WrapErr(err))
 	}
 
-	// If found in Redis, return cached data
 	var mark model.MarkResponseTo
 	if err := json.Unmarshal([]byte(markData), &mark); err != nil {
 		return c.JSON(http.StatusInternalServerError, WrapErr(err))
@@ -96,12 +92,10 @@ func (mc *MarkController) Update(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, WrapErr(err))
 	}
 
-	// Update the entity in the service
 	if err := mc.service.Update(dto); err != nil {
 		return c.JSON(http.StatusForbidden, WrapErr(err))
 	}
 
-	// Optionally, update the entity in Redis
 	markJSON, _ := json.Marshal(dto)
 	mc.redisClient.Set(ctx, fmt.Sprintf("mark:%d", dto.Id), markJSON, 0)
 
@@ -115,12 +109,11 @@ func (mc *MarkController) Delete(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	// Delete the entity from service
+
 	if err := mc.service.Delete(id); err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	// Remove the entity from Redis
 	mc.redisClient.Del(ctx, fmt.Sprintf("mark:%d", id))
 
 	return c.NoContent(http.StatusNoContent)

@@ -89,6 +89,7 @@ func main() {
 			MinBytes:       1,                     // Return as soon as at least 1 byte is available
 			MaxBytes:       10e6,                  // Max size for a batch of messages
 			MaxWait:        10 * time.Millisecond, // Return quickly even if not full
+			ReadBatchTimeout: 100 * time.Millisecond,
 		})
 		defer reader.Close()
 	
