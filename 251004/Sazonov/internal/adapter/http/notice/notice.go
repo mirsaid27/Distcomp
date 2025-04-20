@@ -1,7 +1,6 @@
 package notice
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,17 +12,13 @@ import (
 
 var ErrNoticeNotFound = errors.Wrap(errors.ErrNotFound, "notice is not found")
 
-func (n *noticeAdapter) GetNotice(ctx context.Context, id int64) (model.Notice, error) {
-	url := fmt.Sprintf("http://%s/api/v1.0/notices/%d", n.addr, id)
-
-	req, err := http.NewRequest("GET", url, nil)
+func (n *Adapter) GetNotice(ctx context.Context, id int64) (model.Notice, error) {
+	resp, err := n.cli.R().
+		SetContext(ctx).
+		SetPathParam("id", fmt.Sprint(id)).
+		Get("/v1.0/notices/{id}")
 	if err != nil {
-		return model.Notice{}, err
-	}
-
-	resp, err := n.cli.Do(req)
-	if err != nil {
-		return model.Notice{}, err
+		return model.Notice{}, nil
 	}
 	defer resp.Body.Close()
 
@@ -36,15 +31,8 @@ func (n *noticeAdapter) GetNotice(ctx context.Context, id int64) (model.Notice, 
 	return notice, nil
 }
 
-func (n *noticeAdapter) ListNotices(ctx context.Context) ([]model.Notice, error) {
-	url := fmt.Sprintf("http://%s/api/v1.0/notices", n.addr)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := n.cli.Do(req)
+func (n *Adapter) ListNotices(ctx context.Context) ([]model.Notice, error) {
+	resp, err := n.cli.R().SetContext(ctx).Get("/v1.0/notices")
 	if err != nil {
 		return nil, err
 	}
@@ -59,24 +47,18 @@ func (n *noticeAdapter) ListNotices(ctx context.Context) ([]model.Notice, error)
 	return notices, nil
 }
 
-func (n *noticeAdapter) CreateNotice(ctx context.Context, args model.Notice) (model.Notice, error) {
-	url := fmt.Sprintf("http://%s/api/v1.0/notices", n.addr)
-
+func (n *Adapter) CreateNotice(ctx context.Context, args model.Notice) (model.Notice, error) {
 	data, err := json.Marshal(args)
 	if err != nil {
 		return model.Notice{}, err
 	}
 
-	body := bytes.NewBuffer(data)
-
-	req, err := http.NewRequest("POST", url, body)
-	if err != nil {
-		return model.Notice{}, err
-	}
-
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := n.cli.Do(req)
+	resp, err := n.cli.R().
+		SetContext(ctx).
+		SetContentType("application/json").
+		SetContentLength(true).
+		SetBody(data).
+		Post("/v1.0/notices")
 	if err != nil {
 		return model.Notice{}, err
 	}
@@ -91,24 +73,18 @@ func (n *noticeAdapter) CreateNotice(ctx context.Context, args model.Notice) (mo
 	return notice, nil
 }
 
-func (n *noticeAdapter) UpdateNotice(ctx context.Context, args model.Notice) (model.Notice, error) {
-	url := fmt.Sprintf("http://%s/api/v1.0/notices", n.addr)
-
+func (n *Adapter) UpdateNotice(ctx context.Context, args model.Notice) (model.Notice, error) {
 	data, err := json.Marshal(args)
 	if err != nil {
 		return model.Notice{}, err
 	}
 
-	body := bytes.NewBuffer(data)
-
-	req, err := http.NewRequest("PUT", url, body)
-	if err != nil {
-		return model.Notice{}, err
-	}
-
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := n.cli.Do(req)
+	resp, err := n.cli.R().
+		SetContext(ctx).
+		SetContentType("application/json").
+		SetContentLength(true).
+		SetBody(data).
+		Put("/v1.0/notices")
 	if err != nil {
 		return model.Notice{}, err
 	}
@@ -123,21 +99,17 @@ func (n *noticeAdapter) UpdateNotice(ctx context.Context, args model.Notice) (mo
 	return notice, nil
 }
 
-func (n *noticeAdapter) DeleteNotice(ctx context.Context, id int64) error {
-	url := fmt.Sprintf("http://%s/api/v1.0/notices/%d", n.addr, id)
-
-	req, err := http.NewRequest("DELETE", url, nil)
-	if err != nil {
-		return err
-	}
-
-	resp, err := n.cli.Do(req)
+func (n *Adapter) DeleteNotice(ctx context.Context, id int64) error {
+	resp, err := n.cli.R().
+		SetContext(ctx).
+		SetPathParam("id", fmt.Sprint(id)).
+		Delete("/v1.0/notices/{id}")
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {
+	if resp.StatusCode() == http.StatusNotFound {
 		return ErrNoticeNotFound
 	}
 

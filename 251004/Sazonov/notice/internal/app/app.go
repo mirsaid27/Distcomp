@@ -7,11 +7,13 @@ import (
 	"github.com/Khmelov/Distcomp/251004/Sazonov/notice/internal/config"
 	grpchandler "github.com/Khmelov/Distcomp/251004/Sazonov/notice/internal/handler/grpc"
 	httphandler "github.com/Khmelov/Distcomp/251004/Sazonov/notice/internal/handler/http"
+	"github.com/Khmelov/Distcomp/251004/Sazonov/notice/internal/handler/kafka"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/notice/internal/repository"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/notice/internal/service"
 	"github.com/Khmelov/Distcomp/251004/Sazonov/notice/pkg/cassandra"
 	grpcserver "github.com/Khmelov/Distcomp/251004/Sazonov/notice/pkg/grpc"
 	httpserver "github.com/Khmelov/Distcomp/251004/Sazonov/notice/pkg/http"
+	kafkaserver "github.com/Khmelov/Distcomp/251004/Sazonov/notice/pkg/kafka"
 	appbase "github.com/Khmelov/Distcomp/251004/Sazonov/pkg/app"
 )
 
@@ -52,10 +54,27 @@ func New(cfg config.Config) (*app, error) {
 
 	grpchandler.New(svc).Register(grpcServer)
 
+	consumer := kafkaserver.NewConsumer(
+		kafkaserver.ConsumerConfig{
+			Brokers: cfg.Kafka.Brokers,
+			GroupID: cfg.Kafka.GroupID,
+			Topic:   cfg.Kafka.Topic,
+		},
+	)
+	kafkaServer := kafkaserver.NewServer(
+		consumer,
+		kafka.New(svc),
+	)
+
 	app := &app{
 		App: appbase.New(
-			[]appbase.Service{httpServer, grpcServer},
-			[]appbase.CleanupFunc{repo.Close},
+			[]appbase.Service{httpServer, grpcServer, kafkaServer},
+			[]appbase.CleanupFunc{
+				repo.Close,
+				func() {
+					consumer.Close()
+				},
+			},
 		),
 	}
 
