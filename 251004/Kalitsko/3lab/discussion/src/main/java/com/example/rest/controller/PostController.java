@@ -4,6 +4,7 @@ import com.example.rest.dto.PostRequestTo;
 import com.example.rest.dto.PostResponseTo;
 import com.example.rest.dto.PostUpdate;
 import com.example.rest.service.Impl.PostService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ public class PostController {
 
     private final PostService postService;
 
+    @Autowired
     public PostController(PostService postService) {
         this.postService = postService;
     }
@@ -44,8 +46,8 @@ public class PostController {
     }
 
     // 4. Обновление поста
-    @PutMapping("/posts/{topicId}/{id}")
-    public ResponseEntity<PostResponseTo> updatePost(@RequestBody PostUpdate postUpdate) {
+    @PutMapping
+    public ResponseEntity<PostResponseTo> updatePost(@Valid @RequestBody PostUpdate postUpdate) {
 
         PostResponseTo responseTo = postService.updatePost(postUpdate);
         return ResponseEntity.ok(responseTo);

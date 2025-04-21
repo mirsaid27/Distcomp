@@ -42,26 +42,43 @@ public class PostService {
     }
 
     // Получение поста по ключу
-    public PostResponseTo getPostById(Long id) {
+/*    public PostResponseTo getPostById(Long id) {
         Optional<Post> post = postRepository.findById(id);
         return post.map(postMapper::toResponse).orElseThrow(() -> new RuntimeException("Post not found"));
+    }*/
+
+    public PostResponseTo getPostById(Long id) {
+        List<Post> allPosts = postRepository.findAll();
+        return allPosts.stream()
+                .filter(post -> post.getId().equals(id))
+                .findFirst()
+                .map(postMapper::toResponse)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
     }
 
     // Обновление поста
     public PostResponseTo updatePost(PostUpdate postUpdate) {
-        Post post = postRepository.findById(postUpdate.getId())
+/*        Post post = postRepository.findById(postUpdate.getId())
+                .orElseThrow(() -> new RuntimeException("Post not found"));*/
+
+        Post currPost = postRepository.findAll().stream()
+                .filter(post -> post.getId().equals(postUpdate.getId()))
+                .findFirst()
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        post.setContent(postUpdate.getContent());
-        Post updatedPost = postRepository.save(post);
+        currPost.setContent(postUpdate.getContent());
+        Post updatedPost = postRepository.save(currPost);
         return postMapper.toResponse(updatedPost);
     }
 
     // Удаление поста
     public void deletePost(Long id) {
-        Optional<Post> post = postRepository.findById(id);
-        if (post.isPresent()) {
-            postRepository.delete(post.get());
+        Post currPost = postRepository.findAll().stream()
+                .filter(post -> post.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        if (currPost != null) {
+            postRepository.delete(currPost);
         } else {
             throw new RuntimeException("Post not found");
         }

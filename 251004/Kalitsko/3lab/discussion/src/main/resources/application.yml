@@ -3,11 +3,14 @@ server:
 
 spring:
   cassandra:
-    port: 9042
     keyspace-name: post_keyspace
     schema-action: CREATE_IF_NOT_EXISTS
     local-datacenter: datacenter1
-    contact-points: localhost:9042
-    url: jdbc:cassandra://localhost:9042/post_keyspace?localdatacenter=datacenter1
+    contact-points: localhost
     username: cassandra
     password: cassandra
+    request:
+      timeout: 10s
+    connection:
+      connect-timeout: 10s
+      init-query-timeout: 10s

@@ -1,13 +1,14 @@
 package com.example.rest.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Table;
+
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 
+import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
+import org.springframework.data.cassandra.core.mapping.Table;
 
 
-@Table(name = "tbl_post")
+@Table("tbl_post")
 public class Post {
 
     @PrimaryKeyColumn(name = "country", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
@@ -19,7 +20,7 @@ public class Post {
     @PrimaryKeyColumn(name = "id", ordinal = 2, type = PrimaryKeyType.CLUSTERED)
     private Long id;
 
-    @Column(name = "content")
+    @Column("content")
     private String content;
 
     public String getCountry() {
