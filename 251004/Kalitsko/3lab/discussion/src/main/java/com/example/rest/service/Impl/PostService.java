@@ -4,6 +4,7 @@ import com.example.rest.dto.PostRequestTo;
 import com.example.rest.dto.PostResponseTo;
 import com.example.rest.dto.PostUpdate;
 import com.example.rest.entity.Post;
+import com.example.rest.exceptionHandler.CreatorNotFoundException;
 import com.example.rest.mapper.PostMapper;
 import com.example.rest.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ public class PostService {
                 .filter(post -> post.getId().equals(id))
                 .findFirst()
                 .map(postMapper::toResponse)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new CreatorNotFoundException(id));
     }
 
     // Обновление поста
@@ -64,7 +65,7 @@ public class PostService {
         Post currPost = postRepository.findAll().stream()
                 .filter(post -> post.getId().equals(postUpdate.getId()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new CreatorNotFoundException(postUpdate.getId()));
 
         currPost.setContent(postUpdate.getContent());
         Post updatedPost = postRepository.save(currPost);
@@ -76,11 +77,11 @@ public class PostService {
         Post currPost = postRepository.findAll().stream()
                 .filter(post -> post.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new CreatorNotFoundException(id));
         if (currPost != null) {
             postRepository.delete(currPost);
         } else {
-            throw new RuntimeException("Post not found");
+            throw new CreatorNotFoundException(id);
         }
     }
 }
