@@ -8,10 +8,10 @@
 #include <vector>
 #include <iostream>
 
-class CassandraController final {
+class CassandraController {
 public:
     CassandraController() noexcept;
-    ~CassandraController();
+    virtual ~CassandraController();
 
     CassandraController(const CassandraController&) = delete;
     CassandraController(CassandraController&&) = delete;

@@ -7,8 +7,8 @@
 template<CassandraEntity T>
 class DiscussionHandler {
 public:
-    explicit DiscussionHandler(std::shared_ptr<CassandraController> controller);
-    ~DiscussionHandler() = default;
+    explicit DiscussionHandler(std::shared_ptr<CassandraController> controller) noexcept;
+    virtual ~DiscussionHandler() = default;
 
     void initialize();
     void handle_post(const httplib::Request& req, httplib::Response& res);
@@ -22,9 +22,9 @@ private:
 };
 
 template <CassandraEntity T>
-inline DiscussionHandler<T>::DiscussionHandler(std::shared_ptr<CassandraController> controller)
+inline DiscussionHandler<T>::DiscussionHandler(std::shared_ptr<CassandraController> controller) noexcept
 {
-    m_controller = std::move(controller);
+    m_controller = controller;
 }
 
 template <CassandraEntity T>
