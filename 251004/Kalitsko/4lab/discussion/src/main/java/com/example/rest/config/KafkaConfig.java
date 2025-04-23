@@ -9,6 +9,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.*;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@EnableKafka
 public class KafkaConfig {
 
 
@@ -45,7 +47,7 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
-    @Bean
+/*    @Bean
     public ConcurrentMessageListenerContainer<String, OutTopicDTO> replyContainer(
             ConsumerFactory<String, OutTopicDTO> consumerFactory) {
         return new ConcurrentMessageListenerContainer<>(consumerFactory, new ContainerProperties("OutTopic"));
@@ -56,7 +58,7 @@ public class KafkaConfig {
             ProducerFactory<String, InTopicDTO> pf,
             ConcurrentMessageListenerContainer<String, OutTopicDTO> replyContainer) {
         return new ReplyingKafkaTemplate<>(pf, replyContainer);
-    }
+    }*/
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, InTopicDTO> kafkaListenerContainerFactory() {

@@ -74,7 +74,6 @@ public class PostService {
     private OutTopicDTO handleSave(PostRequestTo dto) {
         Post post = postMapper.toEntity(dto);
         post.setCountry(country);
-        post.setId((long) (Math.random() * 10000000));
         Post savedPost = postRepository.save(post);
         return new OutTopicDTO(postMapper.toResponse(savedPost), "APPROVE");
     }
@@ -89,8 +88,12 @@ public class PostService {
     }
 
     public PostResponseTo findById(Long id) {
-        return postMapper.toResponse((Post) postRepository.findByCountryAndId(country, id)
-                .orElseThrow(() -> new RuntimeException("Post not found")));
+        List<Post> allPosts = postRepository.findAll();
+        return allPosts.stream()
+                .filter(post -> post.getId().equals(id))
+                .findFirst()
+                .map(postMapper::toResponse)
+                .orElseThrow(() -> new CreatorNotFoundException(id));
     }
 
     private OutTopicDTO handleFindById(Long id) {
@@ -99,14 +102,9 @@ public class PostService {
         } catch (RuntimeException ex) {
             return new OutTopicDTO(ex.getMessage(), "DECLINE");
         }
-
-
     }
 
     private OutTopicDTO handleUpdate(PostRequestTo dto) {
-        Post posts = postRepository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("Post not found"));
-
         Post currPost = postRepository.findAll().stream()
                 .filter(post -> post.getId().equals(dto.getId()))
                 .findFirst()
@@ -118,15 +116,16 @@ public class PostService {
     }
 
     private OutTopicDTO handleDelete(Long id) {
-        Optional<Post> optionalPost = postRepository.findByCountryAndId(country, id);
-
-        if (optionalPost.isEmpty()) {
-            return new OutTopicDTO("Post not found", "DECLINE");
+        Post currPost = postRepository.findAll().stream()
+                .filter(post -> post.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new CreatorNotFoundException(id));
+        if (currPost != null) {
+            postRepository.delete(currPost);
+        } else {
+            throw new CreatorNotFoundException(id);
         }
-
-        Post post = optionalPost.get();
-        postRepository.delete(post);
-        return new OutTopicDTO(postMapper.toPostResponse(post), "APPROVE");
+        return new OutTopicDTO(postMapper.toResponse(currPost), "APPROVE");
     }
 
 }

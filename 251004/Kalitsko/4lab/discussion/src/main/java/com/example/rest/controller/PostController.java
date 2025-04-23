@@ -23,17 +23,11 @@ public class PostController {
         this.postService = postService;
     }
 
-    // 1. Создание нового поста
-    @PostMapping
-    public ResponseEntity<PostResponseTo> createPost(@RequestBody PostRequestTo requestTo) {
-        PostResponseTo responseTo = postService.createPost(requestTo);
-        return ResponseEntity.ok(responseTo);
-    }
 
     // 2. Получение всех постов
     @GetMapping
     public ResponseEntity<List<PostResponseTo>> getAllPosts() {
-        List<PostResponseTo> posts = postService.getAllPosts();
+        List<PostResponseTo> posts = postService.findAll();
         return ResponseEntity.ok(posts);
     }
 
@@ -41,23 +35,8 @@ public class PostController {
     @GetMapping("{id}")
     public ResponseEntity<PostResponseTo> getPostById(@PathVariable Long id) {
 
-        PostResponseTo responseTo = postService.getPostById(id);
+        PostResponseTo responseTo = postService.findById(id);
         return ResponseEntity.ok(responseTo);
     }
 
-    // 4. Обновление поста
-    @PutMapping
-    public ResponseEntity<PostResponseTo> updatePost(@Valid @RequestBody PostUpdate postUpdate) {
-
-        PostResponseTo responseTo = postService.updatePost(postUpdate);
-        return ResponseEntity.ok(responseTo);
-    }
-
-    // 5. Удаление поста
-    @DeleteMapping("{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-
-        postService.deletePost(id);
-        return ResponseEntity.noContent().build();
-    }
 }

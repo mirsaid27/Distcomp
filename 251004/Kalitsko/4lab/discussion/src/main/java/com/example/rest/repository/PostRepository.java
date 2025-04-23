@@ -8,9 +8,4 @@ import java.util.Optional;
 
 @Repository
 public interface PostRepository extends CassandraRepository<Post, String> {
-
-    Optional<Post> findById(Long id);
-    void deleteById(Long id);
-
-    Optional<Object> findByCountryAndId(String country, Long id);
 }
