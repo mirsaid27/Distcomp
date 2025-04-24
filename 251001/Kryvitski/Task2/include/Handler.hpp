@@ -6,8 +6,8 @@
 template<Entity T>
 class Handler {
 public:
-    explicit Handler(std::shared_ptr<PostgresController> controller);
-    ~Handler() = default;
+    explicit Handler(std::shared_ptr<PostgresController> controller) noexcept;
+    virtual ~Handler() = default;
 
     void initialize();
     void handle_post(const httplib::Request& req, httplib::Response& res);
@@ -21,9 +21,9 @@ private:
 };
 
 template <Entity T>
-inline Handler<T>::Handler(std::shared_ptr<PostgresController> controller)
+inline Handler<T>::Handler(std::shared_ptr<PostgresController> controller) noexcept
 {
-    m_controller = std::move(controller);
+    m_controller = controller;
 }
 
 template <Entity T>
