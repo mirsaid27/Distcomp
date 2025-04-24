@@ -1,5 +1,6 @@
 package com.example.rest.controller;
 
+import com.example.rest.dto.OutTopicDTO;
 import com.example.rest.dto.PostRequestTo;
 import com.example.rest.dto.PostResponseTo;
 import com.example.rest.dto.PostUpdate;
@@ -37,6 +38,12 @@ public class PostController {
 
         PostResponseTo responseTo = postService.findById(id);
         return ResponseEntity.ok(responseTo);
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<PostResponseTo> update( @PathVariable Long id, @RequestBody PostRequestTo  postRequestTo) {
+        postRequestTo.setId(id);
+        return ResponseEntity.ok(postService.update(postRequestTo));
     }
 
 }

@@ -26,7 +26,6 @@ import java.util.Optional;
 public class PostService {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
-    private final String country = "Default";
 
     @Autowired
     public PostService(PostRepository postRepository, PostMapper postMapper) {
@@ -73,6 +72,7 @@ public class PostService {
 
     private OutTopicDTO handleSave(PostRequestTo dto) {
         Post post = postMapper.toEntity(dto);
+        String country = "Default";
         post.setCountry(country);
         Post savedPost = postRepository.save(post);
         return new OutTopicDTO(postMapper.toResponse(savedPost), "APPROVE");
@@ -113,6 +113,17 @@ public class PostService {
         currPost.setContent(dto.getContent());
         Post updatedPost = postRepository.save(currPost);
         return new OutTopicDTO(postMapper.toResponse(updatedPost), "APPROVE");
+    }
+
+    public PostResponseTo update(PostRequestTo dto) {
+        Post currPost = postRepository.findAll().stream()
+                .filter(post -> post.getId().equals(dto.getId()))
+                .findFirst()
+                .orElseThrow(() -> new CreatorNotFoundException(dto.getId()));
+
+        currPost.setContent(dto.getContent());
+        Post updatedPost = postRepository.save(currPost);
+        return postMapper.toResponse(updatedPost);
     }
 
     private OutTopicDTO handleDelete(Long id) {
