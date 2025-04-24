@@ -11,10 +11,10 @@ namespace Application.abstractions
 {
     public interface IEditorService
     {
-        Task<EditorResponseTo> CreateAsync(EditorRequestTo request);
-        Task<EditorResponseTo> GetByIdAsync(long id);
+        Task<EditorResponseTo?> CreateAsync(EditorRequestTo request);
+        Task<EditorResponseTo?> GetByIdAsync(long id);
         Task<IEnumerable<EditorResponseTo>> GetAllAsync();
-        Task<EditorResponseTo> UpdateAsync(long id, EditorRequestTo request);
+        Task<EditorResponseTo?> UpdateAsync(long id, EditorRequestTo request);
         Task<bool> DeleteAsync(long id);
     }
 }

@@ -1,24 +1,20 @@
 ﻿using Application.abstractions;
 using Application.services;
-using Core;
 using DTO.requests;
 using DTO.responces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace rv_lab_1.controllers
 {
-    [Route("api/v1.0/stories")]
+    [Route("api/[controller]")]
     [ApiController]
     public class StoryController(IStoryService storyService) : ControllerBase
     {
         private readonly IStoryService _storyService = storyService;
         [HttpGet("{id:long}")]
-        public async Task<ActionResult<StoryResponseTo?>> GetByIdAsync(long id)
+        public async Task<StoryResponseTo> GetByIdAsync(long id)
         {
-            var res = await _storyService.GetByIdAsync(id);
-            if (res == null)
-                return StatusCode(211);
-            return res;
+            return await _storyService.GetByIdAsync(id);
         }
 
         [HttpGet]
@@ -32,20 +28,12 @@ namespace rv_lab_1.controllers
         {
             var res = await _storyService.CreateAsync(requestTo);
             if (res == null)
-                return StatusCode(403);
+                return BadRequest();
             return Created(string.Empty, res);
         }
 
-        [HttpPut]
-        public async Task<ActionResult<StoryResponseTo>> Put([FromBody] Story requestTo)
-        {
-            var res = await _storyService.UpdateAsync(requestTo.Id, new StoryRequestTo() 
-                { Content = requestTo.Content, EditorId = requestTo.EditorId, Title = requestTo.Title});
-            return Ok(res);
-        }
-
         [HttpPut("{id}")]
-        public async Task<ActionResult<StoryResponseTo>> PutWitnId(int id, [FromBody] StoryRequestTo requestTo)
+        public async Task<ActionResult<StoryRequestTo>> Put(long id, [FromBody] StoryRequestTo requestTo)
         {
             var res = await _storyService.UpdateAsync(id, requestTo);
             return Ok(res);

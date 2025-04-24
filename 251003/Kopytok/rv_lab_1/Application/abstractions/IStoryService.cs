@@ -10,10 +10,10 @@ namespace Application.abstractions
 {
     public interface IStoryService
     {
-        Task<StoryResponseTo> CreateAsync(StoryRequestTo request);
-        Task<StoryResponseTo> GetByIdAsync(long id);
+        Task<StoryResponseTo?> CreateAsync(StoryRequestTo request);
+        Task<StoryResponseTo?> GetByIdAsync(long id);
         Task<IEnumerable<StoryResponseTo>> GetAllAsync();
-        Task<StoryResponseTo> UpdateAsync(long id, StoryRequestTo request);
+        Task<StoryResponseTo?> UpdateAsync(long id, StoryRequestTo request);
         Task<bool> DeleteAsync(long id);
     }
 }

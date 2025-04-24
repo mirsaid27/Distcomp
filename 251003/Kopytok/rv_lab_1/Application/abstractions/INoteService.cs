@@ -10,10 +10,10 @@ namespace Application.abstractions
 {
     public interface INoteService
     {
-        Task<NoteResponseTo> CreateAsync(NoteRequestTo request);
-        Task<NoteResponseTo> GetByIdAsync(long id);
+        Task<NoteResponseTo?> CreateAsync(NoteRequestTo request);
+        Task<NoteResponseTo?> GetByIdAsync(long id);
         Task<IEnumerable<NoteResponseTo>> GetAllAsync();
-        Task<NoteResponseTo> UpdateAsync(long id, NoteRequestTo request);
+        Task<NoteResponseTo?> UpdateAsync(long id, NoteRequestTo request);
         Task<bool> DeleteAsync(long id);
     }
 }
