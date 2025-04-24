@@ -33,16 +33,18 @@ public class PostController {
     }
 
     // 3. Получение поста по ключу
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<PostResponseTo> getPostById(@PathVariable Long id) {
 
         PostResponseTo responseTo = postService.findById(id);
         return ResponseEntity.ok(responseTo);
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<PostResponseTo> update( @PathVariable Long id, @RequestBody PostRequestTo  postRequestTo) {
-        postRequestTo.setId(id);
+    @PutMapping("/{id}")
+    public ResponseEntity<PostResponseTo> update(@PathVariable(required = false) Long id, @RequestBody PostRequestTo  postRequestTo) {
+        if (id != null) {
+            postRequestTo.setId(id);
+        }
         return ResponseEntity.ok(postService.update(postRequestTo));
     }
 

@@ -47,19 +47,6 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
-/*    @Bean
-    public ConcurrentMessageListenerContainer<String, OutTopicDTO> replyContainer(
-            ConsumerFactory<String, OutTopicDTO> consumerFactory) {
-        return new ConcurrentMessageListenerContainer<>(consumerFactory, new ContainerProperties("OutTopic"));
-    }
-
-    @Bean
-    public ReplyingKafkaTemplate<String, InTopicDTO, OutTopicDTO> replyingKafkaTemplate(
-            ProducerFactory<String, InTopicDTO> pf,
-            ConcurrentMessageListenerContainer<String, OutTopicDTO> replyContainer) {
-        return new ReplyingKafkaTemplate<>(pf, replyContainer);
-    }*/
-
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, InTopicDTO> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, InTopicDTO> factory = new ConcurrentKafkaListenerContainerFactory<>();
