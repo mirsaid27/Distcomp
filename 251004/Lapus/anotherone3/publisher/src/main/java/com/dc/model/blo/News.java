@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.io.Serializable;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name="tbl_news")
-public class News {
+public class News implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

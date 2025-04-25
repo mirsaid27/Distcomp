@@ -7,13 +7,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name="tbl_marker")
-public class Marker {
+public class Marker implements Serializable {
 
     public Marker(String name){
         this.name=name;
