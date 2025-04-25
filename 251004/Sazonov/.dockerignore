@@ -9,3 +9,7 @@ Dockerfile
 # test and docs dir
 ./tests
 ./docs
+
+# terraform
+main.tf
+*terraform*
