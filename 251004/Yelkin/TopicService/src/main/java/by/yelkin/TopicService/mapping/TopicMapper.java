@@ -3,6 +3,7 @@ package by.yelkin.TopicService.mapping;
 import by.yelkin.TopicService.dto.topic.TopicRq;
 import by.yelkin.TopicService.dto.topic.TopicRs;
 import by.yelkin.TopicService.dto.topic.TopicUpdateRq;
+import by.yelkin.TopicService.entity.Mark;
 import by.yelkin.TopicService.entity.Topic;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -16,6 +17,9 @@ import java.util.List;
 public interface TopicMapper {
     @Mapping(target = "creator.id", source = "creatorId")
     Topic fromDto(TopicRq rq);
+
+    @Mapping(target = "name", source = "mark")
+    Mark fromDto(String mark);
 
     @Mapping(source = "creator.id", target = "creatorId")
     TopicRs toDto(Topic topic);
