@@ -7,6 +7,9 @@ import by.kopvzakone.distcomp.repositories.TagRepository;
 import by.kopvzakone.distcomp.repositories.TweetRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,14 +30,15 @@ public class TweetService {
     public List<TweetResponseTo> getAll() {
         return repImpl.getAll().map(mapper::out).toList();
     }
+    @Cacheable(value = "tweets", key = "#id")
     public TweetResponseTo getById(Long id) {
         return repImpl.get(id).map(mapper::out).orElseThrow();
     }
+    @CachePut(value = "tweets", key = "#req.id")
     public TweetResponseTo create(TweetRequestTo req) {
 
         return repImpl.create(map(req)).map(mapper::out).orElseThrow();
     }
-
     private Tweet map(TweetRequestTo req) {
         Tweet tweet = mapper.in(req);
         Set<Tag> tags = (req.getTags() == null || req.getTags().isEmpty())
@@ -50,10 +54,11 @@ public class TweetService {
         tweet.setTags(tags);
         return tweet;
     }
-
+    @CachePut(value = "tweets", key = "#req.id")
     public TweetResponseTo update(TweetRequestTo req) {
         return repImpl.update(map(req)).map(mapper::out).orElseThrow();
     }
+    @CacheEvict(value = "tweets", key = "#id")
     @Transactional
     public void delete(Long id) {
         Tweet tweet = repImpl.findById(id)

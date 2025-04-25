@@ -1,5 +1,6 @@
 package by.kopvzakone.distcomp.handlers;
 
+import by.kopvzakone.distcomp.kafka.KafkaException;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import org.springframework.core.Ordered;
@@ -52,7 +53,13 @@ public class ErrorHandler {
         @ResponseBody
         @ExceptionHandler(RuntimeException.class)
         public ErrorResponse handle(RuntimeException ex){
-            var error = AppException.resolve(ex.getClass().getSimpleName());
+            String exceptionName;
+            if(ex instanceof KafkaException){
+                exceptionName = ((KafkaException) ex).getSimpleName();
+            }else{
+                exceptionName = ex.getClass().getSimpleName();
+            }
+            var error = AppException.resolve(exceptionName);
 
             return ErrorResponse
                     .builder(ex, error.getHttpStatusCode(), error.name())

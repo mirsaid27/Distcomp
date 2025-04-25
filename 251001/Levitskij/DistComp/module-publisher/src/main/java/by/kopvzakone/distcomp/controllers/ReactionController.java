@@ -19,50 +19,28 @@ import java.util.NoSuchElementException;
 @AllArgsConstructor
 public class ReactionController {
     private final ReactionService serviceImpl;
-    private final WebClient webClient;
     @GetMapping
-    public Flux<ReactionResponseTo> getAll() {
-        return webClient.get()
-                .uri("/api/v1.0/reactions")
-                .retrieve()
-                .bodyToFlux(ReactionResponseTo.class);
+    public Collection<ReactionResponseTo> getAll(){
+        return serviceImpl.getAll();
     }
-
     @GetMapping("/{id}")
-    public Mono<ReactionResponseTo> getById(@PathVariable Long id) {
-        return webClient.get()
-                .uri("/api/v1.0/reactions/{id}", id)
-                .retrieve()
-                .bodyToMono(ReactionResponseTo.class);
+    public ReactionResponseTo getById(@PathVariable Long id){
+        return serviceImpl.getById(id);
     }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<ReactionResponseTo> create(@RequestBody @Valid ReactionRequestTo request) {
-        return webClient.post()
-                .uri("/api/v1.0/reactions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ReactionResponseTo.class);
+    public ReactionResponseTo create(@RequestBody @Valid ReactionRequestTo request){
+        return serviceImpl.create(request);
     }
-
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Mono<Void> delete(@PathVariable Long id) {
-        return webClient.delete()
-                .uri("/api/v1.0/reactions/{id}", id)
-                .retrieve()
-                .bodyToMono(Void.class);
+    public void delete(@PathVariable Long id){
+        serviceImpl.delete(id);
     }
-
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Mono<ReactionResponseTo> update(@RequestBody @Valid ReactionRequestTo request) {
-        return webClient.put()
-                .uri("/api/v1.0/reactions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ReactionResponseTo.class);
+    public ReactionResponseTo update(@RequestBody @Valid ReactionRequestTo request){
+        return serviceImpl.update(request);
     }
 }
 
