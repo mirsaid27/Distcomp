@@ -2,10 +2,15 @@ package storage
 
 import (
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/storage/psql"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/storage/redis"
 )
 
 type Storage struct {
 	DB *psql.PSQL
+}
+
+type Cache struct {
+	DB *redis.Cache
 }
 
 func New() (*Storage, error) {
@@ -17,4 +22,10 @@ func New() (*Storage, error) {
 	return &Storage{
 		DB: db,
 	}, nil
+}
+
+func NewCache() *Cache {
+	return &Cache{
+		DB: redis.NewCache(),
+	}
 }

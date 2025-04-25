@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/discussion/internal/handler/http/message"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/discussion/internal/handler/kafka"
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/discussion/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -17,4 +18,12 @@ func New(svc service.Service) http.Handler {
 	}
 
 	return engine
+}
+
+func NewKafkaHandler(srv service.Service) *kafka.KafkaConsumer {
+	return kafka.NewKafkaConsumer(
+		[]string{"localhost:9092"},
+		"message-service-group",
+		srv,
+	)
 }
