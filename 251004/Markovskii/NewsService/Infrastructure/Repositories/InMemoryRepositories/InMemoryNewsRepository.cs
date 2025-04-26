@@ -46,6 +46,11 @@ public class
         throw new NotFoundException("Id",$"{news.Id}");
     }
 
+    public void AddMarksToNews(long newsId, IEnumerable<long> markIds)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<IEnumerable<News?>?> GetAllNews()
     {
         return _news.Values.ToList();

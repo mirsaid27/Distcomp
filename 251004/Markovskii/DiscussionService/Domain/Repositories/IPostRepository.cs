@@ -1,6 +1,6 @@
 ﻿using Domain.Entities;
 
-namespace Domain.Repository;
+namespace Domain.Repositories;
 
 public interface IPostRepository
 {

@@ -25,6 +25,12 @@ public class MarkService (IMarkRepository _markRepository, IMapper _mapper) : IM
         var mark = await _markRepository.GetAllMarks();
         return mark.Select(_mapper.Map<MarkResponseToGetById>);
     }
+    
+    public async Task<IEnumerable<MarkResponseToGetById>?> CreateMarksIfDontExist(IEnumerable<string> request)
+    {
+        var mark = await _markRepository.GetMarksCreateIfNotExist(request);
+        return mark?.Select(_mapper.Map<MarkResponseToGetById>);
+    }
 
     public async Task<MarkResponseToGetById?> GetMarkById(MarkRequestToGetById request)
     {

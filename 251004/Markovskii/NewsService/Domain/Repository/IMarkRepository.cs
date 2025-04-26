@@ -9,4 +9,6 @@ public interface IMarkRepository
     Task<Mark?> RemoveMark(long markId);
     Task<Mark?> UpdateMark(Mark mark);
     Task<IEnumerable<Mark?>?> GetAllMarks();
+    
+    Task<IEnumerable<Mark?>?> GetMarksCreateIfNotExist(IEnumerable<string> marks);
 }
