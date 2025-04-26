@@ -7,15 +7,16 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-    public class Note
+    public class StoryTag
     {
         [Column("id")]
         public long Id { get; set; } = 0;
         [Column("storyId")]
         public long StoryId { get; set; } = 0;
-        [Column("content")]
-        public String Content { get; set; } = string.Empty;
+        [Column("tagId")]
+        public long TagId { get; set; } = 0;
 
         public Story Story { get; set; }
-    }
+        public Tag Tag { get; set; }
+    }    
 }

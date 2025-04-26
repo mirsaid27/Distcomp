@@ -11,9 +11,9 @@ namespace Application.abstractions
     public interface ITagService
     {
         Task<TagResponseTo> CreateAsync(TagRequestTo request);
-        Task<TagResponseTo> GetByIdAsync(long id);
+        Task<TagResponseTo?> GetByIdAsync(long id);
         Task<IEnumerable<TagResponseTo>> GetAllAsync();
-        Task<TagResponseTo> UpdateAsync(long id, TagRequestTo request);
+        Task<TagResponseTo?> UpdateAsync(long id, TagRequestTo request);
         Task<bool> DeleteAsync(long id);
     }
 }
