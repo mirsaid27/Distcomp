@@ -3,14 +3,16 @@ using DistComp.Controllers;
 using DistComp.Data;
 using DistComp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Redis.OM;
+using Redis.OM.Searching;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DistComp.Services.Implementation {
     public class CassandraCommentService : ICommentService, IDisposable {
 
         private DCContext context;
+        private RedisConnectionProvider provider;
+        private IRedisCollection<CommentOutDto> comments;
         private IMapper mapper;
 
         private HttpClient client;
@@ -19,11 +21,16 @@ namespace DistComp.Services.Implementation {
 
         private JsonSerializerOptions options;
 
-        public CassandraCommentService(DCContext context, IMapper mapper, IConfiguration configuration) {
+        public CassandraCommentService(
+            DCContext context, IMapper mapper,
+            RedisConnectionProvider provider, IConfiguration configuration
+        ) {
             this.context = context;
             this.mapper = mapper;
-            connectionString = configuration.GetConnectionString("discussion") 
-                ?? throw new ApplicationException("'discussion' string is not found");
+            connectionString = configuration.GetConnectionString("discussion")!;
+
+            this.provider = provider;
+            comments = provider.RedisCollection<CommentOutDto>();
 
             client = new HttpClient();
             client.BaseAddress = new Uri(connectionString);
@@ -38,12 +45,22 @@ namespace DistComp.Services.Implementation {
         }
 
         public async Task<IEnumerable<CommentOutDto>> GetAll() {
+            var cached = await comments.ToListAsync();
+            if (cached.Count > 0) {
+                return cached;
+            }
+
             var response = await client.GetAsync(apiPrefix);
             string content = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<IEnumerable<CommentOutDto>>(content, options)!;
         }
 
         public async Task<CommentOutDto?> Get(long id) {
+            var cached = await comments.FindByIdAsync(id.ToString());
+            if (cached is not null) {
+                return cached;
+            }
+
             var response = await client.GetAsync(apiPrefix + "/" + id);
             string content = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<CommentOutDto>(content, options)!;
@@ -58,7 +75,11 @@ namespace DistComp.Services.Implementation {
             var response = await client.PostAsync(apiPrefix, JsonContent.Create(data));
             response.EnsureSuccessStatusCode();
             string content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<CommentOutDto>(content, options)!;
+            var commentOut = JsonSerializer.Deserialize<CommentOutDto>(content, options)!;
+
+            await comments.InsertAsync(commentOut);
+
+            return commentOut;
         }
 
         public async Task<CommentOutDto> Update(Comment data) {
@@ -75,7 +96,11 @@ namespace DistComp.Services.Implementation {
             }));
             response.EnsureSuccessStatusCode();
             string content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<CommentOutDto>(content, options)!;
+            var commentOut = JsonSerializer.Deserialize<CommentOutDto>(content, options)!;
+
+            await comments.UpdateAsync(commentOut);
+
+            return commentOut;
         }
 
         public async Task Delete(long id) {
@@ -84,6 +109,8 @@ namespace DistComp.Services.Implementation {
                 throw new KeyNotFoundException("hihi");
             }
             response.EnsureSuccessStatusCode();
+
+            await provider.Connection.UnlinkAsync($"{nameof(Comment)}:{id}");
         }
 
         public void Dispose() {

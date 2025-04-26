@@ -27,11 +27,15 @@ namespace DistComp.Controllers {
         // GET */5
         [HttpGet("{id}")]
         public async Task<ActionResult> GetById(long id) {
-            var Comment = await commentService.Get(id);
-            if (Comment == null) {
+            try {
+                var Comment = await commentService.Get(id);
+                if (Comment == null) {
+                    return NotFound();
+                } else {
+                    return Ok(Comment);
+                }
+            } catch (Exception) {
                 return NotFound();
-            } else {
-                return Ok(Comment);
             }
         }
 
@@ -41,7 +45,7 @@ namespace DistComp.Controllers {
             try {
                 var Comment = await commentService.Create(newComment);
                 return StatusCode(StatusCodes.Status201Created, Comment);
-            } catch (Exception ex) {
+            } catch (Exception) {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
         }
@@ -52,7 +56,7 @@ namespace DistComp.Controllers {
             try {
                 var Comment = await commentService.Update(data);
                 return Ok(Comment);
-            } catch (KeyNotFoundException ex) {
+            } catch (KeyNotFoundException) {
                 return NotFound();
             }
         }
@@ -63,7 +67,7 @@ namespace DistComp.Controllers {
             try {
                 await commentService.Delete(id);
                 return StatusCode(StatusCodes.Status204NoContent);
-            } catch (KeyNotFoundException ex) {
+            } catch (KeyNotFoundException) {
                 return NotFound();
             }
         }

@@ -6,6 +6,7 @@ using Discussion.Data.Implementation;
 using Discussion.Services;
 using Discussion.Services.Implementation;
 using Discussion.Models.Mapping;
+using Discussion.Services.Background;
 
 namespace Discussion {
     public class Program {
@@ -28,6 +29,9 @@ namespace Discussion {
 
             // Add services
             builder.Services.AddTransient<ICommentService, CommentService>();
+
+            // Background services
+            builder.Services.AddHostedService<KafkaBackgroundService>();
 
             var app = builder.Build();
 

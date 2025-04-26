@@ -1,10 +1,13 @@
 using AutoMapper;
 using DistComp.Data;
 using DistComp.Models;
+using DistComp.Properties;
 using DistComp.Services;
+using DistComp.Services.Background;
 using DistComp.Services.Implementation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Redis.OM;
 
 namespace DistComp {
     public class Program {
@@ -31,7 +34,16 @@ namespace DistComp {
             builder.Services.AddTransient<UserService>();
             builder.Services.AddTransient<TopicService>();
             builder.Services.AddTransient<TagService>();
-            builder.Services.AddTransient<ICommentService, CassandraCommentService>();
+            builder.Services.AddTransient<ICommentService, CassandraCommentService>(); // Changed to Kafka
+
+            // Create Kafka topics
+            //var bootstrapServices = builder.Configuration.GetConnectionString("kafka_bootstrap_services")!;
+            //KafkaExtensions.CreateTopicIfNotExistsAsync(bootstrapServices, builder.Configuration["Kafka:InTopic"]!).Wait();
+            //KafkaExtensions.CreateTopicIfNotExistsAsync(bootstrapServices, builder.Configuration["Kafka:OutTopic"]!).Wait();
+
+            // Initialize Redis
+            builder.Services.AddSingleton(new RedisConnectionProvider(builder.Configuration.GetConnectionString("redis")!));
+            builder.Services.AddHostedService<RedisIndexCreationService>();
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();

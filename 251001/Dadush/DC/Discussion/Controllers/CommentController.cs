@@ -41,7 +41,7 @@ namespace Discussion.Controllers {
             try {
                 var Comment = await commentService.CreateAsync(newComment);
                 return StatusCode(StatusCodes.Status201Created, Comment);
-            } catch (Exception ex) {
+            } catch (Exception) {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
         }
