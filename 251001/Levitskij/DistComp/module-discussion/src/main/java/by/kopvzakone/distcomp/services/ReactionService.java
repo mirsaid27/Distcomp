@@ -31,22 +31,10 @@ public class ReactionService {
     }
     public ReactionResponseTo create(ReactionRequestTo req) {
         Reaction reaction = mapper.in(req);
-        ensureTweetExistence(reaction);
         return repImpl.create(reaction).map(mapper::out).orElseThrow();
-    }
-    private void ensureTweetExistence(Reaction reaction){
-        try {
-            webClient.get()
-                    .uri("/api/v1.0/tweets/{id}", reaction.getTweetId())
-                    .retrieve()
-                    .bodyToMono(ReactionResponseTo.class).hasElement().block();
-        }catch (Exception e){
-            throw new DataIntegrityViolationException("tweet with id " + reaction.getTweetId() + " doesnt exists");
-        }
     }
     public ReactionResponseTo update(ReactionRequestTo req) {
         Reaction reaction = mapper.in(req);
-        ensureTweetExistence(reaction);
         return repImpl.update(reaction).map(mapper::out).orElseThrow();
     }
     public void delete(Long id) {
