@@ -1,6 +1,8 @@
 package by.kapinskiy.Publisher.DTOs.Responses;
 
-public class NoteResponseDTO {
+import java.io.Serializable;
+
+public class NoteResponseDTO  implements Serializable {
     private long id;
     private Long issueId;
 

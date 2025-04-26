@@ -10,6 +10,7 @@ import by.kapinskiy.Publisher.repositories.TagsRepository;
 import by.kapinskiy.Publisher.utils.exceptions.NotFoundException;
 import by.kapinskiy.Publisher.utils.mappers.TagsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,17 +44,20 @@ public class TagsService {
         return tagsMapper.toTagResponseList(tagsRepository.findAll());
     }
 
+    @CacheEvict(value = "tags", key = "#id")
     public TagResponseDTO findById(long id) {
         return tagsMapper.toTagResponse(tagsRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Tag with such id does not exist")));
     }
 
+    @CacheEvict(value = "tags", key = "#id")
     public void deleteById(long id) {
         if (!tagsRepository.existsById(id))
             throw new NotFoundException("Tag with such id not found");
         tagsRepository.deleteById(id);
     }
 
+    @CacheEvict(value = "tags", key = "#tagRequestDTO.id")
     public TagResponseDTO update(TagRequestDTO tagRequestDTO) {
         Tag tag = tagsMapper.toTag(tagRequestDTO);
         return tagsMapper.toTagResponse(tagsRepository.save(tag));

@@ -7,6 +7,8 @@ import by.kapinskiy.Publisher.repositories.UsersRepository;
 import by.kapinskiy.Publisher.utils.exceptions.NotFoundException;
 import by.kapinskiy.Publisher.utils.mappers.UsersMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,7 @@ public class UsersService {
     }
 
     @Transactional
+    @CacheEvict(value = "users", key = "#id")
     public void deleteById(long id) {
         if (!usersRepository.existsById(id)) {
             throw new NotFoundException("User not found");
@@ -44,18 +47,21 @@ public class UsersService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "#id")
     public UserResponseDTO findById(long id){
         User user = usersRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         return usersMapper.toUserResponse(user);
     }
 
     @Transactional
+    @CacheEvict(value = "users", key = "#id")
     public UserResponseDTO update(long id, UserRequestDTO userRequestDTO) {
         userRequestDTO.setId(id);
         return update(userRequestDTO);
     }
 
     @Transactional
+    @CacheEvict(value = "users", key = "#userRequestDTO.id")
     public UserResponseDTO update(UserRequestDTO userRequestDTO) {
         User user = usersMapper.toUser(userRequestDTO);
         if (!usersRepository.existsById(user.getId())) {

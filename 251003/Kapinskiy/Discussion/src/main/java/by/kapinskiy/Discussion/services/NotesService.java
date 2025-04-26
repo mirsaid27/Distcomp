@@ -127,4 +127,10 @@ public class NotesService {
         return new OutTopicDTO(notesMapper.toNoteResponse(note), "APPROVE");
     }
 
+    public NoteResponseDTO update(NoteRequestDTO noteRequestDTO) {
+        Note note = notesMapper.toNote(noteRequestDTO);
+        note.getKey().setId(noteRequestDTO.getId());
+        note.getKey().setCountry(country);
+        return notesMapper.toNoteResponse(notesRepository.save(note));
+    }
 }

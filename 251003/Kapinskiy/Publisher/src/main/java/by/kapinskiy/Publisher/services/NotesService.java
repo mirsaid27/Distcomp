@@ -12,6 +12,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpMethod;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.requestreply.KafkaReplyTimeoutException;
@@ -70,6 +72,7 @@ public class NotesService {
         return response.getNoteResponsesListDTO();
     }
 
+    @Cacheable(value = "notes", key = "#id")
     public NoteResponseDTO getNoteById(Long id) {
         InTopicDTO request = new InTopicDTO(
                 "GET",
@@ -77,13 +80,13 @@ public class NotesService {
                 "PENDING"
         );
         OutTopicDTO response = sendAndReceiveInternal(request, id.toString());
-        if (response.getError() != null && !response.getError().isEmpty()){
+        if (response.getError() != null && !response.getError().isEmpty()) {
             throw new NotFoundException(response.getError());
         }
         return response.getNoteResponseDTO();
     }
 
-
+    @CacheEvict(value = "notes", key = "#noteRequestDTO.id")
     public NoteResponseDTO processNoteRequest(String httpMethod, NoteRequestDTO noteRequestDTO) {
         InTopicDTO request = new InTopicDTO(
                 httpMethod,
@@ -92,7 +95,7 @@ public class NotesService {
         );
 
         OutTopicDTO response = sendAndReceiveInternal(request, noteRequestDTO.getId().toString());
-        if (response.getError() != null && !response.getError().contains("Not found")){
+        if (response.getError() != null && !response.getError().contains("Not found")) {
             throw new NotFoundException(response.getError());
         }
         return response.getNoteResponseDTO();

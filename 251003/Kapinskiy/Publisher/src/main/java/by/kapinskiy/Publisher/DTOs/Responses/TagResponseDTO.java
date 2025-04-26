@@ -1,7 +1,9 @@
 package by.kapinskiy.Publisher.DTOs.Responses;
 
 
-public class TagResponseDTO {
+import java.io.Serializable;
+
+public class TagResponseDTO  implements Serializable {
     private Long id;
     private String name;
 

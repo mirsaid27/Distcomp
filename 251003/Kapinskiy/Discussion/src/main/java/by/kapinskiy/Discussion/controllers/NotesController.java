@@ -38,4 +38,9 @@ public class NotesController {
         }
     }
 
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public NoteResponseDTO updateNote(@RequestBody @Valid NoteRequestDTO noteRequestDTO) {
+        return notesService.update(noteRequestDTO);
+    }
 }

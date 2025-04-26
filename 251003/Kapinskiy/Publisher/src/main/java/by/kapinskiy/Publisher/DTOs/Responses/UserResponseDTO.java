@@ -1,6 +1,8 @@
 package by.kapinskiy.Publisher.DTOs.Responses;
 
-public class UserResponseDTO {
+import java.io.Serializable;
+
+public class UserResponseDTO  implements Serializable {
     private long id;
     private String login;
     private String password;
