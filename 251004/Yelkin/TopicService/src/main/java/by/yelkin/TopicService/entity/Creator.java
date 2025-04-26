@@ -1,5 +1,7 @@
 package by.yelkin.TopicService.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +11,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@Table(name = "tbl_creator")
 public class Creator extends BaseEntity {
     private String login;
     private String password;

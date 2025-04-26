@@ -9,6 +9,7 @@ import by.yelkin.TopicService.mapping.CreatorMapper;
 import by.yelkin.TopicService.repository.CreatorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,19 +19,26 @@ public class CreatorService {
     private final CreatorRepository creatorRepository;
     private final CreatorMapper creatorMapper;
 
+    @Transactional
     public CreatorRs create(CreatorRq rq) {
+        if (creatorRepository.findByLogin(rq.getLogin()).isPresent()) {
+            throw new ApiException(ApiError.ERR_NO_RIGHTS);
+        }
         return creatorMapper.toDto(creatorRepository.save(creatorMapper.fromDto(rq)));
     }
 
+    @Transactional
     public CreatorRs readById(Long id) {
         return creatorMapper.toDto(creatorRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ApiError.ERR_CREATOR_NOT_FOUND, id.toString())));
     }
 
+    @Transactional
     public List<CreatorRs> readAll() {
         return creatorMapper.toDtoList(creatorRepository.findAll());
     }
 
+    @Transactional
     public CreatorRs update(CreatorUpdateRq rq) {
         var creator = creatorRepository.findById(rq.getId())
                 .orElseThrow(() -> new ApiException(ApiError.ERR_CREATOR_NOT_FOUND, rq.getId().toString()));
@@ -40,6 +48,7 @@ public class CreatorService {
         return creatorMapper.toDto(creatorRepository.save(creator));
     }
 
+    @Transactional
     public void deleteById(Long id) {
         if (creatorRepository.findById(id).isEmpty()) {
             throw new ApiException(ApiError.ERR_CREATOR_NOT_FOUND, id.toString());

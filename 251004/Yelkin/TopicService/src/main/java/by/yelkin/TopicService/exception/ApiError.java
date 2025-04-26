@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ApiError {
     ERR_BAD_FORMAT("ERR-400:01", "Недопустимый формат: [%s]", HttpStatus.BAD_REQUEST),
+    ERR_NO_RIGHTS("ERR-403:01", "Нет прав на выполнение операции", HttpStatus.FORBIDDEN),
     ERR_CREATOR_NOT_FOUND("ERR-404:01", "Creator with id - %s not found", HttpStatus.NOT_FOUND),
     ERR_TOPIC_NOT_FOUND("ERR-404:02", "Topic with id - %s not found", HttpStatus.NOT_FOUND),
     ERR_MARK_NOT_FOUND("ERR-404:03", "Mark with id - %s not found", HttpStatus.NOT_FOUND),
