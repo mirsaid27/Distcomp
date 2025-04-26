@@ -84,7 +84,7 @@ func (h *noticeHandler) Create() gin.HandlerFunc {
 func (h *noticeHandler) Update() gin.HandlerFunc {
 	type request struct {
 		ID      int64  `json:"id"      validate:"required,gte=1"`
-		NewsID  int64  `json:"newsId"  validate:"omitempty,required,gte=1"`
+		IssueID int64  `json:"issueId"  validate:"omitempty,required,gte=1"`
 		Content string `json:"content" validate:"omitempty,required,min=4,max=2048"`
 	}
 
@@ -105,7 +105,7 @@ func (h *noticeHandler) Update() gin.HandlerFunc {
 			c,
 			model.Message{
 				ID:      req.ID,
-				IssueID: req.NewsID,
+				IssueID: req.IssueID,
 				Content: req.Content,
 			},
 		)

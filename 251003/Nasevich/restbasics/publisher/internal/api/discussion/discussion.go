@@ -123,7 +123,7 @@ func (c *Client) CreateMessage(ctx context.Context, issueID int64, content strin
 func (c *Client) UpdateMessage(ctx context.Context, id, issueID int64, content string) (*model.Message, error) {
 	message := map[string]interface{}{
 		"id":      id,
-		"newsId":  issueID,
+		"issueId": issueID,
 		"content": content,
 	}
 

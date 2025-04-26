@@ -25,6 +25,6 @@ func New(db storage.Storage) Service {
 		Creator: creator.New(db.DB.CreatorInst),
 		Issue:   issue.New(db.DB.IssueInst),
 		Mark:    mark.New(db.DB.MarkInst),
-		Message: message.New(discussion.NewClient()),
+		Message: message.New(discussion.NewClient(), *storage.NewCache()),
 	}
 }

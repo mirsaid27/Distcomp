@@ -3,9 +3,11 @@ package message
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/mapper"
 	messageModel "github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/model"
+	"github.com/Khmelov/Distcomp/251003/Nasevich/restbasics/publisher/internal/storage"
 )
 
 type httpClient interface {
@@ -18,6 +20,7 @@ type httpClient interface {
 
 type service struct {
 	client httpClient
+	cache  storage.Cache
 }
 
 type MessageService interface {
@@ -28,8 +31,9 @@ type MessageService interface {
 	DeleteMessageByID(ctx context.Context, id int64) error
 }
 
-func New(client httpClient) MessageService {
+func New(client httpClient, cache storage.Cache) MessageService {
 	return &service{
+		cache:  cache,
 		client: client,
 	}
 }
@@ -46,15 +50,24 @@ func (s *service) CreateMessage(ctx context.Context, message messageModel.Messag
 }
 
 func (s *service) GetMessages(ctx context.Context) ([]messageModel.Message, error) {
-	var mappedMessages []messageModel.Message
+	cachedMsgs, err := s.cache.DB.GetAllMessages(ctx)
+	if err == nil && len(cachedMsgs) > 0 {
+		return cachedMsgs, nil
+	}
 
 	msgs, err := s.client.GetMessages(ctx)
 	if err != nil {
-		return mappedMessages, err
+		return nil, err
 	}
 
+	var mappedMessages []messageModel.Message
 	for _, msg := range msgs {
-		mappedMessages = append(mappedMessages, mapper.MapHTTPMessageToModel(msg))
+		mappedMsg := mapper.MapHTTPMessageToModel(msg)
+		mappedMessages = append(mappedMessages, mappedMsg)
+
+		if err := s.cache.DB.SaveMessage(ctx, &mappedMsg, 24*time.Hour); err != nil {
+			log.Printf("failed to cache message %d: %v", mappedMsg.ID, err)
+		}
 	}
 
 	if len(mappedMessages) == 0 {
@@ -65,12 +78,23 @@ func (s *service) GetMessages(ctx context.Context) ([]messageModel.Message, erro
 }
 
 func (s *service) GetMessageByID(ctx context.Context, id int64) (messageModel.Message, error) {
+	cachedMsg, err := s.cache.DB.GetMessage(ctx, int(id))
+	if err == nil && cachedMsg != nil {
+		return *cachedMsg, nil
+	}
+
 	msg, err := s.client.GetMessage(ctx, id)
 	if err != nil {
 		return messageModel.Message{}, err
 	}
 
-	return mapper.MapHTTPMessageToModel(*msg), nil
+	mappedMsg := mapper.MapHTTPMessageToModel(*msg)
+
+	if err := s.cache.DB.SaveMessage(ctx, &mappedMsg, 24*time.Hour); err != nil {
+		log.Printf("failed to cache message %d: %v", id, err)
+	}
+
+	return mappedMsg, nil
 }
 
 func (s *service) UpdateMessageByID(ctx context.Context, message messageModel.Message) (messageModel.Message, error) {
@@ -79,9 +103,23 @@ func (s *service) UpdateMessageByID(ctx context.Context, message messageModel.Me
 		return messageModel.Message{}, err
 	}
 
-	return mapper.MapHTTPMessageToModel(*updatedMsg), nil
+	mappedMsg := mapper.MapHTTPMessageToModel(*updatedMsg)
+
+	if err := s.cache.DB.SaveMessage(ctx, &mappedMsg, 24*time.Hour); err != nil {
+		log.Printf("failed to update cached message %d: %v", mappedMsg.ID, err)
+	}
+
+	return mappedMsg, nil
 }
 
 func (s *service) DeleteMessageByID(ctx context.Context, id int64) error {
-	return s.client.DeleteMessage(ctx, id)
+	if err := s.client.DeleteMessage(ctx, id); err != nil {
+		return err
+	}
+
+	if err := s.cache.DB.DeleteMessage(ctx, int(id)); err != nil {
+		log.Printf("failed to delete cached message %d: %v", id, err)
+	}
+
+	return nil
 }
