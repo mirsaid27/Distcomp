@@ -1,8 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Discussion.Models {
     public class Comment {
-        public string Country { get; set; } = null!;
+        
+        [MaybeNull]
+        public string Country { get; set; } = "by";
 
         public long Id { get; set; }
 

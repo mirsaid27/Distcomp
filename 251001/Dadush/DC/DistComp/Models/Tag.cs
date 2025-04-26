@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Redis.OM.Modeling;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -21,10 +22,13 @@ namespace DistComp.Models {
         public string Name { get; init; } = null!;
     }
 
+    [Document(Prefixes = [nameof(Tag)])]
     public class TagOutDto {
 
+        [RedisIdField, Indexed]
         public long Id { get; init; }
 
+        [Indexed]
         public string Name { get; init; } = null!;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Redis.OM.Modeling;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -42,14 +43,19 @@ namespace DistComp.Models {
         public string Lastname { get; init; } = null!;
     }
 
+    [Document(Prefixes = [nameof(User)])]
     public class UserOutDto {
 
+        [RedisIdField, Indexed]
         public long Id { get; init; }
 
+        [Indexed]
         public string Login { get; init; } = null!;
 
+        [Indexed]
         public string Firstname { get; init; } = null!;
 
+        [Indexed]
         public string Lastname { get; init; } = null!;
     }
 }

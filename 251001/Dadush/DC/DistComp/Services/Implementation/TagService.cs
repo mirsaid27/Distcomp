@@ -2,22 +2,39 @@
 using DistComp.Data;
 using DistComp.Models;
 using Microsoft.EntityFrameworkCore;
+using Redis.OM;
+using Redis.OM.Searching;
 
 namespace DistComp.Services.Implementation {
     public class TagService : ICommonService<long, Tag, TagInDto, TagOutDto> {
         private DCContext context;
+        private RedisConnectionProvider provider;
+        private IRedisCollection<TagOutDto> tags;
         private IMapper mapper;
 
-        public TagService(DCContext context, IMapper mapper) {
+        public TagService(DCContext context, RedisConnectionProvider provider, IMapper mapper) {
+            this.provider = provider;
             this.context = context;
             this.mapper = mapper;
+
+            tags = provider.RedisCollection<TagOutDto>();
         }
 
         public IEnumerable<TagOutDto> GetAll() {
+            var cached = tags.ToList();
+            if (cached.Count > 0) {
+                return cached;
+            }
+
             return context.Tags.ToList().Select(e => mapper.Map<TagOutDto>(e));
         }
 
         public TagOutDto? Get(long id) {
+            var cached = tags.FindById(id.ToString());
+            if (cached is not null) {
+                return cached;
+            }
+
             var tag = context.Tags.Find(id);
             if (tag == null) {
                 return null;
@@ -32,7 +49,11 @@ namespace DistComp.Services.Implementation {
             context.Tags.Add(newTag);
             context.SaveChanges();
 
-            return mapper.Map<TagOutDto>(newTag);
+            var tagOut = mapper.Map<TagOutDto>(newTag);
+
+            tags.Insert(tagOut);
+
+            return tagOut;
         }
 
         public TagOutDto Update(Tag data) {
@@ -42,7 +63,11 @@ namespace DistComp.Services.Implementation {
             tag.Name = data.Name;
             context.SaveChanges();
 
-            return mapper.Map<TagOutDto>(data);
+            var tagOut = mapper.Map<TagOutDto>(data);
+
+            tags.Update(tagOut);
+
+            return tagOut;
         }
 
         public void Delete(long id) {
@@ -55,6 +80,8 @@ namespace DistComp.Services.Implementation {
 
             context.Tags.Remove(tag);
             context.SaveChanges();
+
+            provider.Connection.Unlink($"{nameof(Tag)}:{id}");
         }
     }
 }

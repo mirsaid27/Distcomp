@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Redis.OM.Modeling;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
@@ -28,12 +29,16 @@ namespace DistComp.Models {
         public string Content { get; init; } = null!;
     }
 
+    [Document(Prefixes = [nameof(Comment)])]
     public class CommentOutDto {
 
+        [RedisIdField, Indexed]
         public long Id { get; init; }
 
+        [Indexed]
         public long TopicId { get; init; }
 
+        [Indexed]
         public string Content { get; init; } = null!;
     }
 }
