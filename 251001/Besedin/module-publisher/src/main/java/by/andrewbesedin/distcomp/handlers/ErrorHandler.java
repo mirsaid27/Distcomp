@@ -1,7 +1,7 @@
 package by.andrewbesedin.distcomp.handlers;
 
+import by.andrewbesedin.distcomp.kafka.KafkaException;
 import lombok.Getter;
-import lombok.extern.java.Log;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -10,8 +10,6 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.io.Console;
 
 public class ErrorHandler {
     @Getter
@@ -52,7 +50,13 @@ public class ErrorHandler {
         @ResponseBody
         @ExceptionHandler(RuntimeException.class)
         public ErrorResponse handle(RuntimeException ex){
-            var error = AppException.resolve(ex.getClass().getSimpleName());
+            String exceptionName;
+            if(ex instanceof KafkaException){
+                exceptionName = ((KafkaException) ex).getSimpleName();
+            }else{
+                exceptionName = ex.getClass().getSimpleName();
+            }
+            var error = AppException.resolve(exceptionName);
 
             return ErrorResponse
                     .builder(ex, error.getHttpStatusCode(), error.name())
