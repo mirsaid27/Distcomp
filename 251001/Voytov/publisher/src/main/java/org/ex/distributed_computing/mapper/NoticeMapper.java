@@ -16,6 +16,8 @@ public interface NoticeMapper {
   @Mapping(source = "news.id", target = "newsId")
   NoticeResponseDTO toDto(Notice notice);
 
+  NoticeResponseDTO convert(NoticeRequestDTO dto);
+
   List<NoticeResponseDTO> toDtoList(List<Notice> notices);
 }
 

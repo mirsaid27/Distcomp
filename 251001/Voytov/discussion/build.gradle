@@ -32,6 +32,8 @@ dependencies {
 	implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 	implementation 'org.jetbrains.kotlin:kotlin-reflect'
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+	implementation 'org.springframework.kafka:spring-kafka'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	kapt 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 	kapt 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 //	implementation("org.liquibase.ext:liquibase-cassandra:4.1.0.1")

@@ -1,6 +1,7 @@
 package org.ex.distributed_computing.service;
 
 import java.util.List;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.ex.distributed_computing.dto.request.AuthorRequestDTO;
 import org.ex.distributed_computing.dto.response.AuthorResponseDTO;
@@ -9,6 +10,8 @@ import org.ex.distributed_computing.exception.NotFoundException;
 import org.ex.distributed_computing.mapper.AuthorMapper;
 import org.ex.distributed_computing.model.Author;
 import org.ex.distributed_computing.repository.AuthorRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,14 +21,25 @@ public class AuthorService {
   private final AuthorRepository authorRepository;
   private final AuthorMapper authorMapper;
 
+  @Qualifier("authorCache")
+  private final Cache cache;
+
   public List<AuthorResponseDTO> getAllAuthors() {
     return authorMapper.toDtoList(authorRepository.findAll());
   }
 
   public AuthorResponseDTO getAuthorById(Long id) {
-    Author author = authorRepository.findById(id)
+    var cached = cache.get(id, AuthorResponseDTO.class);
+    if (cached != null) {
+      return cached;
+    }
+
+    var author = authorRepository.findById(id)
+        .map(authorMapper::toDto)
         .orElseThrow(() -> new NotFoundException("Author not found"));
-    return authorMapper.toDto(author);
+
+    cache.put(id, author);
+    return author;
   }
 
   public AuthorResponseDTO createAuthor(AuthorRequestDTO requestDTO) {
@@ -34,7 +48,9 @@ public class AuthorService {
       throw new DuplicateDatabaseValueException();
     }
     authorRepository.save(author);
-    return authorMapper.toDto(author);
+    var authorDto = authorMapper.toDto(author);
+    cache.put(author.getId(), authorDto);
+    return authorDto;
   }
 
   public AuthorResponseDTO updateAuthor(AuthorRequestDTO dto) {
@@ -47,13 +63,16 @@ public class AuthorService {
     author.setLastname(dto.lastname());
 
     authorRepository.save(author);
-    return authorMapper.toDto(author);
+    var authorDto = authorMapper.toDto(author);
+    cache.put(author.getId(), authorDto);
+    return authorDto;
   }
 
   public void deleteAuthor(Long id) {
     Author author = authorRepository.findById(id)
         .orElseThrow(() -> new NotFoundException("Author not found"));
     authorRepository.delete(author);
+    cache.evictIfPresent(id);
   }
 }
 
