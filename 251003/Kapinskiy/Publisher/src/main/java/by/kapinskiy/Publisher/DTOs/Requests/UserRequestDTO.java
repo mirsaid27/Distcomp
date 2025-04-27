@@ -2,8 +2,15 @@ package by.kapinskiy.Publisher.DTOs.Requests;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class UserRequestDTO {
     private Long id;
 
@@ -22,44 +29,4 @@ public class UserRequestDTO {
     @NotBlank(message = "Lastname may not be blank")
     @Size(min = 2, max = 64, message = "Lastname should be between 2 and 64 symbols")
     private String lastname;
-
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 }

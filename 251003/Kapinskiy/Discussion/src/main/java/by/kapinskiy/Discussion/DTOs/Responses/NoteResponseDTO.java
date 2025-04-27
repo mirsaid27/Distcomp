@@ -1,32 +1,11 @@
 package by.kapinskiy.Discussion.DTOs.Responses;
 
-public class NoteResponseDTO {
-    private long id;
-    private Long issueId;
+public record NoteResponseDTO(
+        Long id,
 
-    private String content;
+        Long issueId,
 
-    public long getId() {
-        return id;
-    }
+        String content
+) {
 
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public Long getIssueId() {
-        return issueId;
-    }
-
-    public void setIssueId(Long issueId) {
-        this.issueId = issueId;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
 }

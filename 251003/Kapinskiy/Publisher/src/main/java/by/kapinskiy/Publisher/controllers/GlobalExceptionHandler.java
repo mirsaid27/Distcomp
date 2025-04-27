@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
         return createValidationFailedResponse(ex.getBindingResult());
     }
 
-    private ResponseEntity<ValidationFailedResponse> createValidationFailedResponse(BindingResult bindingResult){
+    private ResponseEntity<ValidationFailedResponse> createValidationFailedResponse(BindingResult bindingResult) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError fieldError : bindingResult.getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());

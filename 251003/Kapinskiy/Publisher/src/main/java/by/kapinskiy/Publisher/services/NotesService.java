@@ -1,25 +1,21 @@
 package by.kapinskiy.Publisher.services;
 
-
 import by.kapinskiy.Publisher.DTOs.Requests.NoteRequestDTO;
 import by.kapinskiy.Publisher.DTOs.Responses.NoteResponseDTO;
 import by.kapinskiy.Publisher.DTOs.kafka.InTopicDTO;
 import by.kapinskiy.Publisher.DTOs.kafka.OutTopicDTO;
 import by.kapinskiy.Publisher.utils.exceptions.NotFoundException;
 import by.kapinskiy.Publisher.utils.mappers.NotesMapper;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
-import org.apache.kafka.common.header.internals.RecordHeader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpMethod;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.requestreply.KafkaReplyTimeoutException;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.requestreply.RequestReplyFuture;
-import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,23 +24,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-
 @Service
+@RequiredArgsConstructor
 public class NotesService {
     private final ReplyingKafkaTemplate<String, InTopicDTO, OutTopicDTO> replyingKafkaTemplate;
     private final KafkaTemplate<String, InTopicDTO> kafkaTemplate;
     private final NotesMapper notesMapper;
     private static final String IN_TOPIC = "InTopic";
-    private static final String OUT_TOPIC = "OutTopic";
-
-    @Autowired
-    public NotesService(ReplyingKafkaTemplate<String, InTopicDTO, OutTopicDTO> replyingKafkaTemplate,
-                        KafkaTemplate<String, InTopicDTO> kafkaTemplate,
-                        NotesMapper notesMapper) {
-        this.replyingKafkaTemplate = replyingKafkaTemplate;
-        this.kafkaTemplate = kafkaTemplate;
-        this.notesMapper = notesMapper;
-    }
 
     public NoteResponseDTO createNote(NoteRequestDTO requestDTO) {
         Long generatedId = UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;

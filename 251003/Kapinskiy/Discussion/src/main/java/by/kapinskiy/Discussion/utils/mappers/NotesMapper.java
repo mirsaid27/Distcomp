@@ -7,7 +7,6 @@ import by.kapinskiy.Discussion.models.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -19,6 +18,7 @@ public interface NotesMapper {
     NoteResponseDTO toNoteResponse(Note note);
 
     List<NoteResponseDTO> toNoteResponseList(Iterable<Note> notes);
+
     @Mapping(target = "key", expression = "java(new Note.NoteKey(noteRequestDTO.getIssueId()))")
     Note toNote(NoteRequestDTO noteRequestDTO);
 }

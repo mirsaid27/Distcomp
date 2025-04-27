@@ -8,7 +8,7 @@ import by.kapinskiy.Discussion.DTOs.kafka.OutTopicDTO;
 import by.kapinskiy.Discussion.models.Note;
 import by.kapinskiy.Discussion.repositories.NotesRepository;
 import by.kapinskiy.Discussion.utils.mappers.NotesMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class NotesService {
 
     private final NotesRepository notesRepository;
@@ -30,12 +31,6 @@ public class NotesService {
 
     @Value("${note.country}")
     private String country;
-
-    @Autowired
-    public NotesService(NotesRepository notesRepository, NotesMapper notesMapper) {
-        this.notesRepository = notesRepository;
-        this.notesMapper = notesMapper;
-    }
 
     @KafkaListener(topics = "InTopic", groupId = "notes-group")
     @SendTo

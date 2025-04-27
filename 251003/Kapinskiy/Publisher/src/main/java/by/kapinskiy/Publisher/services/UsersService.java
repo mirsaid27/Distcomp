@@ -6,6 +6,7 @@ import by.kapinskiy.Publisher.models.User;
 import by.kapinskiy.Publisher.repositories.UsersRepository;
 import by.kapinskiy.Publisher.utils.exceptions.NotFoundException;
 import by.kapinskiy.Publisher.utils.mappers.UsersMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -15,16 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UsersService {
     private final UsersRepository usersRepository;
     private final UsersMapper usersMapper;
-
-    @Autowired
-    public UsersService(UsersRepository usersRepository, UsersMapper usersMapper) {
-        this.usersRepository = usersRepository;
-        this.usersMapper = usersMapper;
-    }
-
 
     @Transactional
     public UserResponseDTO save(UserRequestDTO userRequestDTO) {

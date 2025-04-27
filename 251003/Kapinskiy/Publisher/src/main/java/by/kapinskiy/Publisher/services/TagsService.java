@@ -1,6 +1,5 @@
 package by.kapinskiy.Publisher.services;
 
-
 import by.kapinskiy.Publisher.DTOs.Requests.TagRequestDTO;
 import by.kapinskiy.Publisher.DTOs.Responses.TagResponseDTO;
 import by.kapinskiy.Publisher.models.Issue;
@@ -9,25 +8,18 @@ import by.kapinskiy.Publisher.repositories.IssuesRepository;
 import by.kapinskiy.Publisher.repositories.TagsRepository;
 import by.kapinskiy.Publisher.utils.exceptions.NotFoundException;
 import by.kapinskiy.Publisher.utils.mappers.TagsMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TagsService {
     private final TagsRepository tagsRepository;
     private final IssuesRepository issuesRepository;
     private final TagsMapper tagsMapper;
-    
-
-    @Autowired
-    public TagsService(TagsRepository tagsRepository, IssuesRepository issuesRepository, TagsMapper tagsMapper) {
-        this.tagsRepository = tagsRepository;
-        this.issuesRepository = issuesRepository;
-        this.tagsMapper = tagsMapper;
-    }
 
     public TagResponseDTO save(Tag tag, long issueId) {
         Issue issue = issuesRepository.findById(issueId).orElseThrow(() -> new NotFoundException("Issue with such id does not exist"));
@@ -40,6 +32,7 @@ public class TagsService {
         Tag tag = tagsMapper.toTag(tagRequestDTO);
         return tagsMapper.toTagResponse(tagsRepository.save(tag));
     }
+
     public List<TagResponseDTO> findAll() {
         return tagsMapper.toTagResponseList(tagsRepository.findAll());
     }
@@ -63,7 +56,7 @@ public class TagsService {
         return tagsMapper.toTagResponse(tagsRepository.save(tag));
     }
 
-    public boolean existsByName(String name){
+    public boolean existsByName(String name) {
         return tagsRepository.existsByName(name);
     }
 

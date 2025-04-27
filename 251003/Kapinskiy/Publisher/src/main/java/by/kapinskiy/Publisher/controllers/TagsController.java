@@ -7,6 +7,7 @@ import by.kapinskiy.Publisher.services.TagsService;
 import by.kapinskiy.Publisher.utils.TagValidator;
 import by.kapinskiy.Publisher.utils.exceptions.ValidationException;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -16,17 +17,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/tags")
+@RequiredArgsConstructor
 public class TagsController {
     private final TagsService tagsService;
 
     private final TagValidator tagValidator;
-
-    @Autowired
-    public TagsController(TagsService tagsService, TagValidator tagValidator) {
-        this.tagsService = tagsService;
-        this.tagValidator = tagValidator;
-    }
-
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -56,8 +51,7 @@ public class TagsController {
     // Non REST version for test compliance
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public TagResponseDTO updateTag(@RequestBody @Valid TagRequestDTO tagRequestDTO, BindingResult bindingResult){
-        validate(tagRequestDTO, bindingResult);
+    public TagResponseDTO updateTag(@RequestBody @Valid TagRequestDTO tagRequestDTO){
         return tagsService.update(tagRequestDTO);
     }
 

@@ -5,23 +5,18 @@ import by.kapinskiy.Discussion.DTOs.Requests.NoteRequestDTO;
 import by.kapinskiy.Discussion.DTOs.Responses.NoteResponseDTO;
 import by.kapinskiy.Discussion.services.NotesService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/notes")
+@RequiredArgsConstructor
 public class NotesController {
     private final NotesService notesService;
-
-    @Autowired
-    public NotesController(NotesService notesService) {
-        this.notesService = notesService;
-    }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)

@@ -8,6 +8,7 @@ import by.kapinskiy.Publisher.utils.exceptions.CustomInformativeException;
 import by.kapinskiy.Publisher.utils.exceptions.NotFoundException;
 import by.kapinskiy.Publisher.utils.exceptions.ValidationException;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -24,15 +25,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/notes")
+@RequiredArgsConstructor
 public class NotesController {
     private final NotesService notesService;
-    private final NoteValidator noteValidator;
 
-    @Autowired
-    public NotesController(NotesService notesService, NoteValidator noteValidator) {
-        this.notesService = notesService;
-        this.noteValidator = noteValidator;
-    }
+    private final NoteValidator noteValidator;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

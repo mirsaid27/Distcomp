@@ -1,7 +1,9 @@
 package by.kapinskiy.Publisher.utils.exceptions;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
 public class CustomInformativeException extends RuntimeException {
     private int errorCode;
     private HttpStatus httpStatus;
@@ -12,11 +14,4 @@ public class CustomInformativeException extends RuntimeException {
         this.httpStatus = httpStatus;
     }
 
-    public int getErrorCode() {
-        return errorCode;
-    }
-
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
 }
