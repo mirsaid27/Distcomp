@@ -6,6 +6,7 @@ import bsuir.dc.discussion.entity.PostKey
 import bsuir.dc.discussion.mapper.toEntity
 import bsuir.dc.discussion.mapper.toResponse
 import bsuir.dc.discussion.repository.PostRepository
+import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import java.util.NoSuchElementException
 
@@ -45,5 +46,20 @@ class PostService(private val postRepository: PostRepository) {
             content = postRequestTo.content
         )
         return postRepository.save(updatedPost).toResponse()
+    }
+
+    @KafkaListener(topics = ["post-create"], groupId = "discussion-group")
+    fun listenToPostCreate(postRequestTo: PostRequestTo) {
+        createPost(postRequestTo, "Belarus")
+    }
+
+    @KafkaListener(topics = ["post-update"], groupId = "discussion-group")
+    fun listenToPostUpdate(postRequestTo: PostRequestTo) {
+        updatePost("Belarus", postRequestTo)
+    }
+
+    @KafkaListener(topics = ["post-delete"], groupId = "discussion-group")
+    fun listenToPostDelete(id: Long) {
+        deletePost("Belarus", id)
     }
 }

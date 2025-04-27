@@ -6,18 +6,22 @@ import bsuir.dc.publisher.mapper.toEntity
 import bsuir.dc.publisher.mapper.toResponse
 import bsuir.dc.publisher.repository.IssueRepository
 import bsuir.dc.publisher.repository.PostRepository
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 
 @Service
 class PostService(
     private val postRepository: PostRepository,
     private val issueRepository: IssueRepository,
+    private val kafkaTemplate: KafkaTemplate<String, Any>
 ) {
     fun createPost(postRequestTo: PostRequestTo): PostResponseTo {
         val issue = issueRepository.findById(postRequestTo.issueId).orElseThrow { NoSuchElementException() }
         val post = postRequestTo.toEntity(issue)
         val savedPost = postRepository.save(post)
-        return savedPost.toResponse()
+        val postResponse = savedPost.toResponse()
+        sendPostCreatedEvent(postResponse)
+        return postResponse
     }
 
     fun getPostById(id: Long): PostResponseTo {
@@ -31,16 +35,31 @@ class PostService(
     fun updatePost(id: Long, postRequestTo: PostRequestTo): PostResponseTo {
         val issue = issueRepository.findById(postRequestTo.issueId).orElseThrow { NoSuchElementException() }
         val updatedPost = postRequestTo.toEntity(issue).apply { this.id = id }
-        return postRepository.save(updatedPost).toResponse()
+        val postResponse = postRepository.save(updatedPost).toResponse()
+        sendPostUpdatedEvent(postResponse)
+        return postResponse
     }
 
     fun deletePost(id: Long) {
         postRepository.findById(id).orElseThrow { NoSuchElementException() }
         postRepository.deleteById(id)
+        sendPostDeletedEvent(id)
     }
 
     fun getPostsByIssueId(issueId: Long): List<PostResponseTo> {
         val issue = issueRepository.findById(issueId).orElseThrow { NoSuchElementException() }
         return issue.posts.map { it.toResponse() }
+    }
+
+    private fun sendPostCreatedEvent(post: PostResponseTo) {
+        kafkaTemplate.send("post-create", post)
+    }
+
+    private fun sendPostUpdatedEvent(post: PostResponseTo) {
+        kafkaTemplate.send("post-update", post)
+    }
+
+    private fun sendPostDeletedEvent(postId: Long) {
+        kafkaTemplate.send("post-delete", postId)
     }
 }
