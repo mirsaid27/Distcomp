@@ -9,13 +9,15 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
+	"github.com/strcarne/distributed-calculations/internal/infra"
 )
 
 type Config struct {
-	Server   Server   `mapstructure:"server" validate:"required"`
-	Postgres Postgres `mapstructure:"postgres" validate:"required"`
-	Logger   Logger   `mapstructure:"logger" validate:"required"`
-	Kafka    Kafka    `mapstructure:"kafka" validate:"required"`
+	Server   Server            `mapstructure:"server" validate:"required"`
+	Postgres Postgres          `mapstructure:"postgres" validate:"required"`
+	Logger   Logger            `mapstructure:"logger" validate:"required"`
+	Kafka    infra.KafkaConfig `mapstructure:"kafka" validate:"required"`
+	Redis    infra.RedisConfig `mapstructure:"redis" validate:"required"`
 }
 
 // Validate checks if the configuration is valid
@@ -27,6 +29,8 @@ func (c Config) Validate() error {
 
 func (c Config) String() string {
 	c.Postgres.DatabaseURL = "[REDACTED]"
+	c.Redis.Password = "[REDACTED]"
+	c.Kafka.Brokers = []string{"[REDACTED]"}
 
 	b, _ := json.MarshalIndent(c, "", "  ")
 
@@ -102,6 +106,9 @@ func bindEnvVars(v *viper.Viper) {
 		"kafka.brokers":                 "KAFKA_BROKERS",
 		"kafka.in_topic":                "KAFKA_IN_TOPIC",
 		"kafka.out_topic":               "KAFKA_OUT_TOPIC",
+		"redis.address":                 "REDIS_ADDRESS",
+		"redis.db":                      "REDIS_DB",
+		"redis.password":                "REDIS_PASSWORD",
 	}
 
 	for configKey, envVar := range envMappings {

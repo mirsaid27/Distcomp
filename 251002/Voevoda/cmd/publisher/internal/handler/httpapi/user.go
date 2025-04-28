@@ -1,8 +1,10 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/di"
 	"github.com/strcarne/distributed-calculations/internal/entity"
 	"github.com/strcarne/distributed-calculations/internal/entity/server"
+	"github.com/strcarne/distributed-calculations/internal/infra"
 )
 
 func NewUserRouter(deps di.Container) *chi.Mux {
@@ -48,13 +51,28 @@ func GetUser(w http.ResponseWriter, r *http.Request, deps di.Container) *server.
 		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	user, err := deps.Services.User.GetUserByID(id)
+	user, found, err := infra.CacheGet[entity.User](deps.Cache, fmt.Sprintf("user_%d", id))
+	if err != nil {
+		return server.NewError(err, http.StatusInternalServerError)
+	}
+
+	if found {
+		json.NewEncoder(w).Encode(user)
+		deps.Logger.Info("user retrieved from cache", "user_id", id)
+		return nil
+	}
+
+	user, err = deps.Services.User.GetUserByID(id)
 	if err != nil {
 		return server.NewError(err, http.StatusNotFound)
 	}
 
 	json.NewEncoder(w).Encode(user)
 	deps.Logger.Info("user retrieved", "user_id", user.ID)
+
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("user_%d", user.ID), user); err != nil {
+		deps.Logger.Error("failed to cache user", "user_id", user.ID, "error", err)
+	}
 
 	return nil
 }
@@ -79,6 +97,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request, deps di.Container) *serv
 	json.NewEncoder(w).Encode(user)
 	deps.Logger.Info("user created", "user_id", user.ID)
 
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("user_%d", user.ID), user); err != nil {
+		deps.Logger.Error("failed to cache user", "user_id", user.ID, "error", err)
+	}
+
 	return nil
 }
 
@@ -97,6 +119,10 @@ func DeleteUser(w http.ResponseWriter, r *http.Request, deps di.Container) *serv
 	w.WriteHeader(http.StatusNoContent)
 	deps.Logger.Info("user deleted", "user_id", id)
 
+	if err := deps.Cache.Delete(context.Background(), fmt.Sprintf("user_%d", id)); err != nil {
+		deps.Logger.Error("failed to delete user from cache", "user_id", id, "error", err)
+	}
+
 	return nil
 }
 
@@ -113,6 +139,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, deps di.Container) *serv
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 	deps.Logger.Info("user updated", "user_id", user.ID)
+
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("user_%d", user.ID), user); err != nil {
+		deps.Logger.Error("failed to cache user", "user_id", user.ID, "error", err)
+	}
 
 	return nil
 }

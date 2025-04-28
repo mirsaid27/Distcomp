@@ -5,12 +5,13 @@ import (
 
 	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/config"
 	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/repository/psql/generated"
-	"github.com/strcarne/distributed-calculations/internal/bus"
+	"github.com/strcarne/distributed-calculations/internal/infra"
 )
 
 type Container struct {
 	Config   config.Config
-	Bus      *bus.Service
+	Bus      *infra.Bus
+	Cache    infra.Cache
 	Queries  *generated.Queries
 	Logger   *slog.Logger
 	Services Services

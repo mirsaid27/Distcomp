@@ -19,5 +19,6 @@ func MustContainer(cfg config.Config) di.Container {
 		Queries:  queries,
 		Services: services,
 		Logger:   logger,
+		Cache:    mustCache(cfg),
 	}
 }

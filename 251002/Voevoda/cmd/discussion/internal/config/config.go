@@ -9,13 +9,14 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
+	"github.com/strcarne/distributed-calculations/internal/infra"
 )
 
 type Config struct {
-	Server    Server    `mapstructure:"server" validate:"required"`
-	Cassandra Cassandra `mapstructure:"cassandra" validate:"required"`
-	Logger    Logger    `mapstructure:"logger" validate:"required"`
-	Kafka     Kafka     `mapstructure:"kafka" validate:"required"`
+	Server    Server            `mapstructure:"server" validate:"required"`
+	Cassandra Cassandra         `mapstructure:"cassandra" validate:"required"`
+	Logger    Logger            `mapstructure:"logger" validate:"required"`
+	Kafka     infra.KafkaConfig `mapstructure:"kafka" validate:"required"`
 }
 
 // Validate checks if the configuration is valid

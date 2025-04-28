@@ -41,3 +41,10 @@ run-kafka:
 		-e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
 		-p 9092:9092 \
 		confluentinc/cp-kafka
+
+.PHONY: run-redis
+run-redis:
+	docker run --name redis-instance \
+		-p 6379:6379 \
+		-e REDIS_PASSWORD=onoshko_enjoyer \
+		-d redis:latest redis-server --requirepass onoshko_enjoyer

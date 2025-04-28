@@ -1,7 +1,9 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/di"
 	"github.com/strcarne/distributed-calculations/internal/entity"
 	"github.com/strcarne/distributed-calculations/internal/entity/server"
+	"github.com/strcarne/distributed-calculations/internal/infra"
 )
 
 func NewLabelRouter(deps di.Container) *chi.Mux {
@@ -45,13 +48,29 @@ func GetLabel(w http.ResponseWriter, r *http.Request, deps di.Container) *server
 		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	label, err := deps.Services.Label.GetLabelByID(id)
+	label, found, err := infra.CacheGet[entity.Label](deps.Cache, fmt.Sprintf("label_%d", id))
+	if err != nil {
+		return server.NewError(err, http.StatusInternalServerError)
+	}
+
+	if found {
+		json.NewEncoder(w).Encode(label)
+		deps.Logger.Info("label retrieved from cache", "label_id", id)
+
+		return nil
+	}
+
+	label, err = deps.Services.Label.GetLabelByID(id)
 	if err != nil {
 		return server.NewError(err, http.StatusNotFound)
 	}
 
 	json.NewEncoder(w).Encode(label)
 	deps.Logger.Info("label retrieved", "label_id", label.ID)
+
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("label_%d", label.ID), label); err != nil {
+		deps.Logger.Error("failed to cache label", "label_id", label.ID, "error", err)
+	}
 
 	return nil
 }
@@ -71,6 +90,10 @@ func CreateLabel(w http.ResponseWriter, r *http.Request, deps di.Container) *ser
 	json.NewEncoder(w).Encode(label)
 	deps.Logger.Info("label created", "label_id", label.ID)
 
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("label_%d", label.ID), label); err != nil {
+		deps.Logger.Error("failed to cache label", "label_id", label.ID, "error", err)
+	}
+
 	return nil
 }
 
@@ -88,6 +111,10 @@ func DeleteLabel(w http.ResponseWriter, r *http.Request, deps di.Container) *ser
 	w.WriteHeader(http.StatusNoContent)
 	deps.Logger.Info("label deleted", "label_id", id)
 
+	if err := deps.Cache.Delete(context.Background(), fmt.Sprintf("label_%d", id)); err != nil {
+		deps.Logger.Error("failed to delete label from cache", "label_id", id, "error", err)
+	}
+
 	return nil
 }
 
@@ -104,6 +131,10 @@ func UpdateLabel(w http.ResponseWriter, r *http.Request, deps di.Container) *ser
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(label)
 	deps.Logger.Info("label updated", "label_id", label.ID)
+
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("label_%d", label.ID), label); err != nil {
+		deps.Logger.Error("failed to cache label", "label_id", label.ID, "error", err)
+	}
 
 	return nil
 }

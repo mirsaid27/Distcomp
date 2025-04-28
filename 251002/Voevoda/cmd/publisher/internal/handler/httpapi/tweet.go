@@ -1,7 +1,9 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/di"
 	"github.com/strcarne/distributed-calculations/internal/entity"
 	"github.com/strcarne/distributed-calculations/internal/entity/server"
+	"github.com/strcarne/distributed-calculations/internal/infra"
 )
 
 func NewTweetRouter(deps di.Container) *chi.Mux {
@@ -45,13 +48,28 @@ func GetTweet(w http.ResponseWriter, r *http.Request, deps di.Container) *server
 		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	tweet, err := deps.Services.Tweet.GetTweetByID(id)
+	tweet, found, err := infra.CacheGet[entity.Tweet](deps.Cache, fmt.Sprintf("tweet_%d", id))
+	if err != nil {
+		return server.NewError(err, http.StatusInternalServerError)
+	}
+
+	if found {
+		json.NewEncoder(w).Encode(tweet)
+		deps.Logger.Info("tweet retrieved from cache", "tweet_id", id)
+		return nil
+	}
+
+	tweet, err = deps.Services.Tweet.GetTweetByID(id)
 	if err != nil {
 		return server.NewError(err, http.StatusNotFound)
 	}
 
 	json.NewEncoder(w).Encode(tweet)
 	deps.Logger.Info("tweet retrieved", "tweet_id", tweet.ID)
+
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("tweet_%d", tweet.ID), tweet); err != nil {
+		deps.Logger.Error("failed to cache tweet", "tweet_id", tweet.ID, "error", err)
+	}
 
 	return nil
 }
@@ -71,6 +89,10 @@ func CreateTweet(w http.ResponseWriter, r *http.Request, deps di.Container) *ser
 	json.NewEncoder(w).Encode(tweet)
 	deps.Logger.Info("tweet created", "tweet_id", tweet.ID)
 
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("tweet_%d", tweet.ID), tweet); err != nil {
+		deps.Logger.Error("failed to cache tweet", "tweet_id", tweet.ID, "error", err)
+	}
+
 	return nil
 }
 
@@ -88,6 +110,10 @@ func DeleteTweet(w http.ResponseWriter, r *http.Request, deps di.Container) *ser
 	w.WriteHeader(http.StatusNoContent)
 	deps.Logger.Info("tweet deleted", "tweet_id", id)
 
+	if err := deps.Cache.Delete(context.Background(), fmt.Sprintf("tweet_%d", id)); err != nil {
+		deps.Logger.Error("failed to delete tweet from cache", "tweet_id", id, "error", err)
+	}
+
 	return nil
 }
 
@@ -104,6 +130,10 @@ func UpdateTweet(w http.ResponseWriter, r *http.Request, deps di.Container) *ser
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(tweet)
 	deps.Logger.Info("tweet updated", "tweet_id", tweet.ID)
+
+	if err := infra.CacheSet(deps.Cache, fmt.Sprintf("tweet_%d", tweet.ID), tweet); err != nil {
+		deps.Logger.Error("failed to cache tweet", "tweet_id", tweet.ID, "error", err)
+	}
 
 	return nil
 }

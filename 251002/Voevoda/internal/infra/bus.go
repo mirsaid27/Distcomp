@@ -1,4 +1,4 @@
-package bus
+package infra
 
 import (
 	"context"
@@ -20,8 +20,8 @@ const (
 	kafkaReadTimeout = 5 * time.Second
 )
 
-// Service handles communication with Kafka for message bus operations
-type Service struct {
+// Bus handles communication with Kafka for message bus operations
+type Bus struct {
 	consumer      *kafka.Reader
 	producer      *kafka.Writer
 	noteResponses container.CacheTTL[uuid.UUID, msg.NoteResponse]
@@ -31,11 +31,11 @@ type Service struct {
 	logger *slog.Logger
 }
 
-// NewService creates a new Service instance configured with the given brokers and topics
-func NewService(brokers []string, inTopic, outTopic string, logger *slog.Logger) *Service {
+// NewBus creates a new Bus instance configured with the given brokers and topics
+func NewBus(cfg KafkaConfig, logger *slog.Logger) *Bus {
 	consumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     brokers,
-		Topic:       inTopic,
+		Brokers:     cfg.Brokers,
+		Topic:       cfg.InTopic,
 		StartOffset: kafka.LastOffset,
 		GroupID:     uuid.New().String(),
 		MinBytes:    1,
@@ -44,8 +44,8 @@ func NewService(brokers []string, inTopic, outTopic string, logger *slog.Logger)
 	})
 
 	producer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:      brokers,
-		Topic:        outTopic,
+		Brokers:      cfg.Brokers,
+		Topic:        cfg.OutTopic,
 		BatchSize:    1,
 		BatchTimeout: 10 * time.Millisecond,
 		RequiredAcks: int(kafka.RequireOne),
@@ -60,7 +60,7 @@ func NewService(brokers []string, inTopic, outTopic string, logger *slog.Logger)
 		noteResponses.StartCleanUpByInterval(ctx, cleanupInterval)
 	}()
 
-	return &Service{
+	return &Bus{
 		consumer:      consumer,
 		producer:      producer,
 		noteResponses: noteResponses,
@@ -69,7 +69,7 @@ func NewService(brokers []string, inTopic, outTopic string, logger *slog.Logger)
 	}
 }
 
-func (s *Service) Consume(ctx context.Context) ([]byte, error) {
+func (s *Bus) Consume(ctx context.Context) ([]byte, error) {
 	msg, err := s.consumer.ReadMessage(ctx)
 	if err != nil {
 		return nil, err
@@ -78,15 +78,15 @@ func (s *Service) Consume(ctx context.Context) ([]byte, error) {
 	return msg.Value, nil
 }
 
-func (s *Service) Produce(ctx context.Context, message []byte) error {
+func (s *Bus) Produce(ctx context.Context, message []byte) error {
 	return s.producer.WriteMessages(ctx, kafka.Message{Value: message})
 }
 
-func (s *Service) Close() error {
+func (s *Bus) Close() error {
 	return errors.Join(s.consumer.Close(), s.producer.Close())
 }
 
-func (s *Service) PostNoteRequest(ctx context.Context, request msg.NoteRequest) (uuid.UUID, error) {
+func (s *Bus) PostNoteRequest(ctx context.Context, request msg.NoteRequest) (uuid.UUID, error) {
 	if request.CorrelationID == uuid.Nil {
 		request.CorrelationID = uuid.New()
 	}
@@ -101,7 +101,7 @@ func (s *Service) PostNoteRequest(ctx context.Context, request msg.NoteRequest) 
 	})
 }
 
-func (s *Service) StartBackgroundConsumer(ctx context.Context) {
+func (s *Bus) StartBackgroundConsumer(ctx context.Context) {
 
 	if !s.isConsuming.CompareAndSwap(false, true) {
 		s.logger.Warn("Background Kafka consumer already running, skipping")
@@ -152,7 +152,7 @@ func (s *Service) StartBackgroundConsumer(ctx context.Context) {
 
 // GetNoteResponse retrieves a response with the given correlation ID from the cache
 // If not found, returns an error
-func (s *Service) GetNoteResponse(ctx context.Context, correlationID uuid.UUID) (msg.NoteResponse, error) {
+func (s *Bus) GetNoteResponse(ctx context.Context, correlationID uuid.UUID) (msg.NoteResponse, error) {
 
 	if !s.isConsuming.Load() {
 		return msg.NoteResponse{}, errors.New("background consumer not running, call StartBackgroundConsumer first")
