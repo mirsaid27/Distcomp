@@ -7,13 +7,15 @@ import by.molchan.Publisher.repositories.CreatorsRepository;
 import by.molchan.Publisher.utils.exceptions.NotFoundException;
 import by.molchan.Publisher.utils.mappers.CreatorsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-public class CreatorsService {
+public class    CreatorsService {
     private final CreatorsRepository creatorsRepository;
     private final CreatorsMapper creatorsMapper;
 
@@ -31,6 +33,7 @@ public class CreatorsService {
     }
 
     @Transactional
+    @CacheEvict(value = "creators", key = "#id")
     public void deleteById(long id) {
         if (!creatorsRepository.existsById(id)) {
             throw new NotFoundException("Creator not found");
@@ -44,18 +47,21 @@ public class CreatorsService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "creators", key = "#id")
     public CreatorResponseDTO findById(long id){
         Creator creator = creatorsRepository.findById(id).orElseThrow(() -> new NotFoundException("Creator not found"));
         return creatorsMapper.toCreatorResponse(creator);
     }
 
     @Transactional
+    @CacheEvict(value = "creators", key = "#id")
     public CreatorResponseDTO update(long id, CreatorRequestDTO creatorRequestDTO) {
         creatorRequestDTO.setId(id);
         return update(creatorRequestDTO);
     }
 
     @Transactional
+    @CacheEvict(value = "creators", key = "#creatorRequestDTO.id")
     public CreatorResponseDTO update(CreatorRequestDTO creatorRequestDTO) {
         Creator creator = creatorsMapper.toCreator(creatorRequestDTO);
         if (!creatorsRepository.existsById(creator.getId())) {

@@ -1,7 +1,9 @@
 package by.molchan.Publisher.DTOs.Responses;
 
 
-public class LabelResponseDTO {
+import java.io.Serializable;
+
+public class LabelResponseDTO implements Serializable {
     private Long id;
     private String name;
 

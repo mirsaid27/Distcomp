@@ -12,6 +12,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpMethod;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.requestreply.KafkaReplyTimeoutException;
@@ -69,6 +71,7 @@ public class CommentsService {
         return response.getCommentResponsesListDTO();
     }
 
+    @Cacheable(value = "comments", key = "#id")
     public CommentResponseDTO getCommentById(Long id) {
         InTopicDTO request = new InTopicDTO(
                 "GET",
@@ -81,7 +84,7 @@ public class CommentsService {
         }
         return response.getCommentResponseDTO();
     }
-
+    @CacheEvict(value = "comments", key = "#commentRequestDTO.id")
 
     public CommentResponseDTO processCommentRequest(String httpMethod, CommentRequestDTO commentRequestDTO) {
         InTopicDTO request = new InTopicDTO(

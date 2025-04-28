@@ -1,9 +1,10 @@
 package by.molchan.Publisher.DTOs.Responses;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-public class ArticleResponseDTO {
+public class ArticleResponseDTO implements Serializable {
     private long id;
     private Long creatorId;
     private String title;

@@ -39,5 +39,10 @@ public class CommentsController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
         }
     }
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public CommentResponseDTO updateComment(@RequestBody @Valid CommentRequestDTO commentRequestDTO) {
+        return commentsService.update(commentRequestDTO);
+    }
 
 }
