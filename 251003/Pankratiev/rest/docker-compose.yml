@@ -73,6 +73,7 @@ services:
     depends_on:
       - kafka
       - postgres
+      - redis
     environment:
       SPRING_PROFILES_ACTIVE: "docker"
     networks:
@@ -87,7 +88,7 @@ services:
       - "24130:24130"
     depends_on:
       - kafka
-      - redis
+      - cassandra
     environment:
       SPRING_PROFILES_ACTIVE: "docker"
     networks:
