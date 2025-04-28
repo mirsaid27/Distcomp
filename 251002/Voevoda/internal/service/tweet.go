@@ -16,9 +16,9 @@ type Tweet struct {
 }
 
 type TweetRepository interface {
-	CreateTweet(tweet entity.Tweet) int64
+	CreateTweet(tweet entity.Tweet) (int64, error)
 	DeleteTweet(id int64) (entity.Tweet, error)
-	GetAllTweets() []entity.Tweet
+	GetAllTweets() ([]entity.Tweet, error)
 	GetTweetByID(id int64) (entity.Tweet, error)
 	UpdateTweet(tweet entity.Tweet) error
 }
@@ -29,24 +29,42 @@ func NewTweet(repo TweetRepository) Tweet {
 	}
 }
 
-func (u Tweet) CreateTweet(tweet entity.Tweet) entity.Tweet {
-	id := u.repo.CreateTweet(tweet)
+func (u Tweet) CreateTweet(tweet entity.Tweet) (entity.Tweet, error) {
+	id, err := u.repo.CreateTweet(tweet)
+	if err != nil {
+		return entity.Tweet{}, err
+	}
 
 	tweet.ID = id
 
-	return tweet
+	return tweet, nil
 }
 
 func (u Tweet) DeleteTweet(id int64) (entity.Tweet, error) {
-	return u.repo.DeleteTweet(id)
+	deletedTweet, err := u.repo.DeleteTweet(id)
+	if err != nil {
+		return entity.Tweet{}, err
+	}
+
+	return deletedTweet, nil
 }
 
-func (u Tweet) GetAllTweets() []entity.Tweet {
-	return u.repo.GetAllTweets()
+func (u Tweet) GetAllTweets() ([]entity.Tweet, error) {
+	tweets, err := u.repo.GetAllTweets()
+	if err != nil {
+		return nil, err
+	}
+
+	return tweets, nil
 }
 
 func (u Tweet) GetTweetByID(id int64) (entity.Tweet, error) {
-	return u.repo.GetTweetByID(id)
+	tweet, err := u.repo.GetTweetByID(id)
+	if err != nil {
+		return entity.Tweet{}, err
+	}
+
+	return tweet, nil
 }
 
 func (u Tweet) UpdateTweet(tweet entity.Tweet) error {
@@ -58,5 +76,10 @@ func (u Tweet) UpdateTweet(tweet entity.Tweet) error {
 		return ErrInvalidContent
 	}
 
-	return u.repo.UpdateTweet(tweet)
+	err := u.repo.UpdateTweet(tweet)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

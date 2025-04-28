@@ -28,13 +28,13 @@ func (lr *LabelRepository) createNewID() int64 {
 	return lr.counter.Add(1)
 }
 
-func (lr *LabelRepository) CreateLabel(label entity.Label) int64 {
+func (lr *LabelRepository) CreateLabel(label entity.Label) (int64, error) {
 	newID := lr.createNewID()
 	label.ID = newID
 
 	lr.storage.Set(newID, label)
 
-	return newID
+	return newID, nil
 }
 
 func (lr *LabelRepository) DeleteLabel(id int64) (entity.Label, error) {
@@ -48,8 +48,8 @@ func (lr *LabelRepository) DeleteLabel(id int64) (entity.Label, error) {
 	return label, nil
 }
 
-func (lr *LabelRepository) GetAllLabels() []entity.Label {
-	return lr.storage.GetAll()
+func (lr *LabelRepository) GetAllLabels() ([]entity.Label, error) {
+	return lr.storage.GetAll(), nil
 }
 
 func (lr *LabelRepository) GetLabelByID(id int64) (entity.Label, error) {

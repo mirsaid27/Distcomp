@@ -7,32 +7,47 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/strcarne/task310-rest/internal/entity"
-	"github.com/strcarne/task310-rest/internal/repository/inmemory"
+	"github.com/strcarne/task310-rest/internal/repository/psql"
+	"github.com/strcarne/task310-rest/internal/repository/psql/generated"
 	"github.com/strcarne/task310-rest/internal/service"
 )
 
-var tweetService = service.NewTweet(inmemory.NewTweetRepository())
+type tweetHandlerFunc func(w http.ResponseWriter, r *http.Request, tweetService service.Tweet)
 
-func NewTweetRouter() *chi.Mux {
+func NewTweetRouter(queries *generated.Queries) *chi.Mux {
 	r := chi.NewRouter()
 
+	tweetRepository := psql.NewTweetRepository(queries)
+	tweetService := service.NewTweet(tweetRepository)
+
 	r.Route("/", func(r chi.Router) {
-		r.Get("/", GetTweets)
-		r.Get("/{id}", GetTweet)
-		r.Post("/", CreateTweet)
-		r.Delete("/{id}", DeleteTweet)
-		r.Put("/", UpdateTweet)
+		r.Get("/", wrapTweetHandler(GetTweets, tweetService))
+		r.Get("/{id}", wrapTweetHandler(GetTweet, tweetService))
+		r.Post("/", wrapTweetHandler(CreateTweet, tweetService))
+		r.Delete("/{id}", wrapTweetHandler(DeleteTweet, tweetService))
+		r.Put("/", wrapTweetHandler(UpdateTweet, tweetService))
 	})
 
 	return r
 }
 
-func GetTweets(w http.ResponseWriter, r *http.Request) {
-	tweets := tweetService.GetAllTweets()
+func wrapTweetHandler(handler tweetHandlerFunc, tweetService service.Tweet) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, tweetService)
+	}
+}
+
+func GetTweets(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
+	tweets, err := tweetService.GetAllTweets()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(tweets)
 }
 
-func GetTweet(w http.ResponseWriter, r *http.Request) {
+func GetTweet(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -49,19 +64,26 @@ func GetTweet(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tweet)
 }
 
-func CreateTweet(w http.ResponseWriter, r *http.Request) {
+func CreateTweet(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
 	var tweet entity.Tweet
 	if err := json.NewDecoder(r.Body).Decode(&tweet); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(tweet)
 		return
 	}
 
-	tweet = tweetService.CreateTweet(tweet)
+	tweet, err := tweetService.CreateTweet(tweet)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(tweet)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(tweet)
 }
 
-func DeleteTweet(w http.ResponseWriter, r *http.Request) {
+func DeleteTweet(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -78,7 +100,7 @@ func DeleteTweet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func UpdateTweet(w http.ResponseWriter, r *http.Request) {
+func UpdateTweet(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
 	var tweet entity.Tweet
 	if err := json.NewDecoder(r.Body).Decode(&tweet); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

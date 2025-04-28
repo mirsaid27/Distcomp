@@ -28,13 +28,13 @@ func (nr *NoteRepository) createNewID() int64 {
 	return nr.counter.Add(1)
 }
 
-func (nr *NoteRepository) CreateNote(note entity.Note) int64 {
+func (nr *NoteRepository) CreateNote(note entity.Note) (int64, error) {
 	newID := nr.createNewID()
 	note.ID = newID
 
 	nr.storage.Set(newID, note)
 
-	return newID
+	return newID, nil
 }
 
 func (nr *NoteRepository) DeleteNote(id int64) (entity.Note, error) {
@@ -48,8 +48,8 @@ func (nr *NoteRepository) DeleteNote(id int64) (entity.Note, error) {
 	return note, nil
 }
 
-func (nr *NoteRepository) GetAllNotes() []entity.Note {
-	return nr.storage.GetAll()
+func (nr *NoteRepository) GetAllNotes() ([]entity.Note, error) {
+	return nr.storage.GetAll(), nil
 }
 
 func (nr *NoteRepository) GetNoteByID(id int64) (entity.Note, error) {

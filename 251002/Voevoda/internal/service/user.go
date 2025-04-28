@@ -16,9 +16,9 @@ type User struct {
 }
 
 type UserRepository interface {
-	CreateUser(user entity.User) int64
+	CreateUser(user entity.User) (int64, error)
 	DeleteUser(id int64) (entity.User, error)
-	GetAllUsers() []entity.User
+	GetAllUsers() ([]entity.User, error)
 	GetUserByID(id int64) (entity.User, error)
 	UpdateUser(user entity.User) error
 }
@@ -29,24 +29,42 @@ func NewUser(repo UserRepository) User {
 	}
 }
 
-func (u User) CreateUser(user entity.User) entity.User {
-	id := u.repo.CreateUser(user)
+func (u User) CreateUser(user entity.User) (entity.User, error) {
+	id, err := u.repo.CreateUser(user)
+	if err != nil {
+		return entity.User{}, err
+	}
 
 	user.ID = id
 
-	return user
+	return user, nil
 }
 
 func (u User) DeleteUser(id int64) (entity.User, error) {
-	return u.repo.DeleteUser(id)
+	user, err := u.repo.DeleteUser(id)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return user, nil
 }
 
-func (u User) GetAllUsers() []entity.User {
-	return u.repo.GetAllUsers()
+func (u User) GetAllUsers() ([]entity.User, error) {
+	users, err := u.repo.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (u User) GetUserByID(id int64) (entity.User, error) {
-	return u.repo.GetUserByID(id)
+	user, err := u.repo.GetUserByID(id)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return user, nil
 }
 
 func (u User) UpdateUser(user entity.User) error {
@@ -58,5 +76,10 @@ func (u User) UpdateUser(user entity.User) error {
 		return ErrInvalidPassword
 	}
 
-	return u.repo.UpdateUser(user)
+	err := u.repo.UpdateUser(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

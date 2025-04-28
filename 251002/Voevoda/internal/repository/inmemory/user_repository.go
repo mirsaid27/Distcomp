@@ -28,13 +28,13 @@ func (ur *UserRepository) createNewID() int64 {
 	return ur.counter.Add(1)
 }
 
-func (ur *UserRepository) CreateUser(user entity.User) int64 {
+func (ur *UserRepository) CreateUser(user entity.User) (int64, error) {
 	newID := ur.createNewID()
 	user.ID = newID
 
 	ur.storage.Set(newID, user)
 
-	return newID
+	return newID, nil
 }
 
 func (ur *UserRepository) DeleteUser(id int64) (entity.User, error) {
@@ -48,8 +48,8 @@ func (ur *UserRepository) DeleteUser(id int64) (entity.User, error) {
 	return user, nil
 }
 
-func (ur *UserRepository) GetAllUsers() []entity.User {
-	return ur.storage.GetAll()
+func (ur *UserRepository) GetAllUsers() ([]entity.User, error) {
+	return ur.storage.GetAll(), nil
 }
 
 func (ur *UserRepository) GetUserByID(id int64) (entity.User, error) {

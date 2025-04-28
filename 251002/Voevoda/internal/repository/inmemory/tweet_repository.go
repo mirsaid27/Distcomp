@@ -28,13 +28,13 @@ func (tr *TweetRepository) createNewID() int64 {
 	return tr.counter.Add(1)
 }
 
-func (tr *TweetRepository) CreateTweet(tweet entity.Tweet) int64 {
+func (tr *TweetRepository) CreateTweet(tweet entity.Tweet) (int64, error) {
 	newID := tr.createNewID()
 	tweet.ID = newID
 
 	tr.storage.Set(newID, tweet)
 
-	return newID
+	return newID, nil
 }
 
 func (tr *TweetRepository) DeleteTweet(id int64) (entity.Tweet, error) {
@@ -48,8 +48,8 @@ func (tr *TweetRepository) DeleteTweet(id int64) (entity.Tweet, error) {
 	return tweet, nil
 }
 
-func (tr *TweetRepository) GetAllTweets() []entity.Tweet {
-	return tr.storage.GetAll()
+func (tr *TweetRepository) GetAllTweets() ([]entity.Tweet, error) {
+	return tr.storage.GetAll(), nil
 }
 
 func (tr *TweetRepository) GetTweetByID(id int64) (entity.Tweet, error) {

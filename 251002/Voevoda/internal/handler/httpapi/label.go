@@ -7,32 +7,47 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/strcarne/task310-rest/internal/entity"
-	"github.com/strcarne/task310-rest/internal/repository/inmemory"
+	"github.com/strcarne/task310-rest/internal/repository/psql"
+	"github.com/strcarne/task310-rest/internal/repository/psql/generated"
 	"github.com/strcarne/task310-rest/internal/service"
 )
 
-var labelService = service.NewLabel(inmemory.NewLabelRepository())
+type labelHandlerFunc func(w http.ResponseWriter, r *http.Request, labelService service.Label)
 
-func NewLabelRouter() *chi.Mux {
+func NewLabelRouter(queries *generated.Queries) *chi.Mux {
 	r := chi.NewRouter()
 
+	labelRepository := psql.NewLabelRepository(queries)
+	labelService := service.NewLabel(labelRepository)
+
 	r.Route("/", func(r chi.Router) {
-		r.Get("/", GetLabels)
-		r.Get("/{id}", GetLabel)
-		r.Post("/", CreateLabel)
-		r.Delete("/{id}", DeleteLabel)
-		r.Put("/", UpdateLabel)
+		r.Get("/", wrapLabelHandler(GetLabels, labelService))
+		r.Get("/{id}", wrapLabelHandler(GetLabel, labelService))
+		r.Post("/", wrapLabelHandler(CreateLabel, labelService))
+		r.Delete("/{id}", wrapLabelHandler(DeleteLabel, labelService))
+		r.Put("/", wrapLabelHandler(UpdateLabel, labelService))
 	})
 
 	return r
 }
 
-func GetLabels(w http.ResponseWriter, r *http.Request) {
-	labels := labelService.GetAllLabels()
+func wrapLabelHandler(handler labelHandlerFunc, labelService service.Label) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, labelService)
+	}
+}
+
+func GetLabels(w http.ResponseWriter, r *http.Request, labelService service.Label) {
+	labels, err := labelService.GetAllLabels()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(labels)
 }
 
-func GetLabel(w http.ResponseWriter, r *http.Request) {
+func GetLabel(w http.ResponseWriter, r *http.Request, labelService service.Label) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -49,19 +64,26 @@ func GetLabel(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(label)
 }
 
-func CreateLabel(w http.ResponseWriter, r *http.Request) {
+func CreateLabel(w http.ResponseWriter, r *http.Request, labelService service.Label) {
 	var label entity.Label
 	if err := json.NewDecoder(r.Body).Decode(&label); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(label)
 		return
 	}
 
-	label = labelService.CreateLabel(label)
+	label, err := labelService.CreateLabel(label)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(label)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(label)
 }
 
-func DeleteLabel(w http.ResponseWriter, r *http.Request) {
+func DeleteLabel(w http.ResponseWriter, r *http.Request, labelService service.Label) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -72,13 +94,14 @@ func DeleteLabel(w http.ResponseWriter, r *http.Request) {
 	if label, err := labelService.DeleteLabel(id); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(label)
+
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func UpdateLabel(w http.ResponseWriter, r *http.Request) {
+func UpdateLabel(w http.ResponseWriter, r *http.Request, labelService service.Label) {
 	var label entity.Label
 	if err := json.NewDecoder(r.Body).Decode(&label); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
