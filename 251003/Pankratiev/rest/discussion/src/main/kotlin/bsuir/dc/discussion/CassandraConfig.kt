@@ -18,8 +18,8 @@ class CassandraConfig {
     @Bean
     @Retryable(
         value = [Exception::class],
-        maxAttempts = 7,
-        backoff = Backoff(delay = 60000)
+        maxAttempts = 10,
+        backoff = Backoff(delay = 65000)
     )
     fun cassandraSession(
         builder: CqlSessionBuilder,
