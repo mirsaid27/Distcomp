@@ -7,11 +7,20 @@ import com.datastax.oss.driver.api.core.CqlSessionBuilder
 import org.springframework.boot.autoconfigure.cassandra.CassandraProperties
 import org.springframework.boot.autoconfigure.cassandra.CqlSessionBuilderCustomizer
 import org.springframework.context.annotation.Bean
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.EnableRetry
+import org.springframework.retry.annotation.Retryable
 
 @Configuration
+@EnableRetry
 class CassandraConfig {
 
     @Bean
+    @Retryable(
+        value = [Exception::class],
+        maxAttempts = 7,
+        backoff = Backoff(delay = 60000)
+    )
     fun cassandraSession(
         builder: CqlSessionBuilder,
         properties: CassandraProperties
