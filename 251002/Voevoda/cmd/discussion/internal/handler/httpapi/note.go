@@ -6,115 +6,100 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gocql/gocql"
 
-	"github.com/strcarne/distributed-calculations/cmd/discussion/internal/repository/cassandra"
-	"github.com/strcarne/distributed-calculations/cmd/discussion/internal/service"
+	"github.com/strcarne/distributed-calculations/cmd/discussion/internal/di"
 
 	"github.com/strcarne/distributed-calculations/internal/entity"
+	"github.com/strcarne/distributed-calculations/internal/entity/server"
 )
 
-type noteHandlerFunc func(w http.ResponseWriter, r *http.Request, noteService service.Note)
-
-func NewNoteRouter(session *gocql.Session) *chi.Mux {
+func NewNoteRouter(deps di.Container) *chi.Mux {
 	r := chi.NewRouter()
 
-	noteRepository := cassandra.NewNoteRepository(session)
-	noteService := service.NewNote(noteRepository)
-
 	r.Route("/", func(r chi.Router) {
-		r.Get("/", wrapNoteHandler(GetNotes, noteService))
-		r.Get("/{id}", wrapNoteHandler(GetNote, noteService))
-		r.Post("/", wrapNoteHandler(CreateNote, noteService))
-		r.Delete("/{id}", wrapNoteHandler(DeleteNote, noteService))
-		r.Put("/", wrapNoteHandler(UpdateNote, noteService))
+		r.Get("/", wrapHandler(GetNotes, deps))
+		r.Get("/{id}", wrapHandler(GetNote, deps))
+		r.Post("/", wrapHandler(CreateNote, deps))
+		r.Delete("/{id}", wrapHandler(DeleteNote, deps))
+		r.Put("/", wrapHandler(UpdateNote, deps))
 	})
 
 	return r
 }
 
-func wrapNoteHandler(handler noteHandlerFunc, noteService service.Note) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, noteService)
-	}
-}
-
-func GetNotes(w http.ResponseWriter, r *http.Request, noteService service.Note) {
-	notes, err := noteService.GetAllNotes()
+func GetNotes(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
+	notes, err := deps.Services.Note.GetAllNotes()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return server.NewError(err, http.StatusInternalServerError)
 	}
 
 	json.NewEncoder(w).Encode(notes)
+
+	return nil
 }
 
-func GetNote(w http.ResponseWriter, r *http.Request, noteService service.Note) {
+func GetNote(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	note, err := noteService.GetNoteByID(id)
+	note, err := deps.Services.Note.GetNoteByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
+		return server.NewError(err, http.StatusNotFound)
 	}
 
 	json.NewEncoder(w).Encode(note)
+
+	return nil
 }
 
-func CreateNote(w http.ResponseWriter, r *http.Request, noteService service.Note) {
+func CreateNote(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	var note entity.Note
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(note)
-		return
+		return server.NewError(err, http.StatusForbidden)
 	}
 
-	note, err := noteService.CreateNote(note)
+	note, err := deps.Services.Note.CreateNote(note)
 	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(note)
-		return
+		return server.NewError(err, http.StatusForbidden)
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(note)
+
+	return nil
 }
 
-func DeleteNote(w http.ResponseWriter, r *http.Request, noteService service.Note) {
+func DeleteNote(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	if note, err := noteService.DeleteNote(id); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(note)
-		return
+	note, err := deps.Services.Note.DeleteNote(id)
+	if err != nil {
+		return server.NewError(err, http.StatusNotFound)
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	json.NewEncoder(w).Encode(note)
+
+	return nil
 }
 
-func UpdateNote(w http.ResponseWriter, r *http.Request, noteService service.Note) {
+func UpdateNote(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	var note entity.Note
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	if err := noteService.UpdateNote(note); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(note)
-		return
+	if err := deps.Services.Note.UpdateNote(note); err != nil {
+		return server.NewError(err, http.StatusNotFound)
 	}
 
-	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(note)
+
+	return nil
 }

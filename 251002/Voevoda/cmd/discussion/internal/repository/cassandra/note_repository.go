@@ -11,25 +11,27 @@ import (
 
 type NoteRepository struct {
 	session *gocql.Session
+	logger  *slog.Logger
 }
 
-func NewNoteRepository(session *gocql.Session) NoteRepository {
-	slog.Info("Creating note repository table if not exists")
-	err := session.Query(`CREATE TABLE IF NOT EXISTS distcomp.tbl_note (
-    country text,
-    tweetId bigint,
-    id bigint,
-    content text,
-    PRIMARY KEY ((country), tweetId, id)
-) WITH CLUSTERING ORDER BY (tweetId ASC, id ASC)
-AND comment = 'Size limit of content: 2-2048 characters';`).Exec()
+func NewNoteRepository(session *gocql.Session, logger *slog.Logger) NoteRepository {
+	logger.Info("Creating note repository table if not exists")
+
+	err := session.Query(`CREATE TABLE IF NOT EXISTS tbl_note (
+	    country text,
+	    tweetId bigint,
+	    id bigint,
+	    content text,
+	    PRIMARY KEY ((country), tweetId, id)
+	) WITH CLUSTERING ORDER BY (tweetId ASC, id ASC)
+	AND comment = 'Size limit of content: 2-2048 characters';`).Exec()
 	if err != nil {
-		slog.Error("Failed to create note table", slog.String("error", err.Error()))
+		logger.Error("Failed to create note table", slog.String("error", err.Error()))
 	} else {
-		slog.Info("Note table created or already exists")
+		logger.Info("Note table created or already exists")
 	}
 
-	return NoteRepository{session: session}
+	return NoteRepository{session: session, logger: logger}
 }
 
 // CreateNote inserts a new note into the database
@@ -38,14 +40,14 @@ func (r NoteRepository) CreateNote(note entity.Note) (int64, error) {
 		note.Country = "by"
 	}
 
-	slog.Info("Creating new note",
+	r.logger.Info("Creating new note",
 		slog.String("country", note.Country),
 		slog.Int("tweetID", note.TweetID),
 		slog.String("content", note.Content))
 
 	// Generate a unique ID for the note
 	id := time.Now().UnixNano()
-	slog.Debug("Generated note ID", slog.Int64("id", id))
+	r.logger.Debug("Generated note ID", slog.Int64("id", id))
 
 	// Insert the note into the database
 	err := r.session.Query(`
@@ -53,7 +55,7 @@ func (r NoteRepository) CreateNote(note entity.Note) (int64, error) {
 		VALUES (?, ?, ?, ?)`,
 		note.Country, note.TweetID, id, note.Content).Exec()
 	if err != nil {
-		slog.Error("Failed to insert note",
+		r.logger.Error("Failed to insert note",
 			slog.String("error", err.Error()),
 			slog.Int64("id", id),
 			slog.String("country", note.Country),
@@ -61,22 +63,26 @@ func (r NoteRepository) CreateNote(note entity.Note) (int64, error) {
 		return 0, err
 	}
 
-	slog.Info("Note created successfully", slog.Int64("id", id))
+	r.logger.Info("Note created successfully", slog.Int64("id", id))
 	return id, nil
 }
 
 // DeleteNote removes a note from the database by ID
 func (r NoteRepository) DeleteNote(id int64) (entity.Note, error) {
-	slog.Info("Deleting note", slog.Int64("id", id))
+	r.logger.Info("Deleting note", slog.Int64("id", id))
 
 	// First get the note to return it
 	note, err := r.GetNoteByID(id)
 	if err != nil {
-		slog.Error("Failed to get note for deletion", slog.Int64("id", id), slog.String("error", err.Error()))
+		r.logger.Error(
+			"Failed to get note for deletion",
+			slog.Int64("id", id),
+			slog.String("error", err.Error()),
+		)
 		return entity.Note{}, err
 	}
 
-	slog.Debug("Found note to delete",
+	r.logger.Debug("Found note to delete",
 		slog.Int64("id", id),
 		slog.String("country", note.Country),
 		slog.Int("tweetID", note.TweetID))
@@ -88,9 +94,9 @@ func (r NoteRepository) DeleteNote(id int64) (entity.Note, error) {
 		note.Country, note.TweetID, id).Exec()
 
 	if err != nil {
-		slog.Error("Failed to delete note", slog.Int64("id", id), slog.String("error", err.Error()))
+		r.logger.Error("Failed to delete note", slog.Int64("id", id), slog.String("error", err.Error()))
 	} else {
-		slog.Info("Note deleted successfully", slog.Int64("id", id))
+		r.logger.Info("Note deleted successfully", slog.Int64("id", id))
 	}
 
 	return note, err
@@ -98,7 +104,7 @@ func (r NoteRepository) DeleteNote(id int64) (entity.Note, error) {
 
 // GetAllNotes retrieves all notes from the database
 func (r NoteRepository) GetAllNotes() ([]entity.Note, error) {
-	slog.Info("Retrieving all notes")
+	r.logger.Info("Retrieving all notes")
 	notes := make([]entity.Note, 0, 4)
 
 	// Query all notes
@@ -109,7 +115,7 @@ func (r NoteRepository) GetAllNotes() ([]entity.Note, error) {
 	for iter.Scan(&note.Country, &note.TweetID, &note.ID, &note.Content) {
 		notes = append(notes, note)
 		count++
-		slog.Debug("Retrieved note",
+		r.logger.Debug("Retrieved note",
 			slog.Int64("id", note.ID),
 			slog.String("country", note.Country),
 			slog.Int("tweetID", note.TweetID))
@@ -118,17 +124,20 @@ func (r NoteRepository) GetAllNotes() ([]entity.Note, error) {
 	}
 
 	if err := iter.Close(); err != nil {
-		slog.Error("Failed to close iterator when retrieving all notes", slog.String("error", err.Error()))
+		r.logger.Error(
+			"Failed to close iterator when retrieving all notes",
+			slog.String("error", err.Error()),
+		)
 		return nil, err
 	}
 
-	slog.Info("Retrieved all notes", slog.Int("count", count))
+	r.logger.Info("Retrieved all notes", slog.Int("count", count))
 	return notes, nil
 }
 
 // GetNoteByID retrieves a specific note by its ID
 func (r NoteRepository) GetNoteByID(id int64) (entity.Note, error) {
-	slog.Info("Retrieving note by ID", slog.Int64("id", id))
+	r.logger.Info("Retrieving note by ID", slog.Int64("id", id))
 	var note entity.Note
 
 	// We need to query with a specific country and tweetId, but we only have the ID
@@ -141,18 +150,18 @@ func (r NoteRepository) GetNoteByID(id int64) (entity.Note, error) {
 		id).Iter()
 
 	if !iter.Scan(&note.Country, &note.TweetID, &note.ID, &note.Content) {
-		slog.Error("Note not found", slog.Int64("id", id))
+		r.logger.Error("Note not found", slog.Int64("id", id))
 		return entity.Note{}, fmt.Errorf("note with id %d not found", id)
 	}
 
 	if err := iter.Close(); err != nil {
-		slog.Error("Failed to close iterator when retrieving note by ID",
+		r.logger.Error("Failed to close iterator when retrieving note by ID",
 			slog.Int64("id", id),
 			slog.String("error", err.Error()))
 		return entity.Note{}, err
 	}
 
-	slog.Info("Retrieved note successfully",
+	r.logger.Info("Retrieved note successfully",
 		slog.Int64("id", id),
 		slog.String("country", note.Country),
 		slog.Int("tweetID", note.TweetID))
@@ -165,7 +174,7 @@ func (r NoteRepository) UpdateNote(note entity.Note) error {
 		note.Country = "by"
 	}
 
-	slog.Info("Updating note",
+	r.logger.Info("Updating note",
 		slog.Int64("id", note.ID),
 		slog.String("country", note.Country),
 		slog.Int("tweetID", note.TweetID))
@@ -173,7 +182,7 @@ func (r NoteRepository) UpdateNote(note entity.Note) error {
 	// First check if the note exists
 	_, err := r.GetNoteByID(note.ID)
 	if err != nil {
-		slog.Error("Failed to find note for update",
+		r.logger.Error("Failed to find note for update",
 			slog.Int64("id", note.ID),
 			slog.String("error", err.Error()))
 		return err
@@ -187,11 +196,11 @@ func (r NoteRepository) UpdateNote(note entity.Note) error {
 		note.Content, note.Country, note.TweetID, note.ID).Exec()
 
 	if err != nil {
-		slog.Error("Failed to update note",
+		r.logger.Error("Failed to update note",
 			slog.Int64("id", note.ID),
 			slog.String("error", err.Error()))
 	} else {
-		slog.Info("Note updated successfully", slog.Int64("id", note.ID))
+		r.logger.Info("Note updated successfully", slog.Int64("id", note.ID))
 	}
 
 	return err

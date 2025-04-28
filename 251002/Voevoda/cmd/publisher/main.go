@@ -1,32 +1,35 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
 
+	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/config"
+	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/di/setup"
 	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/handler/httpapi"
-	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/setup"
 )
 
-const serveAddress = "0.0.0.0:24110"
-
 func main() {
-	if err := godotenv.Load(); err != nil {
-		slog.Error("failed to load .env file", slog.String("error", err.Error()))
+	configPath := flag.String("config", "configs", "path to the configs directory or config file")
+	flag.Parse()
 
-		return
-	}
+	cfg := config.MustParseConfig(*configPath)
+	deps := setup.MustContainer(cfg)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go deps.Bus.StartBackgroundConsumer(ctx)
 
 	router := chi.NewRouter()
-	queries := setup.MustQueries()
+	httpapi.RegisterV1(router, deps)
 
-	httpapi.RegisterV1(router, queries)
-
-	slog.Info("starting server", slog.String("address", serveAddress))
-	if err := http.ListenAndServe(serveAddress, router); err != nil {
-		slog.Error("failed to start listening", slog.String("address", serveAddress))
+	deps.Logger.Info("starting server", slog.String("address", cfg.Server.Address))
+	if err := http.ListenAndServe(cfg.Server.Address, router); err != nil {
+		deps.Logger.Error("failed to start listening", slog.String("address", cfg.Server.Address))
 	}
 }

@@ -7,113 +7,103 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/repository/psql"
-	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/repository/psql/generated"
-	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/service"
+	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/di"
 	"github.com/strcarne/distributed-calculations/internal/entity"
+	"github.com/strcarne/distributed-calculations/internal/entity/server"
 )
 
-type tweetHandlerFunc func(w http.ResponseWriter, r *http.Request, tweetService service.Tweet)
-
-func NewTweetRouter(queries *generated.Queries) *chi.Mux {
+func NewTweetRouter(deps di.Container) *chi.Mux {
 	r := chi.NewRouter()
 
-	tweetRepository := psql.NewTweetRepository(queries)
-	tweetService := service.NewTweet(tweetRepository)
-
 	r.Route("/", func(r chi.Router) {
-		r.Get("/", wrapTweetHandler(GetTweets, tweetService))
-		r.Get("/{id}", wrapTweetHandler(GetTweet, tweetService))
-		r.Post("/", wrapTweetHandler(CreateTweet, tweetService))
-		r.Delete("/{id}", wrapTweetHandler(DeleteTweet, tweetService))
-		r.Put("/", wrapTweetHandler(UpdateTweet, tweetService))
+		r.Get("/", wrapHandler(GetTweets, deps))
+		r.Get("/{id}", wrapHandler(GetTweet, deps))
+		r.Post("/", wrapHandler(CreateTweet, deps))
+		r.Delete("/{id}", wrapHandler(DeleteTweet, deps))
+		r.Put("/", wrapHandler(UpdateTweet, deps))
 	})
 
 	return r
 }
 
-func wrapTweetHandler(handler tweetHandlerFunc, tweetService service.Tweet) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, tweetService)
-	}
-}
-
-func GetTweets(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
-	tweets, err := tweetService.GetAllTweets()
+func GetTweets(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
+	tweets, err := deps.Services.Tweet.GetAllTweets()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return server.NewError(err, http.StatusInternalServerError)
 	}
 
 	json.NewEncoder(w).Encode(tweets)
+	deps.Logger.Info("tweets retrieved", "count", len(tweets))
+
+	return nil
 }
 
-func GetTweet(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
+func GetTweet(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	tweet, err := tweetService.GetTweetByID(id)
+	tweet, err := deps.Services.Tweet.GetTweetByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
+		return server.NewError(err, http.StatusNotFound)
 	}
 
 	json.NewEncoder(w).Encode(tweet)
+	deps.Logger.Info("tweet retrieved", "tweet_id", tweet.ID)
+
+	return nil
 }
 
-func CreateTweet(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
+func CreateTweet(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	var tweet entity.Tweet
 	if err := json.NewDecoder(r.Body).Decode(&tweet); err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(tweet)
-		return
+		return server.NewError(err, http.StatusForbidden)
 	}
 
-	tweet, err := tweetService.CreateTweet(tweet)
+	tweet, err := deps.Services.Tweet.CreateTweet(tweet)
 	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(tweet)
-		return
+		return server.NewError(err, http.StatusForbidden)
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(tweet)
+	deps.Logger.Info("tweet created", "tweet_id", tweet.ID)
+
+	return nil
 }
 
-func DeleteTweet(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
+func DeleteTweet(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	if tweet, err := tweetService.DeleteTweet(id); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(tweet)
-		return
+	if _, err := deps.Services.Tweet.DeleteTweet(id); err != nil {
+		return server.NewError(err, http.StatusNotFound)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	deps.Logger.Info("tweet deleted", "tweet_id", id)
+
+	return nil
 }
 
-func UpdateTweet(w http.ResponseWriter, r *http.Request, tweetService service.Tweet) {
+func UpdateTweet(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	var tweet entity.Tweet
 	if err := json.NewDecoder(r.Body).Decode(&tweet); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	if err := tweetService.UpdateTweet(tweet); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(tweet)
-		return
+	if err := deps.Services.Tweet.UpdateTweet(tweet); err != nil {
+		return server.NewError(err, http.StatusNotFound)
 	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(tweet)
+	deps.Logger.Info("tweet updated", "tweet_id", tweet.ID)
+
+	return nil
 }

@@ -7,114 +7,103 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/repository/psql"
-	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/repository/psql/generated"
-	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/service"
+	"github.com/strcarne/distributed-calculations/cmd/publisher/internal/di"
 	"github.com/strcarne/distributed-calculations/internal/entity"
+	"github.com/strcarne/distributed-calculations/internal/entity/server"
 )
 
-type labelHandlerFunc func(w http.ResponseWriter, r *http.Request, labelService service.Label)
-
-func NewLabelRouter(queries *generated.Queries) *chi.Mux {
+func NewLabelRouter(deps di.Container) *chi.Mux {
 	r := chi.NewRouter()
 
-	labelRepository := psql.NewLabelRepository(queries)
-	labelService := service.NewLabel(labelRepository)
-
 	r.Route("/", func(r chi.Router) {
-		r.Get("/", wrapLabelHandler(GetLabels, labelService))
-		r.Get("/{id}", wrapLabelHandler(GetLabel, labelService))
-		r.Post("/", wrapLabelHandler(CreateLabel, labelService))
-		r.Delete("/{id}", wrapLabelHandler(DeleteLabel, labelService))
-		r.Put("/", wrapLabelHandler(UpdateLabel, labelService))
+		r.Get("/", wrapHandler(GetLabels, deps))
+		r.Get("/{id}", wrapHandler(GetLabel, deps))
+		r.Post("/", wrapHandler(CreateLabel, deps))
+		r.Delete("/{id}", wrapHandler(DeleteLabel, deps))
+		r.Put("/", wrapHandler(UpdateLabel, deps))
 	})
 
 	return r
 }
 
-func wrapLabelHandler(handler labelHandlerFunc, labelService service.Label) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, labelService)
-	}
-}
-
-func GetLabels(w http.ResponseWriter, r *http.Request, labelService service.Label) {
-	labels, err := labelService.GetAllLabels()
+func GetLabels(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
+	labels, err := deps.Services.Label.GetAllLabels()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return server.NewError(err, http.StatusInternalServerError)
 	}
 
 	json.NewEncoder(w).Encode(labels)
+	deps.Logger.Info("labels retrieved", "count", len(labels))
+
+	return nil
 }
 
-func GetLabel(w http.ResponseWriter, r *http.Request, labelService service.Label) {
+func GetLabel(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	label, err := labelService.GetLabelByID(id)
+	label, err := deps.Services.Label.GetLabelByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
+		return server.NewError(err, http.StatusNotFound)
 	}
 
 	json.NewEncoder(w).Encode(label)
+	deps.Logger.Info("label retrieved", "label_id", label.ID)
+
+	return nil
 }
 
-func CreateLabel(w http.ResponseWriter, r *http.Request, labelService service.Label) {
+func CreateLabel(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	var label entity.Label
 	if err := json.NewDecoder(r.Body).Decode(&label); err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(label)
-		return
+		return server.NewError(err, http.StatusForbidden)
 	}
 
-	label, err := labelService.CreateLabel(label)
+	label, err := deps.Services.Label.CreateLabel(label)
 	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(label)
-		return
+		return server.NewError(err, http.StatusForbidden)
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(label)
+	deps.Logger.Info("label created", "label_id", label.ID)
+
+	return nil
 }
 
-func DeleteLabel(w http.ResponseWriter, r *http.Request, labelService service.Label) {
+func DeleteLabel(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	if label, err := labelService.DeleteLabel(id); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(label)
-
-		return
+	if _, err := deps.Services.Label.DeleteLabel(id); err != nil {
+		return server.NewError(err, http.StatusNotFound)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	deps.Logger.Info("label deleted", "label_id", id)
+
+	return nil
 }
 
-func UpdateLabel(w http.ResponseWriter, r *http.Request, labelService service.Label) {
+func UpdateLabel(w http.ResponseWriter, r *http.Request, deps di.Container) *server.Error {
 	var label entity.Label
 	if err := json.NewDecoder(r.Body).Decode(&label); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return server.NewError(err, http.StatusBadRequest)
 	}
 
-	if err := labelService.UpdateLabel(label); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(label)
-		return
+	if err := deps.Services.Label.UpdateLabel(label); err != nil {
+		return server.NewError(err, http.StatusNotFound)
 	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(label)
+	deps.Logger.Info("label updated", "label_id", label.ID)
+
+	return nil
 }

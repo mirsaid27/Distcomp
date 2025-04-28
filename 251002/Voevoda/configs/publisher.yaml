@@ -1,0 +1,17 @@
+server:
+  address: "localhost:24110"
+  note_redirect_base_url: "http://localhost:24130/api/v1.0/notes"
+
+postgres:
+  database_url: "postgres://username:password@localhost:5432/dbname?sslmode=disable"
+
+logger:
+  level: "info"
+  format: "json"
+  add_source: false
+
+kafka:
+  brokers:
+    - "localhost:9092"
+  in_topic: "output"
+  out_topic: "input"
