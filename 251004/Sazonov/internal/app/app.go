@@ -10,6 +10,7 @@ import (
 	"github.com/Khmelov/Distcomp/251004/Sazonov/internal/service"
 	appbase "github.com/Khmelov/Distcomp/251004/Sazonov/pkg/app"
 	httpserver "github.com/Khmelov/Distcomp/251004/Sazonov/pkg/http"
+	"github.com/Khmelov/Distcomp/251004/Sazonov/pkg/kafka"
 )
 
 type app struct {
@@ -19,12 +20,17 @@ type app struct {
 }
 
 func New(cfg config.Config) (*app, error) {
-	repository, err := repository.New(cfg.Storage)
+	repository, err := repository.New(cfg.Storage, cfg.Redis)
 	if err != nil {
 		return nil, err
 	}
 
-	adapter := adapter.New(cfg.API.NoticeServiceAddr)
+	producer := kafka.NewProducer(kafka.ProducerConfig{Brokers: cfg.Kafka.Brokers})
+
+	adapter := adapter.New(
+		cfg.API.NoticeServiceAddr,
+		kafka.ProducerConfig{Brokers: cfg.Kafka.Brokers, Topic: cfg.Kafka.Topic},
+	)
 
 	service := service.New(repository, adapter)
 
@@ -41,7 +47,8 @@ func New(cfg config.Config) (*app, error) {
 				httpServer,
 			},
 			[]appbase.CleanupFunc{
-				func() { repository.Close() },
+				repository.Close,
+				func() { producer.Close() },
 			},
 		),
 

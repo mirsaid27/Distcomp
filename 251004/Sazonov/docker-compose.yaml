@@ -10,11 +10,7 @@ services:
           cpus: "0.5"
           memory: 512M
 
-    networks:
-      - dist_net
-
-    ports:
-      - 24100:24100
+    network_mode: host
 
   api:
     image: distcomp/api
@@ -22,12 +18,17 @@ services:
     restart: unless-stopped
 
     environment:
-      API_STORAGE_TYPE: postgres
       API_STORAGE_HOST: db
       API_STORAGE_PORT: ${POSTGRES_PORT}
       API_STORAGE_USER: ${POSTGRES_USER}
       API_STORAGE_PASSWORD: ${POSTGRES_PASSWORD}
       API_STORAGE_DBNAME: ${POSTGRES_DB}
+      API_REDIS_ADDR: ${REDIS_ADDR}
+      API_REDIS_USER: ${REDIS_USER}
+      API_REDIS_PASSWORD: ${REDIS_USER_PASSWORD}
+      API_REDIS_DB: ${REDIS_DB}
+      API_KAFKA_BROKERS: ${KAFKA_BROKERS}
+      API_KAFKA_TOPIC: ${KAFKA_TOPIC}
       API_NOTICE_SERVICE_ADDR: ${API_NOTICE_SERVICE_ADDR}
 
     deploy:
@@ -39,6 +40,8 @@ services:
     networks:
       - api_net
       - db_net
+      - redis_net
+      - kafka_net
 
     ports:
       - 24110:24110
@@ -48,6 +51,8 @@ services:
         condition: service_completed_successfully
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   migrator:
     image: gomicro/goose:3.24.1
@@ -60,6 +65,7 @@ services:
 
     networks:
       - db_net
+
     volumes:
       - "./migrations/postgres:/migrations:ro"
 
@@ -99,16 +105,51 @@ services:
       retries: 3
       start_period: 10s
 
+  redis:
+    image: redis:7.4-alpine
+    container_name: distcomp_redis
+    restart: unless-stopped
+
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_USER: ${REDIS_USER}
+      REDIS_USER_PASSWORD: ${REDIS_USER_PASSWORD}
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+    networks:
+      - redis_net
+
+    ports:
+      - 6379:6379
+
+    entrypoint: [ "sh", "-c" ]
+    command: |
+      '
+        mkdir -p "/usr/local/etc/redis" &&
+        echo "bind 0.0.0.0" > "/usr/local/etc/redis/redis.conf" &&
+        echo "requirepass $REDIS_PASSWORD" >> "/usr/local/etc/redis/redis.conf" &&
+        echo "user default on nopass ~* &* +@all" > "/usr/local/etc/redis/users.acl" &&
+        echo "user $REDIS_USER on >"$REDIS_USER_PASSWORD" ~* &* +@all" >> "/usr/local/etc/redis/users.acl" &&
+        redis-server "/usr/local/etc/redis/redis.conf" --aclfile "/usr/local/etc/redis/users.acl"
+      '
+
   notice:
     image: distcomp/notice
     container_name: notice_api
-    restart: unless-stopped
+    restart: on-failure
 
     environment:
       NOTICE_API_CASSANDRA_ADDRS: ${CASSANDRA_ADDRS}
       NOTICE_API_CASSANDRA_KEYSPACE: ${CASSANDRA_KEYSPACE}
       NOTICE_API_CASSANDRA_USER: ${CASSANDRA_USER}
       NOTICE_API_CASSANDRA_PASSWORD: ${CASSANDRA_PASSWORD}
+      NOTICE_API_KAFKA_BROKERS: ${KAFKA_BROKERS}
+      NOTICE_API_KAFKA_TOPIC: ${KAFKA_TOPIC}
 
     deploy:
       resources:
@@ -119,6 +160,7 @@ services:
     networks:
       - api_net
       - db_net
+      - kafka_net
       
     ports:
       - 24130:24130
@@ -158,11 +200,43 @@ services:
     healthcheck:
       test: [ "CMD-SHELL",  "nodetool", "status" ]
       interval: 30s 
-      timeout: 15s
+      timeout: 20s
       retries: 5
       start_period: 60s
 
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: notice_kafka
+    hostname: kafka
+    restart: unless-stopped
+
+    environment:
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CLIENT_USERS: admin
+      KAFKA_CLIENT_PASSWORDS: admin
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9094
+      KAFKA_CFG_LISTENERS: INT://kafka:9092,PLAINTEXT://kafka:9093,CONTROLLER://kafka:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: INT://localhost:9092,PLAINTEXT://kafka:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
+      ALLOW_PLAINTEXT_LISTENER: yes
+
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+    networks:
+      - kafka_net
+
+    ports:
+      - 9092:9092
+
 networks:
+  redis_net:
+  kafka_net:
   db_net:
   api_net:
-  dist_net:

@@ -11,6 +11,7 @@ type Config struct {
 	Core     CoreConfig
 	GRPC     GRPCServerConfig
 	HTTP     HTTPServerConfig
+	Kafka    KafkaConfig
 	Casandra CasandraConfig
 }
 
@@ -43,6 +44,14 @@ type HTTPServerConfig struct {
 	IdleTimeout time.Duration
 }
 
+type KafkaConfig struct {
+	Brokers  []string
+	GroupID  string
+	Topic    string
+	User     string
+	Password string
+}
+
 func Load() Config {
 	return Config{
 		Log: LogConfig{
@@ -68,6 +77,13 @@ func Load() Config {
 			Port:        viper.GetString("http.port"),
 			Timeout:     viper.GetDuration("http.timeout"),
 			IdleTimeout: viper.GetDuration("http.idle_timeout"),
+		},
+		Kafka: KafkaConfig{
+			Brokers:  viper.GetStringSlice("kafka.brokers"),
+			GroupID:  viper.GetString("kafka.group_id"),
+			Topic:    viper.GetString("kafka.topic"),
+			User:     viper.GetString("kafka.user"),
+			Password: viper.GetString("kafka.password"),
 		},
 	}
 }

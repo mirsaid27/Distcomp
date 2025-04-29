@@ -14,7 +14,7 @@ type HTTPError struct {
 }
 
 func Error(c *gin.Context, err error) {
-	logger.Error(c, "error", zap.Error(err))
+	logger.Error(c, "handle error", zap.Error(err))
 
 	switch {
 	case errors.Is(err, errors.ErrNotFound):

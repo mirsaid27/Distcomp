@@ -12,4 +12,8 @@ public interface IMarkService
     public Task<MarkResponseToGetById?> GetMarkById(MarkRequestToGetById request);
     public Task<MarkResponseToGetById?> UpdateMark(MarkRequestToFullUpdate model);
     public Task<MarkResponseToGetById?> DeleteMark(MarkRequestToDeleteById request);
+    
+    
+    public Task<IEnumerable<MarkResponseToGetById>?> CreateMarksIfDontExist(
+        IEnumerable<string> request);
 }

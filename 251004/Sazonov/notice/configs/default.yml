@@ -11,6 +11,13 @@ cassandra:
   password: admin
   keyspace: distcomp
 
+kafka:
+  brokers: [localhost:9092]
+  group_id: distcomp_notice
+  topic: notice
+  user: admin
+  password: admin
+
 http:
   port: 24130
   timeout: 5s
