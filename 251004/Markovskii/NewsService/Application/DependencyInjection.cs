@@ -11,7 +11,6 @@ public static class DependencyInjection
     {
         services.AddSingleton<IEditorService, EditorService>();
         services.AddSingleton<INewsService, NewsService>();
-        services.AddSingleton<IPostService, PostService>();
         services.AddSingleton<IMarkService, MarkService>();
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
     }

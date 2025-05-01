@@ -9,5 +9,6 @@ public interface INewsRepository
     Task<News?> RemoveNews(long newsId);
     Task<News?> UpdateNews(News news);
 
+    void AddMarksToNews(long newsId, IEnumerable<long> markIds);
     Task<IEnumerable<News?>?> GetAllNews();
 }

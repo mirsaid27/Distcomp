@@ -220,7 +220,7 @@ resource "docker_container" "cassandra" {
   }
 
   healthcheck {
-    test         = ["CMD-SHELL", "nodetool", "status"]
+    test         = ["CMD-SHELL", "nodetool", "state"]
     interval     = "30s"
     timeout      = "20s"
     retries      = 5

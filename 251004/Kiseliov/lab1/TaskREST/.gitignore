@@ -414,7 +414,7 @@ Makefile.in
 *.userprefs
 *.usertasks
 config.make
-config.status
+config.state
 aclocal.m4
 install-sh
 autom4te.cache/

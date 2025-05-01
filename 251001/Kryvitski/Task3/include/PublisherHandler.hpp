@@ -6,8 +6,8 @@
 template<PostgresEntity T>
 class PublisherHandler {
 public:
-    explicit PublisherHandler(std::shared_ptr<PostgresController> controller);
-    ~PublisherHandler() = default;
+    explicit PublisherHandler(std::shared_ptr<PostgresController> controller) noexcept;
+    virtual ~PublisherHandler() = default;
 
     void initialize();
     void handle_post(const httplib::Request& req, httplib::Response& res);
@@ -21,9 +21,9 @@ private:
 };
 
 template <PostgresEntity T>
-inline PublisherHandler<T>::PublisherHandler(std::shared_ptr<PostgresController> controller)
+inline PublisherHandler<T>::PublisherHandler(std::shared_ptr<PostgresController> controller) noexcept
 {
-    m_controller = std::move(controller);
+    m_controller = controller;
 }
 
 template <PostgresEntity T>

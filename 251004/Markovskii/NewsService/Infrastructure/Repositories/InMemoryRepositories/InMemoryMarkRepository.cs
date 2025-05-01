@@ -62,4 +62,9 @@ public class InMemoryMarkRepository : IMarkRepository
     {
         return  _marks.Values.ToList();
     }
+
+    public async Task<IEnumerable<Mark?>?> GetMarksCreateIfNotExist(IEnumerable<string> marks)
+    {
+        throw new NotImplementedException();
+    }
 }
