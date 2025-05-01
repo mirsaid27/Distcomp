@@ -1,4 +1,6 @@
 
+using MyApp.Models;
+
 public interface ILabelService
 {
     Task<LabelResponseTo> CreateLabelAsync(LabelRequestTo labelDto);

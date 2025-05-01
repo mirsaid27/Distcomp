@@ -1,5 +1,7 @@
 
 
+using MyApp.Models;
+
 public interface IStoryService
 {
     Task<StoryResponseTo> CreateStoryAsync(StoryRequestTo storyDto);

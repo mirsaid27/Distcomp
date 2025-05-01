@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MyApp.Migrations
 {
     /// <inheritdoc />
-    public partial class migr : Migration
+    public partial class AddNoteState : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -70,8 +70,9 @@ namespace MyApp.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    story_id = table.Column<int>(type: "integer", nullable: false),
                     Content = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: false),
-                    story_id = table.Column<int>(type: "integer", nullable: false)
+                    State = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

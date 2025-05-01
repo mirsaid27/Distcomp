@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MyApp.Models;
 
 [ApiController]
 [Route("api/v1.0/labels")]
@@ -26,7 +27,7 @@ public class LabelsController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the Label.");
         }
@@ -44,7 +45,7 @@ public class LabelsController : ControllerBase
             }
             return Ok(label);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the Label.");
         }
@@ -58,7 +59,7 @@ public class LabelsController : ControllerBase
             var labels = await _labelService.GetAllLabelsAsync();
             return Ok(labels);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving Label.");
         }
@@ -79,7 +80,7 @@ public class LabelsController : ControllerBase
             }
             return Ok(updatedLabel);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the Label.");
         }
@@ -97,7 +98,7 @@ public class LabelsController : ControllerBase
             }
             return NoContent();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while deleting the Label.");
         }

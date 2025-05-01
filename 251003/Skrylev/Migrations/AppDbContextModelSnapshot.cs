@@ -21,7 +21,7 @@ namespace MyApp.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Editor", b =>
+            modelBuilder.Entity("MyApp.Models.Editor", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
@@ -54,7 +54,7 @@ namespace MyApp.Migrations
                     b.ToTable("tbl_editor", (string)null);
                 });
 
-            modelBuilder.Entity("Label", b =>
+            modelBuilder.Entity("MyApp.Models.Label", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
@@ -72,7 +72,7 @@ namespace MyApp.Migrations
                     b.ToTable("tbl_label", (string)null);
                 });
 
-            modelBuilder.Entity("Note", b =>
+            modelBuilder.Entity("MyApp.Models.Note", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
@@ -85,6 +85,9 @@ namespace MyApp.Migrations
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
 
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
                     b.Property<int>("storyId")
                         .HasColumnType("integer")
                         .HasColumnName("story_id");
@@ -96,7 +99,7 @@ namespace MyApp.Migrations
                     b.ToTable("tbl_note", (string)null);
                 });
 
-            modelBuilder.Entity("Story", b =>
+            modelBuilder.Entity("MyApp.Models.Story", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
@@ -131,18 +134,18 @@ namespace MyApp.Migrations
                     b.ToTable("tbl_story", (string)null);
                 });
 
-            modelBuilder.Entity("Note", b =>
+            modelBuilder.Entity("MyApp.Models.Note", b =>
                 {
-                    b.HasOne("Story", null)
+                    b.HasOne("MyApp.Models.Story", null)
                         .WithMany()
                         .HasForeignKey("storyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Story", b =>
+            modelBuilder.Entity("MyApp.Models.Story", b =>
                 {
-                    b.HasOne("Editor", null)
+                    b.HasOne("MyApp.Models.Editor", null)
                         .WithMany()
                         .HasForeignKey("EditorId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -1,3 +1,5 @@
+using MyApp.Models;
+
 public interface IGenericRepository<TEntity> where TEntity : BaseEntity
 {
     Task<TEntity> GetByIdAsync(int id);

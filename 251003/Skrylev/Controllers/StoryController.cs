@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MyApp.Models;
 
 [ApiController]
 [Route("api/v1.0/stories")]
@@ -30,11 +31,11 @@ public class StorysController : ControllerBase
         {
             return NotFound(new { error = ex.Message });
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { error = "Story already exists" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the story.");
         }
@@ -52,7 +53,7 @@ public class StorysController : ControllerBase
             }
             return Ok(story);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the story.");
         }
@@ -66,7 +67,7 @@ public class StorysController : ControllerBase
             var story = await _storyService.GetAllStorysAsync();
             return Ok(story);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving story.");
         }
@@ -87,7 +88,7 @@ public class StorysController : ControllerBase
             }
             return Ok(updatedStory);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the story.");
         }
@@ -105,7 +106,7 @@ public class StorysController : ControllerBase
             }
             return NoContent();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while deleting the story.");
         }
