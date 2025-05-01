@@ -1,6 +1,4 @@
-﻿using Application.abstractions;
-using Application.Services;
-using Core;
+﻿using Core;
 using DTO.requests;
 using DTO.responces;
 using Microsoft.AspNetCore.Mvc;
@@ -11,51 +9,101 @@ namespace rv_lab_1.controllers
 {
     [Route("api/v1.0/notes")]
     [ApiController]
-    public class NoteController(INoteService noteService) : ControllerBase
+    public class NoteController : ControllerBase
     {
-        private readonly INoteService _noteService = noteService;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _remoteUrl = "http://localhost:24130/api/v1.0/notes"; // URL удаленного сервера
+
+        public NoteController(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
+
 
         [HttpGet("{id:long}")]
-        public async Task<NoteResponseTo?> GetByIdAsync(long id)
+        public async Task<ActionResult<NoteResponseTo?>> GetByIdAsync(long id)
         {
-            return await _noteService.GetByIdAsync(id);
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetAsync($"{_remoteUrl}/{id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<NoteResponseTo>();
+            return Ok(result);
         }
 
         [HttpGet]
-        public async Task<IEnumerable<NoteResponseTo>> GetAllAsync()
+        public async Task<ActionResult<IEnumerable<NoteResponseTo>>> GetAllAsync()
         {
-            return await _noteService.GetAllAsync();
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetAsync(_remoteUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<IEnumerable<NoteResponseTo>>();
+            return Ok(result);
         }
 
         [HttpPost]
         public async Task<ActionResult<NoteResponseTo>> PostAsync([FromBody] NoteRequestTo requestTo)
         {
-            var res = await _noteService.CreateAsync(requestTo);
-            if (res == null)
-                return StatusCode(403);
-            return Created(string.Empty, res);
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.PostAsJsonAsync(_remoteUrl, requestTo);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<NoteResponseTo>(); 
+            return Created(string.Empty, result);
         }
 
         [HttpPut]
-        public async Task<ActionResult<NoteRequestTo>> Put([FromBody] Note requestTo)
+        public async Task<ActionResult> Put([FromBody] Note note)
         {
-            var res = await _noteService.UpdateAsync(requestTo.Id, new NoteRequestTo 
-                { Content = requestTo.Content, StoryId = requestTo.StoryId});
-            return Ok(res);
-        }
-        [HttpPut("{id}")]
-        public async Task<ActionResult<NoteRequestTo>> PutId(int id, [FromBody] NoteRequestTo requestTo)
-        {
-            var res = await _noteService.UpdateAsync(id, requestTo);
-            return Ok(res);
+            Console.WriteLine($"Received: id={note.Id}, storyId={note.StoryId}, content={note.Content}");
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.PutAsJsonAsync(_remoteUrl, note);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+            var result = await response.Content.ReadFromJsonAsync<NoteResponseTo>();
+            return Ok(result);
         }
 
+        //[HttpPut("{id}")]
+        //public async Task<ActionResult> PutId(long id, [FromBody] NoteRequestTo requestTo)
+        //{
+        //    var client = _httpClientFactory.CreateClient();
+        //    var response = await client.PutAsJsonAsync($"{_remoteUrl}/{id}", requestTo);
+
+        //    if (!response.IsSuccessStatusCode)
+        //    {
+        //        return StatusCode((int)response.StatusCode);
+        //    }
+        //    return Ok();
+        //}
+
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Delete(long id)
         {
-            var res = await _noteService.DeleteAsync(id);
-            if (!res)
-                return BadRequest();
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.DeleteAsync($"{_remoteUrl}/{id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
             return NoContent();
         }
     }

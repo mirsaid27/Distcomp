@@ -15,7 +15,5 @@ namespace Core
         public long StoryId { get; set; } = 0;
         [Column("content")]
         public String Content { get; set; } = string.Empty;
-
-        public Story Story { get; set; }
     }
 }

@@ -23,7 +23,6 @@ namespace Core
         public DateTime Modified { get; set; } = DateTime.UtcNow;
 
         public Editor Editor { get; set; }
-        public ICollection<Note> Notes { get; set; }
         public ICollection<StoryTag> StoryTags { get; set; }
     }
 }
