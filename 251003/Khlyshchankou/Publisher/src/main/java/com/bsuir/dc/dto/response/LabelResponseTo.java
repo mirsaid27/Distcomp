@@ -1,6 +1,8 @@
 package com.bsuir.dc.dto.response;
 
-public class LabelResponseTo {
+import java.io.Serializable;
+
+public class LabelResponseTo implements Serializable {
     private long id;
     private String name;
 

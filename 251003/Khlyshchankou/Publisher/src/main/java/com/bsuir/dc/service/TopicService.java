@@ -12,6 +12,8 @@ import com.bsuir.dc.util.exception.EntityNotFoundException;
 import com.bsuir.dc.util.mapper.LabelMapper;
 import com.bsuir.dc.util.mapper.TopicMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,6 +80,7 @@ public class TopicService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "topics", key = "#id")
     public TopicResponseTo findById(long id) {
         return topicMapper.toTopicResponse(
                 topicRepository.findById(id)
@@ -85,6 +88,7 @@ public class TopicService {
     }
 
     @Transactional
+    @CacheEvict(value = "topics", key = "#topicRequestTo.id")
     public TopicResponseTo update(TopicRequestTo topicRequestTo) {
         Topic topic = topicMapper.toTopic(topicRequestTo);
         Topic oldTopic = topicRepository.findById(topic.getId()).orElseThrow(() -> new EntityNotFoundException("Old topic not found"));
@@ -98,6 +102,7 @@ public class TopicService {
     }
 
     @Transactional
+    @CacheEvict(value = "topics", key = "#id")
     public void deleteById(long id) {
         if (!topicRepository.existsById(id)) { throw new EntityNotFoundException("Topic with such id does not exist"); }
         topicRepository.deleteById(id);

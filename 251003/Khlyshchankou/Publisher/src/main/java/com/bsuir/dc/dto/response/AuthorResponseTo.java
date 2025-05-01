@@ -1,6 +1,8 @@
 package com.bsuir.dc.dto.response;
 
-public class AuthorResponseTo {
+import java.io.Serializable;
+
+public class AuthorResponseTo implements Serializable {
     private long id;
     private String login;
     private String password;

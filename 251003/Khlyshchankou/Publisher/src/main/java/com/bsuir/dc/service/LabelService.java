@@ -9,6 +9,7 @@ import com.bsuir.dc.repository.TopicRepository;
 import com.bsuir.dc.util.exception.EntityNotFoundException;
 import com.bsuir.dc.util.mapper.LabelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,17 +43,20 @@ public class LabelService {
         return labelMapper.toLabelResponseList(labelRepository.findAll());
     }
 
+    @CacheEvict(value = "labels", key = "#id")
     public LabelResponseTo findById(long id) {
         return labelMapper.toLabelResponse(labelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Label with such id does not exist")));
     }
 
+    @CacheEvict(value = "labels", key = "#id")
     public void deleteById(long id) {
         if (!labelRepository.existsById(id))
             throw new EntityNotFoundException("Label with such id not found");
         labelRepository.deleteById(id);
     }
 
+    @CacheEvict(value = "labels", key = "#labelRequestTo.id")
     public LabelResponseTo update(LabelRequestTo labelRequestTo) {
         Label label = labelMapper.toLabel(labelRequestTo);
         return labelMapper.toLabelResponse(labelRepository.save(label));

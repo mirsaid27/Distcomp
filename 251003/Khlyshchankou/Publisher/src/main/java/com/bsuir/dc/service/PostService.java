@@ -11,6 +11,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpMethod;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.requestreply.KafkaReplyTimeoutException;
@@ -70,6 +72,7 @@ public class PostService {
         return response.getPostResponsesListDTO();
     }
 
+    @Cacheable(value = "posts", key = "#id")
     public PostResponseTo getPostById(Long id) {
         InTopicDTO request = new InTopicDTO(
                 "GET",
@@ -83,6 +86,7 @@ public class PostService {
         return response.getPostResponseDTO();
     }
 
+    @CacheEvict(value = "posts", key = "#postRequestDTO.id")
     public PostResponseTo processPostRequest(String httpMethod, PostRequestTo postRequestDTO) {
         InTopicDTO request = new InTopicDTO(
                 httpMethod,
