@@ -15,9 +15,12 @@ namespace rv_lab_1.controllers
         private readonly INoteService _noteService = noteService;
 
         [HttpGet("{id:long}")]
-        public async Task<NoteResponseTo?> GetByIdAsync(long id)
+        public async Task<ActionResult<NoteResponseTo?>> GetByIdAsync(long id)
         {
-            return await _noteService.GetByIdAsync(id);
+            var res = await _noteService.GetByIdAsync(id);
+            if (res == null)
+                return StatusCode(400);
+            return Ok(res);
         }
 
         [HttpGet]
@@ -29,7 +32,7 @@ namespace rv_lab_1.controllers
         [HttpPost]
         public async Task<ActionResult<NoteResponseTo>> PostAsync([FromBody] NoteRequestTo requestTo)
         {
-            var res = await _noteService.AddNoteAsync(requestTo);
+            var res = await _noteService.AddNoteRespAsync(requestTo);
             if (res == null)
                 return StatusCode(403);
             return Created(string.Empty, res);

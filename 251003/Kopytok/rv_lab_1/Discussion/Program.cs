@@ -1,4 +1,5 @@
 using Discussion.abstractions;
+using Discussion.Kafka;
 using Discussion.services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddHostedService<NoteConsumerService>();
 
 var app = builder.Build();
 

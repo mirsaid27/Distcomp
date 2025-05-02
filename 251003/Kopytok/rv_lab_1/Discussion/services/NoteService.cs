@@ -44,7 +44,7 @@ namespace Discussion.services
             ");
         }
 
-        public async Task<NoteResponseTo?> AddNoteAsync(NoteRequestTo note)
+        public async Task<NoteResponseTo?> AddNoteRespAsync(NoteRequestTo note)
         {
             var id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
@@ -58,6 +58,23 @@ namespace Discussion.services
             return new NoteResponseTo
             {
                 Id = id,
+                StoryId = note.StoryId,
+                Content = note.Content
+            };
+        }
+
+        public async Task<NoteResponseTo?> AddNoteAsync(Note note)
+        {
+            var query = _session.Prepare(@"
+                INSERT INTO tbl_notes (id, storyid, content)
+                VALUES (?, ?, ?)
+                ");
+
+            await _session.ExecuteAsync(query.Bind(note.Id, note.StoryId, note.Content));
+
+            return new NoteResponseTo
+            {
+                Id = note.Id,
                 StoryId = note.StoryId,
                 Content = note.Content
             };

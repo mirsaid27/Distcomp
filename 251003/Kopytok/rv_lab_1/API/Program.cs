@@ -1,3 +1,4 @@
+using API.Kafka;
 using Application.abstractions;
 using Application.services;
 using Application.Services;
@@ -17,7 +18,9 @@ builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddHttpClient();
+builder.Services.AddSingleton<NoteMessageProducer>();
+builder.Services.AddSingleton<NoteResponseListener>();
+builder.Services.AddHostedService<NoteMessageConsumer>();
 
 var app = builder.Build();
 

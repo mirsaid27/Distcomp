@@ -1,7 +1,10 @@
-﻿using Core;
+﻿using API.Kafka;
+using Confluent.Kafka;
+using Core;
 using DTO.requests;
 using DTO.responces;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -11,100 +14,119 @@ namespace rv_lab_1.controllers
     [ApiController]
     public class NoteController : ControllerBase
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly string _remoteUrl = "http://localhost:24130/api/v1.0/notes"; // URL удаленного сервера
+        private readonly NoteMessageProducer _producer;
+        private readonly NoteResponseListener _listener;
 
-        public NoteController(IHttpClientFactory httpClientFactory)
+        public NoteController(NoteMessageProducer producer, NoteResponseListener listener)
         {
-            _httpClientFactory = httpClientFactory;
+            _producer = producer;
+            _listener = listener;
         }
 
 
         [HttpGet("{id:long}")]
         public async Task<ActionResult<NoteResponseTo?>> GetByIdAsync(long id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"{_remoteUrl}/{id}");
+            var kafkaMessage = new KafkaMessage() { Action = NoteAction.Get, Note = new Note() {Id = id }, State = NoteState.PENDING, RequestId = id };
+            var waitTask = _listener.WaitForNoteResponseAsync(id, TimeSpan.FromSeconds(1));
+            await _producer.SendMessageAsync(kafkaMessage);
+            Console.WriteLine($" -/-/-/-/-/- GET publisher request id = {id} at {DateTime.Now:HH:mm:ss.fff}");
+            
+            var responseNote = await waitTask;
 
-            if (!response.IsSuccessStatusCode)
+            if (responseNote == null || responseNote.State == NoteState.DECLINE)
             {
-                return StatusCode((int)response.StatusCode);
+                Console.WriteLine($" -/-/-/-/-/- GET publisher empty responce id = {id} at {DateTime.Now:HH:mm:ss.fff}");
+                return StatusCode(504);
             }
-
-            var result = await response.Content.ReadFromJsonAsync<NoteResponseTo>();
+            Console.WriteLine($" -/-/-/-/-/- GET publisher CORRECT responce id = {id} at {DateTime.Now:HH:mm:ss.fff}");
+            var note = responseNote.Note;
+            var result = new NoteResponseTo() {Id = note.Id, StoryId = note.StoryId, Content = note.Content };
             return Ok(result);
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NoteResponseTo>>> GetAllAsync()
         {
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync(_remoteUrl);
+            long id = GenerateRandomLong();
+            var kafkaMessage = new KafkaMessage() { Action = NoteAction.GetAll, State = NoteState.PENDING, RequestId = id };
 
-            if (!response.IsSuccessStatusCode)
+            var waitTask = _listener.WaitForNoteResponseAsync(id, TimeSpan.FromSeconds(1));
+            await _producer.SendMessageAsync(kafkaMessage);
+            Console.WriteLine($" -/-/-/-/-/- GET ALL publisher request at {DateTime.Now:HH:mm:ss.fff}");
+
+            var responseNote = await waitTask;
+
+            if (responseNote == null || responseNote.State == NoteState.DECLINE)
             {
-                return StatusCode((int)response.StatusCode);
+                Console.WriteLine($" -/-/-/-/-/- GET ALL publisher empty responce at {DateTime.Now:HH:mm:ss.fff}");
+                return StatusCode(504);
             }
-
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<NoteResponseTo>>();
+            Console.WriteLine($" -/-/-/-/-/- GET ALL publisher CORRECT responce id = {id} at {DateTime.Now:HH:mm:ss.fff}");
+            var result = responseNote.Notes.Select(note => new NoteResponseTo() { Id = note.Id, StoryId = note.StoryId, Content = note.Content });
             return Ok(result);
         }
 
         [HttpPost]
         public async Task<ActionResult<NoteResponseTo>> PostAsync([FromBody] NoteRequestTo requestTo)
         {
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.PostAsJsonAsync(_remoteUrl, requestTo);
+            long id = GenerateRandomLong();
+            var kafkaMessage = new KafkaMessage() { Action = NoteAction.Create, State = NoteState.PENDING, RequestId = id, 
+                Note = new Note() {Id = id, StoryId = requestTo.StoryId, Content = requestTo.Content } };
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return StatusCode((int)response.StatusCode);
-            }
+            await _producer.SendMessageAsync(kafkaMessage);
 
-            var result = await response.Content.ReadFromJsonAsync<NoteResponseTo>(); 
-            return Created(string.Empty, result);
+            await Task.Delay(1000);
+
+            return Created(string.Empty, new NoteResponseTo() { Id = id, StoryId = requestTo.StoryId, Content = requestTo.Content});
         }
 
         [HttpPut]
         public async Task<ActionResult> Put([FromBody] Note note)
         {
-            Console.WriteLine($"Received: id={note.Id}, storyId={note.StoryId}, content={note.Content}");
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.PutAsJsonAsync(_remoteUrl, note);
+            long id = note.Id;
+            var kafkaMessage = new KafkaMessage() { Action = NoteAction.Update, State = NoteState.PENDING, Note = note, RequestId = id };
 
-            if (!response.IsSuccessStatusCode)
+            var waitTask = _listener.WaitForNoteResponseAsync(id, TimeSpan.FromSeconds(1));
+            await _producer.SendMessageAsync(kafkaMessage);
+
+            var responseNote = await waitTask;
+
+            if (responseNote == null || responseNote.State == NoteState.DECLINE)
             {
-                return StatusCode((int)response.StatusCode);
+                Console.WriteLine($" -/-/-/-/-/- PUT publisher empty responce at {DateTime.Now:HH:mm:ss.fff}");
+                return StatusCode(504);
             }
-            var result = await response.Content.ReadFromJsonAsync<NoteResponseTo>();
-            return Ok(result);
+            Console.WriteLine($" -/-/-/-/-/- PUT publisher CORRECT responce id = {id} at {DateTime.Now:HH:mm:ss.fff}");
+            return Ok(responseNote.Note);
         }
-
-        //[HttpPut("{id}")]
-        //public async Task<ActionResult> PutId(long id, [FromBody] NoteRequestTo requestTo)
-        //{
-        //    var client = _httpClientFactory.CreateClient();
-        //    var response = await client.PutAsJsonAsync($"{_remoteUrl}/{id}", requestTo);
-
-        //    if (!response.IsSuccessStatusCode)
-        //    {
-        //        return StatusCode((int)response.StatusCode);
-        //    }
-        //    return Ok();
-        //}
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(long id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.DeleteAsync($"{_remoteUrl}/{id}");
+            var kafkaMessage = new KafkaMessage() { Action = NoteAction.Delete, State = NoteState.PENDING, Note = new Note() {Id = id }, RequestId = id };
 
-            if (!response.IsSuccessStatusCode)
+            var waitTask = _listener.WaitForNoteResponseAsync(id, TimeSpan.FromSeconds(1));
+            await _producer.SendMessageAsync(kafkaMessage);
+
+            var responseNote = await waitTask;
+
+            if (responseNote == null || responseNote.State == NoteState.DECLINE)
             {
-                return StatusCode((int)response.StatusCode);
+                Console.WriteLine($" -/-/-/-/-/- PUT publisher empty responce at {DateTime.Now:HH:mm:ss.fff}");
+                return StatusCode(504);
             }
-
+            Console.WriteLine($" -/-/-/-/-/- DELETE publisher CORRECT responce id = {id} at {DateTime.Now:HH:mm:ss.fff}");
             return NoContent();
+        }
+
+        long GenerateRandomLong()
+        {
+            var rand = new Random();
+            byte[] buf = new byte[8];
+            rand.NextBytes(buf);
+            long value = BitConverter.ToInt64(buf, 0);
+            return value & 0x7FFFFFFFFFFFFFFF;
         }
     }
 }
