@@ -6,6 +6,7 @@ import by.bsuir.distcomp.dto.response.ReactionResponseTo;
 import by.bsuir.distcomp.entity.Reaction;
 import by.bsuir.distcomp.entity.ReactionKey;
 import by.bsuir.distcomp.repository.ReactionRepository;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,4 +60,21 @@ public class ReactionService {
         reactionRepository.deleteById(new ReactionKey(country, id));
     }
 
+    @Transactional
+    @KafkaListener(topics="create", groupId="discussion-group")
+    public void onCreateReaction(ReactionRequestTo req) {
+        createReaction("Belarus", req);
+    }
+
+    @Transactional
+    @KafkaListener(topics="update", groupId="discussion-group")
+    public void onUpdateReaction(ReactionRequestTo req) {
+        updateReaction("Belarus", req);
+    }
+
+    @Transactional
+    @KafkaListener(topics="delete", groupId="discussion-group")
+    public void onDeleteReaction(Long id) {
+        deleteReaction("Belarus", id);
+    }
 }

@@ -4,6 +4,7 @@ import by.bsuir.distcomp.dto.mapper.ReactionMapper;
 import by.bsuir.distcomp.dto.request.ReactionRequestTo;
 import by.bsuir.distcomp.dto.response.ReactionResponseTo;
 import by.bsuir.distcomp.repository.ReactionRepository;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,16 @@ public class ReactionService {
 
     private final ReactionRepository reactionRepository;
     private final ReactionMapper reactionMapper;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public ReactionService(ReactionRepository reactionRepository, ReactionMapper reactionMapper) {
+    public ReactionService(
+            ReactionRepository reactionRepository,
+            ReactionMapper reactionMapper,
+            KafkaTemplate<String, Object> kafkaTemplate
+    ) {
         this.reactionRepository = reactionRepository;
         this.reactionMapper = reactionMapper;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     public List<ReactionResponseTo> getAllReactions() {
@@ -33,19 +40,38 @@ public class ReactionService {
 
     @Transactional
     public ReactionResponseTo createReaction(ReactionRequestTo reactionRequestTo) {
-        return reactionMapper.toDto(reactionRepository.save(reactionMapper.toEntity(reactionRequestTo)));
+        ReactionResponseTo reactionResponseTo = reactionMapper.toDto(reactionRepository.save(reactionMapper.toEntity(reactionRequestTo)));
+        reactionRequestTo.setId(reactionResponseTo.getId());
+        sendToCreate(reactionRequestTo);
+        return reactionResponseTo;
     }
 
     @Transactional
     public ReactionResponseTo updateReaction(ReactionRequestTo reactionRequestTo) {
         getReactionById(reactionRequestTo.getId());
-        return reactionMapper.toDto(reactionRepository.save(reactionMapper.toEntity(reactionRequestTo)));
+        ReactionResponseTo reactionResponseTo = reactionMapper.toDto(reactionRepository.save(reactionMapper.toEntity(reactionRequestTo)));
+
+        sendToUpdate(reactionRequestTo);
+        return reactionResponseTo;
     }
 
     @Transactional
     public void deleteReaction(Long id) {
         getReactionById(id);
+        sendToDelete(id);
         reactionRepository.deleteById(id);
+    }
+
+    public void sendToCreate(ReactionRequestTo req) {
+        kafkaTemplate.send("create", req);
+    }
+
+    public void sendToUpdate(ReactionRequestTo req) {
+        kafkaTemplate.send("update", req);
+    }
+
+    public void sendToDelete(Long id) {
+        kafkaTemplate.send("delete", id);
     }
 
 }
