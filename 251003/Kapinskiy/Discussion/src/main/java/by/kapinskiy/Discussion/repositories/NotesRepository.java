@@ -16,5 +16,4 @@ public interface NotesRepository extends CrudRepository<Note, Note.NoteKey> {
 
     @Query("DELETE FROM tbl_note WHERE country = :country AND id = :id")
     void deleteByCountryAndId(@Param("country") String country, @Param("id") Long id);
-
 }

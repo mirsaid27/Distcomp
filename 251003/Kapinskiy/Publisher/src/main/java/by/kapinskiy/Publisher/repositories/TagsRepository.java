@@ -10,5 +10,4 @@ import java.util.Set;
 @Repository
 public interface TagsRepository extends JpaRepository<Tag, Long> {
     boolean existsByName(String name);
-    List<Tag> findByNameIn(Set<String> names);
 }

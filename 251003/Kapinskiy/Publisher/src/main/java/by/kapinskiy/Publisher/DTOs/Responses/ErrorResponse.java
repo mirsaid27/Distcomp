@@ -1,7 +1,10 @@
 package by.kapinskiy.Publisher.DTOs.Responses;
 
+import lombok.Getter;
+
 import java.util.Date;
 
+@Getter
 public class ErrorResponse {
     private int errorCode;
     private String errorMessage;
@@ -11,17 +14,5 @@ public class ErrorResponse {
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
         this.timestamp = new Date();
-    }
-
-    public int getErrorCode() {
-        return errorCode;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
     }
 }

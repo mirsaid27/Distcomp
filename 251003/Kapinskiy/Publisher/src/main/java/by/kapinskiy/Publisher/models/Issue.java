@@ -2,7 +2,7 @@ package by.kapinskiy.Publisher.models;
 
 
 import jakarta.persistence.*;
-
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,6 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "tbl_issue")
+@Data
 public class Issue {
     @Id
     @Column(name = "id")
@@ -34,74 +35,7 @@ public class Issue {
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "tbl_issue_tag", joinColumns = @JoinColumn(name = "issue_id"),
-    inverseJoinColumns = @JoinColumn(name = "tag_id"))
-      private List<Tag> tags = new ArrayList<>();
-    public String getContent() {
-        return content;
-    }
+            inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    private List<Tag> tags = new ArrayList<>();
 
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Date getCreated() {
-        return created;
-    }
-
-    public void setCreated(Date created) {
-        this.created = created;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public Date getModified() {
-        return modified;
-    }
-
-    public void setModified(Date modified) {
-        this.modified = modified;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public List<Tag> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<Tag> tags) {
-        this.tags = tags;
-    }
-
-  /*  @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Issue issue = (Issue) o;
-        return id == issue.id && user.equals(issue.user) && title.equals(issue.title) && content.equals(issue.content) && created.equals(issue.created) && modified.equals(issue.modified);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, user, title, content, created, modified);
-    }*/
 }

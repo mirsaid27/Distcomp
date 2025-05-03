@@ -1,8 +1,7 @@
 package by.kapinskiy.Discussion.models;
 
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.annotation.Id;
+import lombok.Data;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.mapping.*;
 
@@ -10,9 +9,11 @@ import java.io.Serializable;
 
 
 @Table("tbl_note")
+@Data
 public class Note implements Serializable {
 
     @PrimaryKeyClass
+    @Data
     public static class NoteKey implements Serializable {
         @PrimaryKeyColumn(name = "country", type = PrimaryKeyType.PARTITIONED)
         private String country;
@@ -23,49 +24,9 @@ public class Note implements Serializable {
         @PrimaryKeyColumn(name = "issueId", ordinal = 1, type = PrimaryKeyType.CLUSTERED)
         private Long issueId;
 
-
-        public NoteKey() {
-        }
-
-        public NoteKey(String country, Long issueId, Long id) {
-            this.country = country;
-            this.issueId = issueId;
-            this.id = id;
-        }
-
         public NoteKey(Long issueId) {
             this.issueId = issueId;
         }
-
-        public NoteKey(String country, Long issueId) {
-            this.country = country;
-            this.issueId = issueId;
-        }
-
-        public String getCountry() {
-            return country;
-        }
-
-        public void setCountry(String country) {
-            this.country = country;
-        }
-
-        public Long getIssueId() {
-            return issueId;
-        }
-
-        public void setIssueId(Long issueId) {
-            this.issueId = issueId;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
     }
 
 
@@ -75,19 +36,4 @@ public class Note implements Serializable {
     @PrimaryKey
     private NoteKey key;
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public NoteKey getKey() {
-        return key;
-    }
-
-    public void setKey(NoteKey key) {
-        this.key = key;
-    }
 }

@@ -3,20 +3,15 @@ package by.kapinskiy.Publisher.utils;
 
 import by.kapinskiy.Publisher.DTOs.Requests.IssueRequestDTO;
 import by.kapinskiy.Publisher.services.IssuesService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
 @Component
+@RequiredArgsConstructor
 public class IssueValidator implements Validator {
     private final IssuesService issuesService;
-
-    @Autowired
-    public IssueValidator(IssuesService issuesService) {
-        this.issuesService = issuesService;
-    }
-
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -25,9 +20,9 @@ public class IssueValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        if (!errors.hasFieldErrors()){
+        if (!errors.hasFieldErrors()) {
             IssueRequestDTO issue = (IssueRequestDTO) target;
-            if (issuesService.existsByTitle(issue.getTitle())){
+            if (issuesService.existsByTitle(issue.getTitle())) {
                 errors.rejectValue("title", null, "Issue with such title already exists");
             }
         }

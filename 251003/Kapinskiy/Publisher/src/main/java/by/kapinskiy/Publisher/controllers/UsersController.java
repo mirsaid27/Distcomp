@@ -6,6 +6,7 @@ import by.kapinskiy.Publisher.services.UsersService;
 import by.kapinskiy.Publisher.utils.UserValidator;
 import by.kapinskiy.Publisher.utils.exceptions.ValidationException;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -16,14 +17,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class    UsersController {
     private final UsersService usersService;
     private final UserValidator userValidator;
-    @Autowired
-    public UsersController(UsersService usersService, UserValidator validator) {
-        this.usersService = usersService;
-        this.userValidator = validator;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -54,16 +51,14 @@ public class    UsersController {
     // but we shouldn't do that
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public UserResponseDTO updateUser(@RequestBody @Valid UserRequestDTO userRequestDTO, BindingResult bindingResult){
-        validate(userRequestDTO, bindingResult);
+    public UserResponseDTO updateUser(@RequestBody @Valid UserRequestDTO userRequestDTO){
         return usersService.update(userRequestDTO);
     }
 
     // Rest version
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Long updateUser(@PathVariable Long id, @RequestBody @Valid UserRequestDTO userRequestDTO, BindingResult bindingResult){
-        validate(userRequestDTO, bindingResult);
+    public Long updateUser(@PathVariable Long id, @RequestBody @Valid UserRequestDTO userRequestDTO){
         return usersService.update(id, userRequestDTO).getId();
     }
 

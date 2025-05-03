@@ -12,3 +12,7 @@ spring.jpa.properties.hibernate.dialect=
 spring.jpa.properties.hibernate.format_sql=
 
 spring.kafka.bootstrap-servers=
+
+spring.data.redis.host=
+spring.data.redis.port=
+spring.cache.type=
