@@ -1,6 +1,8 @@
 package by.molchan.Publisher.DTOs.Responses;
 
-public class CommentResponseDTO {
+import java.io.Serializable;
+
+public class CommentResponseDTO implements Serializable {
     private long id;
     private Long articleId;
 

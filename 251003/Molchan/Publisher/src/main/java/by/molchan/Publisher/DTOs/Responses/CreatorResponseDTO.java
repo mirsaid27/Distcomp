@@ -1,6 +1,8 @@
 package by.molchan.Publisher.DTOs.Responses;
 
-public class CreatorResponseDTO {
+import java.io.Serializable;
+
+public class CreatorResponseDTO implements Serializable {
     private long id;
     private String login;
     private String password;

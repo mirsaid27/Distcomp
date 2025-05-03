@@ -125,5 +125,10 @@ public class CommentsService {
         commentsRepository.delete(comment);
         return new OutTopicDTO(commentsMapper.toCommentResponse(comment), "APPROVE");
     }
-
+    public CommentResponseDTO update(CommentRequestDTO commentRequestDTO) {
+        Comment comment = commentsMapper.toComment(commentRequestDTO);
+        comment.getKey().setId(commentRequestDTO.getId());
+        comment.getKey().setCountry(country);
+        return commentsMapper.toCommentResponse(commentsRepository.save(comment));
+    }
 }

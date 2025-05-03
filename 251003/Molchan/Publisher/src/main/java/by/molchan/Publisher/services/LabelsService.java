@@ -10,6 +10,7 @@ import by.molchan.Publisher.repositories.LabelsRepository;
 import by.molchan.Publisher.utils.exceptions.NotFoundException;
 import by.molchan.Publisher.utils.mappers.LabelsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,17 +44,21 @@ public class LabelsService {
         return labelsMapper.toLabelResponseList(labelsRepository.findAll());
     }
 
+    @CacheEvict(value = "labels", key = "#id")
+
     public LabelResponseDTO findById(long id) {
         return labelsMapper.toLabelResponse(labelsRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Label with such id does not exist")));
     }
 
+    @CacheEvict(value = "labels", key = "#id")
     public void deleteById(long id) {
         if (!labelsRepository.existsById(id))
             throw new NotFoundException("Label with such id not found");
         labelsRepository.deleteById(id);
     }
 
+    @CacheEvict(value = "labels", key = "#labelRequestDTO.id")
     public LabelResponseDTO update(LabelRequestDTO labelRequestDTO) {
         Label label = labelsMapper.toLabel(labelRequestDTO);
         return labelsMapper.toLabelResponse(labelsRepository.save(label));
