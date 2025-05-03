@@ -1,2 +1,2 @@
 rootProject.name = "rest"
-include("publisher")
+include("publisher", "discussion")

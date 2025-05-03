@@ -10,6 +10,10 @@ import bsuir.dc.publisher.mapper.toResponse
 import bsuir.dc.publisher.repository.IssueRepository
 import bsuir.dc.publisher.repository.WriterRepository
 import jakarta.persistence.criteria.Predicate
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.CachePut
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.annotation.Caching
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -19,22 +23,33 @@ class IssueService(
     private val issueRepository: IssueRepository,
     private val writerRepository: WriterRepository,
 ) {
+    @Caching(
+        evict = [
+            CacheEvict(value = ["issues"], key = "'all_issues'"),
+        ]
+    )
     fun createIssue(issueRequestTo: IssueRequestTo): IssueResponseTo {
         val writer = writerRepository.findById(issueRequestTo.writerId).orElseThrow { NoSuchElementException() }
         val labels = issueRequestTo.labels.map { Label(name = it) }.toMutableSet()
-        val issue =  issueRequestTo.toEntity(writer, labels)
+        val issue = issueRequestTo.toEntity(writer, labels)
         val savedIssue = issueRepository.save(issue)
         return savedIssue.toResponse()
     }
 
+    @Cacheable(value = ["issues"], key = "#id")
     fun getIssueById(id: Long): IssueResponseTo {
         val issue = issueRepository.findById(id).orElseThrow { NoSuchElementException() }
         return issue.toResponse()
     }
 
+    @Cacheable(value = ["issues"], key = "'all_issues'")
     fun getAllIssues(): List<IssueResponseTo> =
         issueRepository.findAll().map { it.toResponse() }
 
+    @Caching(
+        put = [CachePut(value = ["issues"], key = "#id")],
+        evict = [CacheEvict(value = ["issues"], key = "'all_issues'")]
+    )
     fun updateIssue(id: Long, issueRequestTo: IssueRequestTo): IssueResponseTo {
         val writer = writerRepository.findById(issueRequestTo.writerId).orElseThrow { NoSuchElementException() }
         val labels = issueRequestTo.labels.map { Label(name = it) }.toMutableSet()
@@ -45,6 +60,12 @@ class IssueService(
         return issueRepository.save(updatedIssue).toResponse()
     }
 
+    @Caching(
+        evict = [
+            CacheEvict(value = ["issues"], key = "#id"),
+            CacheEvict(value = ["issues"], key = "'all_issues'")
+        ]
+    )
     fun deleteIssue(id: Long) {
         issueRepository.findById(id).orElseThrow { NoSuchElementException() }
         issueRepository.deleteById(id)
