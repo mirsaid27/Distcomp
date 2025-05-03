@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MyApp.Models;
 
 public class PostgresRepository<TEntity> : IGenericRepository<TEntity> where TEntity : BaseEntity
 {

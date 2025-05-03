@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MyApp.Models;
 using System.Net;
 
 [ApiController]
@@ -27,11 +28,11 @@ public class EditorsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { error = "Account already exists" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "An error occurred while creating the editor." });
         }
@@ -49,7 +50,7 @@ public class EditorsController : ControllerBase
             }
             return Ok(editor);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the editor.");
         }
@@ -63,7 +64,7 @@ public class EditorsController : ControllerBase
             var editors = await _editorService.GetAllEditorsAsync();
             return Ok(editors);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving editors.");
         }
@@ -84,7 +85,7 @@ public class EditorsController : ControllerBase
             }
             return Ok(updatedEditor);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the editor.");
         }
@@ -102,7 +103,7 @@ public class EditorsController : ControllerBase
             }
             return NoContent(); 
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while deleting the editor.");
         }

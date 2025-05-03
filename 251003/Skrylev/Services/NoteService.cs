@@ -1,3 +1,5 @@
+﻿using MyApp.Models;
+
 public interface INoteService
 {
     Task<NoteResponseTo> CreateNoteAsync(NoteRequestTo notelDto);
@@ -14,7 +16,7 @@ public class NoteService : INoteService
     public NoteService(
         IGenericRepository<Note> noteRepository,
         IGenericRepository<Story> storyRepository,
-        ILogger<NoteService> logger)
+        ILogger<DiscussionNoteService> logger)
     {
         _noteRepository = noteRepository;
         _storyRepository = storyRepository;
@@ -75,7 +77,7 @@ public class NoteService : INoteService
             throw new KeyNotFoundException("Note not found.");
 
         note.Content = noteDto.Content;
-                
+
         var updatedNote = await _noteRepository.UpdateAsync(note);
         return MapToResponse(updatedNote);
     }

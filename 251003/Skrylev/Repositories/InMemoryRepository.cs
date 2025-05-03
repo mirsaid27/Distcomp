@@ -1,3 +1,5 @@
+using MyApp.Models;
+
 public class InMemoryRepository<TEntity> : IGenericRepository<TEntity> where TEntity : BaseEntity
 {
     private readonly List<TEntity> _entities = new List<TEntity>();
