@@ -14,7 +14,6 @@ namespace Database
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Editor> Editors { get; set; }
-        public DbSet<Note> Notes { get; set; }
         public DbSet<Story> Stories { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<StoryTag> StoryTags { get; set; }
@@ -24,7 +23,6 @@ namespace Database
             modelBuilder.HasDefaultSchema("public");
 
             modelBuilder.Entity<Editor>().ToTable("tbl_editor");
-            modelBuilder.Entity<Note>().ToTable("tbl_note");
             modelBuilder.Entity<Story>().ToTable("tbl_story");
             modelBuilder.Entity<Tag>().ToTable("tbl_tag");
             modelBuilder.Entity<StoryTag>().ToTable("tbl_story_tag");
@@ -33,12 +31,6 @@ namespace Database
             .HasOne(s => s.Editor)
             .WithMany(e => e.Stories)
             .HasForeignKey(s => s.EditorId);
-
-            modelBuilder.Entity<Note>()
-            .HasOne(s => s.Story)
-            .WithMany(e => e.Notes)
-            .HasForeignKey(s => s.StoryId);
-
 
             modelBuilder.Entity<StoryTag>()
             .HasOne(s => s.Story)
