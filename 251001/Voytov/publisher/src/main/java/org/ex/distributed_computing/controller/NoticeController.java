@@ -3,10 +3,12 @@ package org.ex.distributed_computing.controller;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.ex.distributed_computing.dto.request.NoticeRequestDTO;
 import org.ex.distributed_computing.dto.response.NoticeResponseDTO;
 import org.ex.distributed_computing.service.NoticeService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,11 +32,13 @@ public class NoticeController {
   }
 
   @GetMapping("/{id}")
+  @SneakyThrows
   public ResponseEntity<NoticeResponseDTO> getNoticeById(@PathVariable Long id) {
+    Thread.sleep(300);
     return ResponseEntity.ok(noticeService.getNoticeById(id));
   }
 
-  @PostMapping
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<NoticeResponseDTO> createNotice(@Valid @RequestBody NoticeRequestDTO requestDTO) {
     return ResponseEntity.status(HttpStatus.CREATED).body(noticeService.createNotice(requestDTO));
   }

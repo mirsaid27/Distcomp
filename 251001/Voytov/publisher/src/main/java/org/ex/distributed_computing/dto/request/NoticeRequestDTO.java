@@ -2,6 +2,7 @@ package org.ex.distributed_computing.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.ex.distributed_computing.model.EntityStatus;
 
 public record NoticeRequestDTO(
 
@@ -12,7 +13,11 @@ public record NoticeRequestDTO(
 
     @NotNull
     @Size(min = 2, max = 2048)
-    String content
+    String content,
+
+    EntityStatus status,
+
+    String country
 ) {
 
 }

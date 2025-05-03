@@ -1,15 +1,10 @@
 package org.ex.distributed_computing.controller;
 
 import jakarta.validation.Valid;
-import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.ex.distributed_computing.dto.request.AuthorRequestDTO;
-import org.ex.distributed_computing.dto.request.IdDTO;
 import org.ex.distributed_computing.dto.response.AuthorResponseDTO;
-import org.ex.distributed_computing.mapper.AuthorMapper;
-import org.ex.distributed_computing.model.Author;
-import org.ex.distributed_computing.repository.AuthorRepository;
 import org.ex.distributed_computing.service.AuthorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
