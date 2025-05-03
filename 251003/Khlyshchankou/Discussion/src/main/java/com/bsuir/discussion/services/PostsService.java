@@ -127,6 +127,7 @@ public class PostsService {
     public PostResponseDTO update(PostRequestDTO postRequestDTO) {
         Post post = postsMapper.toPost(postRequestDTO);
         post.getKey().setId(postRequestDTO.getId());
+        post.getKey().setCountry(country);
         return postsMapper.toPostResponse(postsRepository.save(post));
     }
 

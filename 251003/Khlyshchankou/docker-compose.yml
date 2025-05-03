@@ -54,6 +54,13 @@ services:
     networks:
       - kafkanet
 
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - kafkanet
+
 networks:
   kafkanet:
     driver: bridge

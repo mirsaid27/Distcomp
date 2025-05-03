@@ -36,4 +36,10 @@ public class PostsController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
         }
     }
+
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public PostResponseDTO updatePost(@RequestBody @Valid PostRequestDTO postRequestDTO) {
+        return postsService.update(postRequestDTO);
+    }
 }

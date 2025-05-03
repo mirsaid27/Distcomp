@@ -1,6 +1,8 @@
 package com.bsuir.dc.dto.response;
 
-public class PostResponseTo {
+import java.io.Serializable;
+
+public class PostResponseTo implements Serializable {
     private long id;
     private long topicId;
     private String content;

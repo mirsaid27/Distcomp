@@ -1,10 +1,11 @@
 package com.bsuir.dc.dto.response;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class TopicResponseTo {
+public class TopicResponseTo implements Serializable {
     private long id;
     private long authorId;
     private String title;

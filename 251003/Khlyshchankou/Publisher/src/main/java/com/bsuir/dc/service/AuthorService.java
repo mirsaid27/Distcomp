@@ -7,6 +7,8 @@ import com.bsuir.dc.repository.AuthorRepository;
 import com.bsuir.dc.util.exception.EntityNotFoundException;
 import com.bsuir.dc.util.mapper.AuthorMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,18 +34,21 @@ public class AuthorService {
     @Transactional(readOnly = true)
     public List<AuthorResponseTo> findAll() { return authorMapper.toAuthorResponseList(authorRepository.findAll()); }
 
+    @Cacheable(value = "authors", key = "#id")
     @Transactional(readOnly = true)
     public AuthorResponseTo findById(long id){
         Author author = authorRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Author not found"));
         return authorMapper.toCreatorResponse(author);
     }
 
+    @CacheEvict(value = "authors", key = "#id")
     @Transactional
     public AuthorResponseTo update(long id, AuthorRequestTo authorRequestTo) {
         authorRequestTo.setId(id);
         return update(authorRequestTo);
     }
 
+    @CacheEvict(value = "authors", key = "#authorRequestTo.id")
     @Transactional
     public AuthorResponseTo update(AuthorRequestTo authorRequestTo) {
         Author author = authorMapper.toAuthor(authorRequestTo);
@@ -51,6 +56,7 @@ public class AuthorService {
         return authorMapper.toCreatorResponse(authorRepository.save(author));
     }
 
+    @CacheEvict(value = "authors", key = "#id")
     @Transactional
     public void deleteById(long id) {
         if (!authorRepository.existsById(id)) { throw new EntityNotFoundException("Author not found"); }
