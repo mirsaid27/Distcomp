@@ -1,8 +1,8 @@
 package by.yelkin.TopicService.mapping;
 
-import by.yelkin.TopicService.dto.topic.TopicRq;
-import by.yelkin.TopicService.dto.topic.TopicRs;
-import by.yelkin.TopicService.dto.topic.TopicUpdateRq;
+import by.yelkin.api.topic.dto.TopicRq;
+import by.yelkin.api.topic.dto.TopicRs;
+import by.yelkin.api.topic.dto.TopicUpdateRq;
 import by.yelkin.TopicService.entity.Mark;
 import by.yelkin.TopicService.entity.Topic;
 import org.mapstruct.BeanMapping;

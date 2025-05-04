@@ -9,3 +9,10 @@ spring:
     password: postgres
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+app:
+  clients:
+    comment:
+      url: localhost:24130
+    topic:
+      url: localhost:24110
