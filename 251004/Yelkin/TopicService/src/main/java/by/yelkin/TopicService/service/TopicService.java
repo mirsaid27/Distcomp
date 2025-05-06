@@ -1,13 +1,13 @@
 package by.yelkin.TopicService.service;
 
-import by.yelkin.TopicService.dto.topic.TopicRq;
-import by.yelkin.TopicService.dto.topic.TopicRs;
-import by.yelkin.TopicService.dto.topic.TopicUpdateRq;
-import by.yelkin.TopicService.exception.ApiError;
-import by.yelkin.TopicService.exception.ApiException;
+import by.yelkin.api.topic.dto.TopicRq;
+import by.yelkin.api.topic.dto.TopicRs;
+import by.yelkin.api.topic.dto.TopicUpdateRq;
 import by.yelkin.TopicService.mapping.TopicMapper;
 import by.yelkin.TopicService.repository.CreatorRepository;
 import by.yelkin.TopicService.repository.TopicRepository;
+import by.yelkin.apihandler.exception.ApiError;
+import by.yelkin.apihandler.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

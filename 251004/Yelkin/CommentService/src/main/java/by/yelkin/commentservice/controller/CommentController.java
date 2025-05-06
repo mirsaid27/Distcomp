@@ -1,10 +1,11 @@
-package by.yelkin.TopicService.controller;
+package by.yelkin.commentservice.controller;
+
 
 import by.yelkin.api.comment.api.CommentApi;
 import by.yelkin.api.comment.dto.CommentRq;
 import by.yelkin.api.comment.dto.CommentRs;
 import by.yelkin.api.comment.dto.CommentUpdateRq;
-import by.yelkin.TopicService.service.CommentService;
+import by.yelkin.commentservice.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 public class CommentController implements CommentApi {
+
     private final CommentService commentService;
 
     @Override
